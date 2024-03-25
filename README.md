@@ -16,3 +16,13 @@ and then build the project with
 ```
 > cmake --build build
 ```
+
+## Running the tests
+
+Once the build has completed, run the tests by moving into the build
+directory and running the CTest executable that comes with CMake.
+
+```
+> cd build
+> ctest
+```
