@@ -170,11 +170,12 @@ void compute_costs(float *costs, ptrdiff_t *conncomps, int32_t *flats,
 
   // Forward scan through the image. Compute local difference between
   // original and filled_dem. If the current pixel is flat, record its
-  // connected component equivalence class in an implicit union-find
-  // data structure and the maximum difference over its equivalence
-  // class.
+  // connected component equivalence class and the maximum elevation
+  // difference over its equivalence class in an implicit union-find
+  // data structure
 
-  // Four neighbors that have already been visited
+  // Offsets to the four neighbors that have already been visited
+  // during the scan
   ptrdiff_t forward_col_offset[4] = {-1, -1, -1, 0};
   ptrdiff_t forward_row_offset[4] = {-1, 0, 1, -1};
 
