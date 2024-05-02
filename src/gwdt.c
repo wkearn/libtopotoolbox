@@ -212,8 +212,7 @@ void compute_costs(float *costs, ptrdiff_t *conncomps, int32_t *flats,
         if (flats[neighbor_pixel] & 1) {
           // Neighbor is a flat, unify it with the current pixel
           // It should have already been inserted, so
-          labeldepth r = unify(conncomps, costs, neighbor_pixel, current_pixel);
-          conncomps[current_pixel] = r.label;
+          unify(conncomps, costs, neighbor_pixel, current_pixel);
         }
       }
     }
