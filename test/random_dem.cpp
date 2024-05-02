@@ -75,10 +75,8 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
       float z = filled_dem[col * nrows + row];
       int32_t flat = flats[col * nrows + row];
-      float depth = z - dem[col * nrows + row];
       float cost = costs[col * nrows + row];
       ptrdiff_t label = conncomps[col * nrows + row];
-      float maxdepth = sqrtf(cost - 0.1f) + depth;  // Invert the cost equation
 
       int32_t current_pixel_on_border =
           row == 0 || row == nrows - 1 || col == 0 || col == ncols - 1;
@@ -98,15 +96,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
           std::cout << "The cost at pixel (" << row << ", " << col
                     << ") is nonpositive" << std::endl;
           return -1;
-        }
-
-        if (maxdepth < depth) {
-          std::cout
-              << "The filled - original depth at pixel (" << row << ", " << col
-              << ") is greater than the max depth used in the cost computation"
-              << std::endl;
-          return -1;
-        }
+        }      
 
         if (label == 0) {
           std::cout << "Pixel (" << row << ", " << col
