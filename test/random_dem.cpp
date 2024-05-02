@@ -96,7 +96,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
           std::cout << "The cost at pixel (" << row << ", " << col
                     << ") is nonpositive" << std::endl;
           return -1;
-        }      
+        }
 
         if (label == 0) {
           std::cout << "Pixel (" << row << ", " << col
