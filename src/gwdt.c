@@ -8,33 +8,34 @@
 
 // Gray-weighted distance transforms for auxiliary topography
 
-// This struct lets us return a connected component label and the
-// corresponding depth.
-typedef struct {
-  ptrdiff_t label;
-  float weight;
-} labeldepth;
-
 /*
   # Cost computation
 
-  To compute the correct costs for the gray-weighted distance
-  transform, the differences between the filled DEM and the original
-  DEM must be subtracted from the maximum depth over each connected
-  component of flat pixels. Computing that maximum depth is done with
-  an algorithm by Wu et al. (2009) and described by He et
-  al. (2017). This algorithm takes two passes over the data. In the
-  first pass, each flat pixel is assigned a provisional label. The
-  labels of neighboring flat pixels are considered /equivalent/
-  because they belong to the same connected component. An /equivalence
-  class/ is a set of equivalent labels. The second pass resolves
+  The costs for the gray-weighted distance transform are given by
+
+  cost[i,j] = (maxdepth - (filled_dem[i,j] - original_dem[i,j]))^tweight +
+  CarveMinVal;
+
+  where maxdepth is the maximum difference between the filled and
+  original DEMs over the connected component of flat pixels to which
+  the (i,j) pixel belongs.
+
+  Computing the maximum depth is done with a connected components
+  labeling algorithm by Wu et al. (2009) and described by He et
+  al. (2017) and related to the Hoshen-Kopelman algorithm (1976). This
+  algorithm takes two passes over the data. In the first pass, each
+  flat pixel is assigned a provisional label. The labels of
+  neighboring flat pixels are considered /equivalent/ because they
+  belong to the same connected component. An /equivalence class/ is a
+  set of equivalent labels that are all equivalent to each
+  other. During the first pass, the algorithm builds a union-find data
+  structure that identifies which equivalence class each pixel belongs
+  to. This data structure is described below. The second pass resolves
   equivalent labels to a unique label per connected component, with
   that label determined by the pixel with the highest difference
   between filled and original DEMs. A third pass over the data
-  computes the costs by subtracting the DEM difference from the
-  maximum depth for the corresponding connected component, squaring
-  the result and adding a small constant to ensure that the costs are
-  nonzero.
+  computes the costs using the maximum depth for each connected
+  component.
 
   # Union-find implementation
 
@@ -43,32 +44,37 @@ typedef struct {
   structure, it is built into the return values of the `compute_costs`
   function, namely a ptrdiff_t array of size (nrows,ncols), which
   holds labels for the connected components, and a float array of the
-  same size, which ultimately holds the costs, but which is used
-  during the algorithm to keep track of the maximum depth over each
-  connected component.
+  same size. The float array ultimately holds the costs returned from
+  the function, but during the algorithm, it is used to keep track
+  of the maximum depth over each connected component.
 
-  The union-find data structure works by using the linear index of
-  each pixel as a label of its connected component. A pixel in the
-  labels array therefore points to another pixel in its equivalence
-  class. If it points to itself, it is called the /root/ of that
-  equivalence class. While scanning through the DEM the first time,
-  the algorithm records which equivalence class flat pixels belong to
-  by /unifying/ the labels of neighboring flat pixels, making them
-  point to the same root. The root is selected so that it has the
+  The union-find data structure uses linear indices of pixels as
+  labels of the connected components. A pixel in the labels array
+  points to another pixel in its equivalence class. If it points to
+  itself, it is called the /root/ of that equivalence class. While
+  scanning through the DEM the first time, the algorithm inserts
+  pixels into the union-find data structure by making them the root of
+  their own equivalence class. It then /unifies/ the labels of
+  neighboring flat pixels by making them point to the same root. The
+  new root of two neighboring pixels is chosen so that it has the
   greatest DEM difference of the flat pixels in its equivalence
   class. The first pass determines the correct equivalence classes of
   each flat pixel. Every chain of labels eventually leads to a root
   pixel with the greatest DEM difference in its connected
   components. However, different pixels in the same connected
-  component may still be labeled with different labels, so a second
-  pass is required to label each pixel with the root of its
-  equivalence class and the corresponding maximum DEM difference.
+  component may still be labeled with different labels. A second pass
+  is required to label each pixel with the root of its equivalence
+  class and the corresponding maximum DEM difference.
 
   # References
 
   He, L., Ren, X., Gao, Q., Zhao, X., Yao, B., & Chao, Y. (2017). The
   connected-component labeling problem: A review of state-of-the-art
   algorithms. Pattern Recognition, 70, 25-43.
+
+  Hoshen, J., & Kopelman, R. (1976). Percolation and cluster
+  distribution. I. Cluster multiple labeling technique and critical
+  concentration algorithm. Physical Review B, 14(8), 3438.
 
   Wu, K., Otoo, E., & Suzuki, K. (2009). Optimizing two-pass
   connected-component labeling algorithms. Pattern Analysis and
@@ -83,6 +89,13 @@ static void new_tree(ptrdiff_t *labels, float *weights, ptrdiff_t pixel,
   labels[pixel] = pixel;
   weights[pixel] = weight;
 }
+
+// This struct lets us return a connected component label and the
+// corresponding depth.
+typedef struct {
+  ptrdiff_t label;
+  float weight;
+} labeldepth;
 
 // To find the root of the disjoint set containing `pixel`, follow the
 // pointers in the `labels` array until reaching a root, where the
