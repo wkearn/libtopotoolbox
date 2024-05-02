@@ -246,10 +246,11 @@ void compute_costs(float *costs, ptrdiff_t *conncomps, int32_t *flats,
       float current_depth =
           filled_dem[current_pixel] - original_dem[current_pixel];
 
-      // NOTE(wsk): tweight and CarveMinVal hardcoded to 0.1
-      costs[current_pixel] = (costs[current_pixel] - current_depth) *
-                                 (costs[current_pixel] - current_depth) +
-                             0.1f;
+      float tweight = 2.0f;
+      float CarveMinVal = 0.1f;
+
+      costs[current_pixel] =
+          powf(costs[current_pixel] - current_depth, tweight) + CarveMinVal;
     }
   }
 }
