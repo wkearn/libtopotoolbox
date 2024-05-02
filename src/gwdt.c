@@ -211,7 +211,13 @@ void compute_costs(float *costs, ptrdiff_t *conncomps, int32_t *flats,
 
         if (flats[neighbor_pixel] & 1) {
           // Neighbor is a flat, unify it with the current pixel
-          // It should have already been inserted, so
+          //
+          // NOTE(wsk): It is possible to unify pixels somewhat more
+          // efficiently by checking whether the neighbors are already
+          // unified. This requires each neighboring pixel to be
+          // checked slightly differently and is more confusing to
+          // read, so it is left for future implementation if
+          // performance improvements are needed.
           unify(conncomps, costs, neighbor_pixel, current_pixel);
         }
       }
