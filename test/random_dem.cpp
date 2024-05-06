@@ -60,7 +60,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   float *costs = new float[nrows * ncols];
 
   // Run flow routing algorithms
-  fillsinks(filled_dem, dem, nrows, ncols);
+  hybrid_fillsinks(filled_dem, dem, conncomps, nrows, ncols);
   ptrdiff_t count_flats = identifyflats(flats, filled_dem, nrows, ncols);
   compute_costs(costs, conncomps, flats, dem, filled_dem, nrows, ncols);
 

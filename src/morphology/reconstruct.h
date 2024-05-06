@@ -4,5 +4,7 @@
 #include <stddef.h>
 
 void reconstruct(float *marker, float *mask, ptrdiff_t nrows, ptrdiff_t ncols);
+void hybrid_reconstruct(float *marker, float *mask, ptrdiff_t *buffer,
+                        ptrdiff_t nrows, ptrdiff_t ncols);
 
 #endif  // TOPOTOOLBOX_MORPHOLOGY_RECONSTRUCT_H
