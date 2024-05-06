@@ -1,7 +1,12 @@
 #include "reconstruct.h"
 
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
+
+// The queue used to propagate in the reconstruction
+// has 1 << QUEUE_EXP elements
+#define QUEUE_EXP 20
 
 // Chris Wellons' queue
 typedef struct {
@@ -9,14 +14,23 @@ typedef struct {
   int32_t tail;
 } Queue;
 
+int32_t queue_full(Queue *q, int32_t exp) {
+  int32_t mask = (1u << exp) - 1;
+  int32_t head = q->head & mask;
+  int32_t tail = q->tail & mask;
+
+  int32_t next = (head + 1u) & mask;
+  return next == tail;
+}
+
 int32_t queue_push(Queue *q, int32_t exp) {
   int32_t mask = (1u << exp) - 1;
   int32_t head = q->head & mask;
   int32_t tail = q->tail & mask;
-    
+
   int32_t next = (head + 1u) & mask;
 
-  if (head & 0x80000000) { // Avoid overflow
+  if (head & 0x80000000) {  // Avoid overflow
     q->head &= ~0x80000000;
   }
 
@@ -25,7 +39,16 @@ int32_t queue_push(Queue *q, int32_t exp) {
   } else {
     q->head += 1;
     return head;
-  }  
+  }
+}
+
+int32_t queue_empty(Queue *q, int32_t exp) {
+  int32_t mask = (1u << exp) - 1;
+
+  int32_t head = q->head & mask;
+  int32_t tail = q->tail & mask;
+
+  return head == tail;
 }
 
 int32_t queue_pop(Queue *q, int32_t exp) {
@@ -40,6 +63,11 @@ int32_t queue_pop(Queue *q, int32_t exp) {
     q->tail += 1;
     return tail;
   }
+}
+
+void queue_reset(Queue *q) {
+  q->head = 0;
+  q->tail = 0;
 }
 
 /*
@@ -127,7 +155,8 @@ ptrdiff_t forward_scan(float *marker, float *mask, ptrdiff_t nrows,
   The new marker pixel value is constrained to lie below the
   corresponding pixel in `mask`.
  */
-ptrdiff_t backward_scan(float *marker, float *mask, ptrdiff_t nrows,
+ptrdiff_t backward_scan(float *marker, float *mask, Queue *queue,
+                        ptrdiff_t *buffer, int32_t queue_exp, ptrdiff_t nrows,
                         ptrdiff_t ncols) {
   // Offsets for the four neighbors
   ptrdiff_t col_offset[4] = {1, 1, 1, 0};
@@ -143,7 +172,9 @@ ptrdiff_t backward_scan(float *marker, float *mask, ptrdiff_t nrows,
 
     // Compute the maximum of the marker at the current pixel and all
     // of its previously visited neighbors
-    float max_height = marker[p];
+    float max_height = -INFINITY;
+    float min_height = INFINITY;
+
     for (ptrdiff_t neighbor = 0; neighbor < 4; neighbor++) {
       ptrdiff_t neighbor_row = row + row_offset[neighbor];
       ptrdiff_t neighbor_col = col + col_offset[neighbor];
@@ -154,20 +185,76 @@ ptrdiff_t backward_scan(float *marker, float *mask, ptrdiff_t nrows,
           neighbor_col >= ncols) {
         continue;
       }
-      max_height = max_height > marker[q] ? max_height : marker[q];
+
+      float v = marker[q];
+
+      max_height = max_height > v ? max_height : v;
+      min_height = min_height < v ? min_height : v;
     }
+
+    // z = max(max_height, marker[p]);
+    float z = max_height > marker[p] ? max_height : marker[p];
 
     // Set the marker at the current pixel to the minimum of the
     // maximum height of the neighborhood and the mask at the current
     // pixel.
+    // z = min(z, mask[p]);
+    z = z < mask[p] ? z : mask[p];
 
-    float z = max_height < mask[p] ? max_height : mask[p];
     if (z != marker[p]) {
       // Increment count only if we change the current pixel
       count++;
       marker[p] = z;
     }
+
+    // < J(p) and J(q) < I(q), then add p to the queue
+    if (min_height < z) {
+      int32_t slot = queue_push(queue, queue_exp);
+      if (slot >= 0) {
+        buffer[slot] = p;
+      }
+
+      // If there is no space in the queue, skip it
+    }
   }
+  return count;
+}
+
+ptrdiff_t propagate(float *marker, float *mask, Queue *queue, ptrdiff_t *buffer,
+                    int32_t queue_exp, ptrdiff_t nrows, ptrdiff_t ncols) {
+  ptrdiff_t count = 0;
+
+  ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+  ptrdiff_t row_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+  int32_t slot;
+  while ((slot = queue_pop(queue, queue_exp)) >= 0) {
+    ptrdiff_t p = buffer[slot];
+    ptrdiff_t col = p / nrows;
+    ptrdiff_t row = p % nrows;
+    for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
+      ptrdiff_t neighbor_row = row + row_offset[neighbor];
+      ptrdiff_t neighbor_col = col + col_offset[neighbor];
+      ptrdiff_t q = neighbor_col * nrows + neighbor_row;
+
+      // Skip pixels outside the boundary
+      if (neighbor_row < 0 || neighbor_row >= nrows || neighbor_col < 0 ||
+          neighbor_col >= ncols) {
+        continue;
+      }
+
+      if ((marker[q] < marker[p]) && (mask[q] != marker[q])) {
+        marker[q] = marker[p] < mask[q] ? marker[p] : mask[q];
+        count++;
+
+        int32_t push_slot = queue_push(queue, queue_exp);
+        if (slot >= 0) {
+          buffer[push_slot] = q;
+        }
+      }
+    }
+  }
+
   return count;
 }
 
@@ -193,12 +280,78 @@ ptrdiff_t backward_scan(float *marker, float *mask, ptrdiff_t nrows,
   https://doi.org/10.1109/83.217222
  */
 void reconstruct(float *marker, float *mask, ptrdiff_t nrows, ptrdiff_t ncols) {
+  const int32_t max_iterations = 1000;
+
   ptrdiff_t n = ncols * nrows;
 
-  const int32_t max_iterations = 1000;
+  // Initialize the queue
+  Queue queue = {0};
+  ptrdiff_t buffer[1 << QUEUE_EXP] = {0};
+
+  n = forward_scan(marker, mask, nrows, ncols);
+  n += backward_scan(marker, mask, &queue, buffer, QUEUE_EXP, nrows, ncols);
+
   for (int32_t iteration = 0; iteration < max_iterations && n > 0;
        iteration++) {
+    if (!queue_full(&queue, QUEUE_EXP)) {
+      // If the queue is less than completely full, run the propagation
+      // algorithm.
+      propagate(marker, mask, &queue, buffer, QUEUE_EXP, nrows, ncols);
+
+      // Can we return here?
+    } else {
+      // Otherwise reset the queue and try the raster scan again
+      queue_reset(&queue);
+    }
     n = forward_scan(marker, mask, nrows, ncols);
-    n += backward_scan(marker, mask, nrows, ncols);
+    n += backward_scan(marker, mask, &queue, buffer, QUEUE_EXP, nrows, ncols);
+  }
+}
+
+void hybrid_reconstruct(float *marker, float *mask, ptrdiff_t *buffer,
+                        ptrdiff_t nrows, ptrdiff_t ncols) {
+  const int32_t max_iterations = 1000;
+  ptrdiff_t n = nrows * ncols;
+
+  // A Bit Twiddling Hack to compute the floor(log2(nrows*ncols));
+  ptrdiff_t v = n;
+  ptrdiff_t queue_exp;
+  ptrdiff_t shift;
+
+  queue_exp = (v > 0xFFFFFFFF) << 5;
+  v >>= queue_exp;
+  shift = (v > 0xFFFF) << 4;
+  v >>= shift;
+  queue_exp |= shift;
+  shift = (v > 0xFF) << 3;
+  v >>= shift;
+  queue_exp |= shift;
+  shift = (v > 0xF) << 2;
+  v >>= shift;
+  queue_exp |= shift;
+  shift = (v > 0x3) << 1;
+  v >>= shift;
+  queue_exp |= shift;
+  queue_exp |= (v >> 1);
+
+  Queue queue = {0};
+
+  n = forward_scan(marker, mask, nrows, ncols);
+  n += backward_scan(marker, mask, &queue, buffer, queue_exp, nrows, ncols);
+
+  for (int32_t iteration = 0; iteration < max_iterations && n > 0;
+       iteration++) {
+    if (!queue_full(&queue, queue_exp)) {
+      // If the queue is less than completely full, run the propagation
+      // algorithm.
+      propagate(marker, mask, &queue, buffer, queue_exp, nrows, ncols);
+
+      // Can we return here?
+    } else {
+      // Otherwise reset the queue and try the raster scan again
+      queue_reset(&queue);
+    }
+    n = forward_scan(marker, mask, nrows, ncols);
+    n += backward_scan(marker, mask, &queue, buffer, queue_exp, nrows, ncols);
   }
 }
