@@ -1,12 +1,11 @@
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <ctime>
-#include <iostream>
+#include <math.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-extern "C" {
 #include "topotoolbox.h"
-}
 
 /*
   PCG4D hash function
@@ -41,20 +40,25 @@ float pcg4d(uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
 }
 
 int main(int argc, char *argv[]) {
-  ptrdiff_t nrows = 100;
-  ptrdiff_t ncols = 200;
+  ptrdiff_t nrows = 200;
+  ptrdiff_t ncols = 400;
 
-  float *original_dem = new float[nrows * ncols];
+  float *original_dem = malloc(sizeof(float)*nrows*ncols);
 
   // Allocate output for fillsinks
-  float *filled_dem = new float[nrows * ncols];
+  float *filled_dem = malloc(sizeof(float)*nrows*ncols);
 
   // Allocate output for identify flats
-  int32_t *flats = new int32_t[nrows * ncols];
+  int32_t *flats = malloc(sizeof(int32_t)*nrows*ncols);
 
   // Allocate output for compute_costs
-  ptrdiff_t *labels = new ptrdiff_t[nrows * ncols];
-  float *costs = new float[nrows * ncols];
+  ptrdiff_t *labels = malloc(sizeof(ptrdiff_t)*nrows*ncols);
+  float *costs = malloc(sizeof(float)*nrows * ncols);
+
+  if (!original_dem || !filled_dem || !flats || !labels || !costs) {
+    printf("Failed to allocate memory");
+    return -1;
+  }
   
   double duration = 0.0;
   for (uint32_t test = 0; test < 100; test++) {
@@ -73,5 +77,6 @@ int main(int argc, char *argv[]) {
     clock_t t2 = clock();
     duration += 1000.0 * (t2 - t1) / CLOCKS_PER_SEC;
   }
-  std::cout << "Duration: " << duration << " ms" << std::endl;
+  printf("Duration: %f ms\n",duration);
+  return 0; 
 }
