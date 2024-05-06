@@ -3,6 +3,45 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// Chris Wellons' queue
+typedef struct {
+  int32_t head;
+  int32_t tail;
+} Queue;
+
+int32_t queue_push(Queue *q, int32_t exp) {
+  int32_t mask = (1u << exp) - 1;
+  int32_t head = q->head & mask;
+  int32_t tail = q->tail & mask;
+    
+  int32_t next = (head + 1u) & mask;
+
+  if (head & 0x80000000) { // Avoid overflow
+    q->head &= ~0x80000000;
+  }
+
+  if (next == tail) {
+    return -1;
+  } else {
+    q->head += 1;
+    return head;
+  }  
+}
+
+int32_t queue_pop(Queue *q, int32_t exp) {
+  int32_t mask = (1u << exp) - 1;
+
+  int32_t head = q->head & mask;
+  int32_t tail = q->tail & mask;
+
+  if (head == tail) {
+    return -1;
+  } else {
+    q->tail += 1;
+    return tail;
+  }
+}
+
 /*
   Perform a partial reconstruction by scanning in the forward
   direction.
