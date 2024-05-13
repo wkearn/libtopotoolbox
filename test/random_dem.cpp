@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -54,8 +55,14 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   // Allocate output for identify flats
   int32_t *flats = new int32_t[nrows * ncols];
 
+  // Allocate output for compute_costs
+  ptrdiff_t *conncomps = new ptrdiff_t[nrows * ncols];
+  float *costs = new float[nrows * ncols];
+
+  // Run flow routing algorithms
   fillsinks(filled_dem, dem, nrows, ncols);
   ptrdiff_t count_flats = identifyflats(flats, filled_dem, nrows, ncols);
+  gwdt_computecosts(costs, conncomps, flats, dem, filled_dem, nrows, ncols);
 
   // Number of flats identified in the test
   ptrdiff_t test_count_flats = 0;
@@ -68,6 +75,8 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
       float z = filled_dem[col * nrows + row];
       int32_t flat = flats[col * nrows + row];
+      float cost = costs[col * nrows + row];
+      ptrdiff_t label = conncomps[col * nrows + row];
 
       int32_t current_pixel_on_border =
           row == 0 || row == nrows - 1 || col == 0 || col == ncols - 1;
@@ -79,6 +88,30 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
         std::cout << "Value: " << z << std::endl;
         std::cout << "DEM: " << dem[col * nrows + row] << std::endl;
         return -1;
+      }
+
+      // Test cost computation
+      if (flat & 1) {
+        if (cost <= 0) {
+          std::cout << "The cost at pixel (" << row << ", " << col
+                    << ") is nonpositive" << std::endl;
+          return -1;
+        }
+
+        if (label == 0) {
+          std::cout << "Pixel (" << row << ", " << col
+                    << ") is a flat but has a connected component label of 0"
+                    << std::endl;
+          return -1;
+        }
+      }
+
+      if (!(flat & 1)) {
+        if (cost != 0) {
+          std::cout << "The cost " << cost << " at nonflat pixel (" << row
+                    << ", " << col << ") is nonzero" << std::endl;
+          return -1;
+        }
       }
 
       // Number of neighbors lower than the current pixel
@@ -106,8 +139,11 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
             neighbor_col >= ncols) {
           continue;
         }
+
         float neighbor_height = filled_dem[neighbor_col * nrows + neighbor_row];
         int32_t neighboring_flat = flats[neighbor_col * nrows + neighbor_row];
+        ptrdiff_t neighbor_label =
+            conncomps[neighbor_col * nrows + neighbor_row];
 
         if (z < neighbor_height) {
           up_neighbor_count++;
@@ -122,6 +158,18 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 
           if (z == neighbor_height) {
             equal_neighboring_flats++;
+          }
+
+          // Flats neighboring other flats should all have the same
+          // connected component label
+          if ((flat & 1) && (neighbor_label != label)) {
+            std::cout << "Pixel (" << row << ", " << col
+                      << ") is a flat bordering another flat with a different "
+                         "connected component label"
+                      << std::endl;
+            std::cout << "Label: " << label << std::endl;
+            std::cout << "Neighbor label: " << neighbor_label << std::endl;
+            return -1;
           }
         }
 
