@@ -1,63 +1,30 @@
 # libtopotoolbox
 
-A C++ library for the analysis of digital elevation models.
+libtopotoolbox is a C library for the analysis of digital elevation
+models that powers TopoToolbox v3. It provides implementations of
+fundamental algorithms for terrain analysis.
 
-## Build instructions
+If you are primarily interested in using TopoToolbox for your work,
+studies or research, you may find the [main TopoToolbox
+documentation](https://topotoolbox.github.io) useful.
 
-From the top level directory of the repository, generate the project
-buildsystem in the `build/` directory by running
+More information about the algorithms provided by libtopotoolbox and
+how to integrate the library into your project is available in the
+[documentation](https://topotoolbox.github.io/libtopotoolbox).
 
-```
-> cmake -B build
-```
+Bindings for libtopotoolbox in higher-level programming languages
+provide a user-friendly interface to the library and enable data
+import and export, visualization and interaction with the geospatial
+data analysis ecosystems of those languages.
 
-and then build the library with
+- [MATLAB](https://github/TopoToolbox/topotoolbox)
+- [Python](https://github/TopoToolbox/pytopotoolbox)
 
-```
-> cmake --build build
-```
+## Contributing
 
-By default, CMake builds a static library. To build a shared library,
-call
+If you would like to contribute to libtopotoolbox, check out the
+[Contribution Guidelines](docs/CONTRIBUTING.md).
 
-```
-> cmake -B build -DBUILD_SHARED_LIBS=ON
-> cmake --build build
-```
 
-## Building and running the tests
 
-libtopotoolbox includes a test suite that can be built alongside the
-library. Turn on the `TT_BUILD_TESTS` option to build the tests as well:
 
-```
-> cmake -B build -DTT_BUILD_TESTS=ON
-> cmake --build build
-```
-
-Tests can then be run with
-
-```
-> cd build
-> ctest
-```
-
-## Installing the library
-
-If the library is built in the `build/` directory, it can be installed
-using
-
-```
-> cmake --install build
-```
-
-This will attempt to install the library globally, which may require
-administrator privileges. To install to a local path, run
-
-```
-> cmake --install build --prefix /path/to/local/installation
-```
-
-or pass the option
-`-DCMAKE_INSTALL_PREFIX=/path/to/local/installation` to the initial
-`cmake -B build` command.
