@@ -1,6 +1,6 @@
 find_package(Doxygen REQUIRED)
 
-set(DOXYGEN_INPUT_DIR "${PROJECT_SOURCE_DIR}/src")
+set(DOXYGEN_INPUT_DIR "${PROJECT_SOURCE_DIR}/include")
 set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen")
 set(DOXYGEN_INDEX_FILE "${CMAKE_CURRENT_SOURCE_DIR}/html/index.html")
 set(DOXYFILE_IN "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in")
@@ -20,3 +20,19 @@ add_custom_command(
 )
 
 add_custom_target(Doxygen ALL DEPENDS ${DOXYGEN_INDEX_FILE})
+
+# Sphinx configuration
+
+find_package(Sphinx REQUIRED)
+
+set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR})
+set(SPHINX_BUILD "${CMAKE_CURRENT_BINARY_DIR}/docs/sphinx")
+
+add_custom_target(Sphinx ALL
+  COMMAND
+  ${SPHINX_EXECUTABLE} -b html
+  -Dbreathe_projects.TopoToolbox="${DOXYGEN_OUTPUT_DIR}/xml"
+  ${SPHINX_SOURCE} ${SPHINX_BUILD}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMENT "Generating documentation with Sphinx"
+)
