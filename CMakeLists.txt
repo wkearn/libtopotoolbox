@@ -6,6 +6,8 @@ project(
   LANGUAGES C CXX
 )
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -31,6 +33,8 @@ add_subdirectory(src)
 if (TT_BUILD_TESTS)
   add_subdirectory(test)
 endif()
+
+add_subdirectory(docs)
 
 
 # CMake package configuration
