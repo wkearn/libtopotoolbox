@@ -17,8 +17,8 @@ provide a user-friendly interface to the library and enable data
 import and export, visualization and interaction with the geospatial
 data analysis ecosystems of those languages.
 
-- [MATLAB](https://github/TopoToolbox/topotoolbox)
-- [Python](https://github/TopoToolbox/pytopotoolbox)
+- [MATLAB](https://github.com/TopoToolbox/topotoolbox)
+- [Python](https://github.com/TopoToolbox/pytopotoolbox)
 
 ## Contributing
 
