@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'TopoToolbox'
+project = 'libtopotoolbox'
 copyright = '2024, TopoToolbox Team'
 author = 'TopoToolbox Team'
 
@@ -28,7 +28,8 @@ author = 'TopoToolbox Team'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'breathe'
+    'breathe',
+    'myst_parser'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -45,7 +46,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_book_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -53,6 +54,9 @@ html_theme = 'alabaster'
 html_static_path = ['_static']
 
 html_logo = 'logo.png'
+
+html_theme_options = {
+}
 
 # Breathe configuration
 breathe_default_project = "TopoToolbox"
