@@ -1,7 +1,6 @@
 /**
    @file topotoolbox.h
-   @author William Kearney <william.kearney@uni-potsdam.de>
-   @version 3.0
+   @version 3.0.0
  
    @brief Public API for libtopotoolbox
  */
