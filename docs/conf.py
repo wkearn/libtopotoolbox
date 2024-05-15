@@ -54,3 +54,11 @@ html_static_path = ['_static']
 
 # Breathe configuration
 breathe_default_project = "TopoToolbox"
+
+c_id_attributes = ["TOPOTOOLBOX_API"]
+
+breathe_domain_by_extension = {
+    "h" : "c",
+    "c" : "c",
+    "cpp" : "cpp"
+}
