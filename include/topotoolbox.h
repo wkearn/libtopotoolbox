@@ -122,4 +122,9 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
                        float *original_dem, float *filled_dem, ptrdiff_t nrows,
                        ptrdiff_t ncols);
 
+TOPOTOOLBOX_API
+int32_t excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
+                         float *dem, float *threshold, float cellsize,
+                         ptrdiff_t nrows, ptrdiff_t ncols);
+
 #endif  // TOPOTOOLBOX_H
