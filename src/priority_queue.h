@@ -1,3 +1,6 @@
+#ifndef TOPOTOOLBOX_PRIORITY_QUEUE_H
+#define TOPOTOOLBOX_PRIORITY_QUEUE_H
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -41,3 +44,5 @@ void pq_decrease_key(PriorityQueue *q, ptrdiff_t idx, float new_priority);
 
 // For testing
 int32_t pq_hasminheap(PriorityQueue *q);
+
+#endif // TOPOTOOLBOX_PRIORITY_QUEUE_H
