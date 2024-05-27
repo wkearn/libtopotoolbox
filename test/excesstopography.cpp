@@ -45,16 +45,49 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
       threshold[idx] = 1.0f / sqrtf(3.0);  // 30 degree threshold
     }
   }
-  excesstopography(excess, heap, back, dem, threshold, 30.0, nrows, ncols);
+  float cellsize = 30.0;
+  excesstopography(excess, heap, back, dem, threshold, cellsize, nrows, ncols);
 
   for (ptrdiff_t col = 0; col < ncols; col++) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
       ptrdiff_t idx = col * nrows + row;
+
       if (excess[idx] > dem[idx]) {
         std::cout << "Seed (" << seed << "): Pixel (" << row << ", " << col
                   << ") excess topography is greater than DEM" << std::endl;
         return -1;
       };
+
+      // Test the upwind gradient
+      if (col > 0 && col < ncols - 1 && row > 0 && row < nrows - 1) {
+        float north_gradient =
+            (excess[col * nrows + row] - excess[col * nrows + row - 1]) /
+            cellsize;
+        float south_gradient =
+            (excess[col * nrows + row - 1] - excess[col * nrows + row]) /
+            cellsize;
+
+        float ns_gradient =
+            std::fmaxf(0.0f, std::fmaxf(north_gradient, -south_gradient));
+
+        float west_gradient =
+            (excess[col * nrows + row] - excess[(col - 1) * nrows + row]) /
+            cellsize;
+        float east_gradient =
+            (excess[(col + 1) * nrows + row] - excess[col * nrows + row]) /
+            cellsize;
+
+        float ew_gradient =
+            std::fmaxf(0.0f, std::fmaxf(west_gradient, -east_gradient));
+        float g = ns_gradient * ns_gradient + ew_gradient * ew_gradient;
+
+        if (g > 1.0f / threshold[col * nrows + row]) {
+          std::cout << "Seed (" << seed << "): Pixel (" << row << ", " << col
+                    << ") discrete gradient " << g
+                    << " is greater than threshold" << std::endl;
+          return -1;
+        };
+      }
     }
   }
 
@@ -67,7 +100,7 @@ int main(int argc, char *argv[]) {
 
   for (uint32_t test = 0; test < 100; test++) {
     int32_t result = random_dem_test(nrows, ncols, test);
-    if (result < 0)  {
+    if (result < 0) {
       return result;
     }
   }
