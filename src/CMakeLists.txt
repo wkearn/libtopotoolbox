@@ -4,6 +4,7 @@ add_library(topotoolbox
   identifyflats.c
   gwdt.c
   morphology/reconstruct.c
+  priority_queue.c
   excesstopography.c
 )
 
