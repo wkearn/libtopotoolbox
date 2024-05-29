@@ -17,6 +17,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 OPTION(TT_BUILD_TESTS "Build libtopotoolbox tests" OFF)
+OPTION(TT_BUILD_DOCS "Build libtopotoolbox documentation" OFF)
 
 include(CTest)
 include(GNUInstallDirs)
@@ -34,7 +35,9 @@ if (TT_BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
-add_subdirectory(docs)
+if (TT_BUILD_DOCS)
+  add_subdirectory(docs)
+endif()
 
 
 # CMake package configuration

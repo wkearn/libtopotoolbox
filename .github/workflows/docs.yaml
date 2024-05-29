@@ -16,7 +16,7 @@ jobs:
           sudo apt install doxygen python3-sphinx python3-breathe python3-myst-parser python3-sphinx-book-theme
       - name: Configure
         run: >
-          cmake -B ${{github.workspace}}/build
+          cmake -B ${{github.workspace}}/build -DTT_BUILD_DOCS=ON
       - name: Build
         run: cmake --build ${{github.workspace}}/build --target docs
       - name: Package artifact

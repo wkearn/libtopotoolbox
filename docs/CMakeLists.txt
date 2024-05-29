@@ -40,5 +40,5 @@ add_custom_command(
   COMMENT "Generating documentation with Sphinx"
 )
 
-add_custom_target(docs DEPENDS ${SPHINX_INDEX_FILE})
+add_custom_target(docs ALL DEPENDS ${SPHINX_INDEX_FILE})
 
