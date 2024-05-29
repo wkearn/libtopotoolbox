@@ -1,7 +1,7 @@
 /**
    @file topotoolbox.h
    @version 3.0.0
- 
+
    @brief Public API for libtopotoolbox
  */
 #ifndef TOPOTOOLBOX_H
@@ -49,7 +49,6 @@ int has_topotoolbox(void);
  */
 TOPOTOOLBOX_API
 void fillsinks(float *output, float *dem, ptrdiff_t nrows, ptrdiff_t ncols);
-
 
 /**
    @brief Labels flat, sill and presill pixels in the provided DEM
