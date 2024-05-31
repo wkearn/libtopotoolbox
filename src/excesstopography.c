@@ -26,9 +26,71 @@ float eikonal_update(float *solution, float fi, ptrdiff_t i, ptrdiff_t j,
 }
 
 TOPOTOOLBOX_API
-void excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
-                         float *dem, float *threshold, float cellsize,
-                         ptrdiff_t nrows, ptrdiff_t ncols) {
+void fsm_excesstopography(float *excess, float *dem, float *threshold,
+                          float cellsize, ptrdiff_t nrows, ptrdiff_t ncols) {
+  // Initialize excess == dem
+  for (ptrdiff_t col = 0; col < ncols; col++) {
+    for (ptrdiff_t row = 0; row < nrows; row++) {
+      excess[col * nrows + row] = dem[col * nrows + row];
+    }
+  }
+  ptrdiff_t count = nrows * ncols;
+
+  while (count > 0) {
+    count = 0;
+    // Sweep 1
+    for (ptrdiff_t col = 1; col < ncols - 1; col++) {
+      for (ptrdiff_t row = 1; row < nrows - 1; row++) {
+        float fi = cellsize * threshold[col * nrows + row];
+        float proposal = eikonal_update(excess, fi, row, col, nrows, ncols);
+        if (proposal < excess[col * nrows + row]) {
+          excess[col * nrows + row] = proposal;
+          count += 1;
+        }
+      }
+    }
+
+    for (ptrdiff_t col = ncols - 2; col > 0; col--) {
+      for (ptrdiff_t row = 1; row < nrows - 1; row++) {
+        float fi = cellsize * threshold[col * nrows + row];
+        float proposal = eikonal_update(excess, fi, row, col, nrows, ncols);
+        if (proposal < excess[col * nrows + row]) {
+          excess[col * nrows + row] = proposal;
+          count += 1;
+        }
+      }
+    }
+
+    // Sweep 3
+    for (ptrdiff_t col = ncols - 2; col > 0; col--) {
+      for (ptrdiff_t row = nrows - 2; row > 0; row--) {
+        float fi = cellsize * threshold[col * nrows + row];
+        float proposal = eikonal_update(excess, fi, row, col, nrows, ncols);
+        if (proposal < excess[col * nrows + row]) {
+          excess[col * nrows + row] = proposal;
+          count += 1;
+        }
+      }
+    }
+
+    // Sweep 4
+    for (ptrdiff_t col = 1; col < ncols - 1; col++) {
+      for (ptrdiff_t row = nrows - 2; row > 0; row--) {
+        float fi = cellsize * threshold[col * nrows + row];
+        float proposal = eikonal_update(excess, fi, row, col, nrows, ncols);
+        if (proposal < excess[col * nrows + row]) {
+          excess[col * nrows + row] = proposal;
+          count += 1;
+        }
+      }
+    }
+  }
+}
+
+TOPOTOOLBOX_API
+void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
+                          float *dem, float *threshold, float cellsize,
+                          ptrdiff_t nrows, ptrdiff_t ncols) {
   // Initialize the arrays
   // Pixels start with the elevation given by the DEM
   for (ptrdiff_t j = 0; j < ncols; j++) {
@@ -52,7 +114,7 @@ void excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     // Neighbors are only visited if they are not boundary pixels
 
     // South neighbor
-    if (row < nrows-1 && excess[col * nrows + row + 1] >= trial_elevation) {
+    if (row < nrows - 1 && excess[col * nrows + row + 1] >= trial_elevation) {
       float f = cellsize * threshold[col * nrows + row + 1];
       float proposal =
           eikonal_update(q.priorities, f, row + 1, col, nrows, ncols);
