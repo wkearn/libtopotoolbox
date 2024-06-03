@@ -168,14 +168,14 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
 
   while (!pq_isempty(&q)) {
     ptrdiff_t trial = pq_deletemin(&q);
-    //float trial_elevation = pq_get_priority(&q, trial);
+    float trial_elevation = pq_get_priority(&q, trial);
 
     ptrdiff_t col = trial / nrows;
     ptrdiff_t row = trial % nrows;
 
     // South neighbor
-    if (row < nrows - 1 && back[col * nrows + row + 1] >= 0) {
-      float current_elevation = excess[col * nrows + row + 1];
+    if (row < nrows - 1 && pq_get_priority(&q,col * nrows + row + 1) >= trial_elevation) {
+      float current_elevation = pq_get_priority(&q,col * nrows + row + 1);
       int layer = 0;
       // If the current elevation is greater than the top of the
       // lithstack, use the top layer
@@ -187,12 +187,18 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
       float fi = cellsize * threshold_slopes[layer];
       float proposal =
           eikonal_update(q.priorities, fi, row + 1, col, nrows, ncols);
-      pq_decrease_key(&q, col * nrows + row + 1, proposal);
+      if (proposal < current_elevation && q.back[col * nrows + row + 1] < 0) {
+        // This node had previously be deleted, reinsert
+        pq_insert(&q,col * nrows + row + 1,proposal);
+      } else {
+        pq_decrease_key(&q, col * nrows + row + 1, proposal);
+      }
+      
     }
 
     // North neighbor
-    if (row > 0 && back[col * nrows + row - 1] >= 0) {
-      float current_elevation = excess[col * nrows + row - 1];
+    if (row > 0 && pq_get_priority(&q,col * nrows + row - 1) >= trial_elevation) {
+      float current_elevation = pq_get_priority(&q, col * nrows + row - 1);
       int layer = 0;
       while (layer < (nlayers - 1) &&
              current_elevation >=
@@ -202,12 +208,16 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
       float fi = cellsize * threshold_slopes[layer];
       float proposal =
           eikonal_update(q.priorities, fi, row - 1, col, nrows, ncols);
+      if (proposal < current_elevation && q.back[col * nrows + row - 1] < 0) {
+        pq_insert(&q, col * nrows + row - 1,proposal);
+      } else {
       pq_decrease_key(&q, col * nrows + row - 1, proposal);
+      }      
     }
 
     // East neighbor
-    if (col < ncols - 1 && back[(col + 1) * nrows + row] >= 0) {
-      float current_elevation = excess[(col + 1) * nrows + row];
+    if (col < ncols - 1 && pq_get_priority(&q,(col + 1) * nrows + row) >= trial_elevation) {
+      float current_elevation = pq_get_priority(&q, (col + 1) * nrows + row);
       int layer = 0;
       while (layer < (nlayers - 1) &&
              current_elevation >=
@@ -217,12 +227,16 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
       float fi = cellsize * threshold_slopes[layer];
       float proposal =
           eikonal_update(q.priorities, fi, row, col + 1, nrows, ncols);
-      pq_decrease_key(&q, (col + 1) * nrows + row, proposal);
+      if (proposal < current_elevation && q.back[(col + 1) * nrows + row] < 0) {
+        pq_insert(&q, (col + 1) * nrows + row, proposal);
+      } else {
+        pq_decrease_key(&q, (col + 1) * nrows + row, proposal);
+      }
     }
 
     // West neighbor
-    if (col > 0 && back[(col - 1) * nrows + row] >= 0) {
-      float current_elevation = excess[(col - 1) * nrows + row];
+    if (col > 0 && pq_get_priority(&q, (col - 1) * nrows + row) >= trial_elevation) {
+      float current_elevation = pq_get_priority(&q, (col - 1) * nrows + row);
       int layer = 0;
       while (layer < (nlayers - 1) &&
              current_elevation >=
@@ -232,7 +246,12 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
       float fi = cellsize * threshold_slopes[layer];
       float proposal =
           eikonal_update(q.priorities, fi, row, col - 1, nrows, ncols);
-      pq_decrease_key(&q, (col - 1) * nrows + row, proposal);
+      if (proposal < current_elevation && q.back[(col - 1) * nrows + row] < 0) {
+        pq_insert(&q, (col - 1) * nrows + row, proposal);
+      } else {
+        pq_decrease_key(&q, (col - 1) * nrows + row, proposal);
+      }
+      
     }
   }
 }
