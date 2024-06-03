@@ -67,8 +67,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
       dem[idx] = 100.0f * pcg4d(row, col, seed, 0);
       fsm_excess[idx] = dem[idx];
       fmm_excess[idx] = dem[idx];
-      threshold[idx] = 1.0f / sqrtf(3.0f);
-          
+      threshold[idx] = pcg4d(row, col, seed, 1);
     }
   }
   float cellsize = 30.0;
