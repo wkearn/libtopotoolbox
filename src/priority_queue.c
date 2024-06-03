@@ -109,7 +109,7 @@ ptrdiff_t pq_deletemin(PriorityQueue *q) {
     swap(q, 0, q->count);
     siftdown(q, 0);
   }
-
+  q->back[root] = -1; // Sentinel value for deleted values
   return root;
 }
 

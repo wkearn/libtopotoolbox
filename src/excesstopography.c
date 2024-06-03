@@ -168,13 +168,13 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
 
   while (!pq_isempty(&q)) {
     ptrdiff_t trial = pq_deletemin(&q);
-    float trial_elevation = pq_get_priority(&q, trial);
+    //float trial_elevation = pq_get_priority(&q, trial);
 
     ptrdiff_t col = trial / nrows;
     ptrdiff_t row = trial % nrows;
 
     // South neighbor
-    if (row < nrows - 1 && excess[col * nrows + row + 1] >= trial_elevation) {
+    if (row < nrows - 1 && back[col * nrows + row + 1] >= 0) {
       float current_elevation = excess[col * nrows + row + 1];
       int layer = 0;
       // If the current elevation is greater than the top of the
@@ -191,7 +191,7 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     }
 
     // North neighbor
-    if (row > 0 && excess[col * nrows + row - 1] >= trial_elevation) {
+    if (row > 0 && back[col * nrows + row - 1] >= 0) {
       float current_elevation = excess[col * nrows + row - 1];
       int layer = 0;
       while (layer < (nlayers - 1) &&
@@ -206,7 +206,7 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     }
 
     // East neighbor
-    if (col > ncols - 1 && excess[(col + 1) * nrows + row] >= trial_elevation) {
+    if (col < ncols - 1 && back[(col + 1) * nrows + row] >= 0) {
       float current_elevation = excess[(col + 1) * nrows + row];
       int layer = 0;
       while (layer < (nlayers - 1) &&
@@ -221,7 +221,7 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     }
 
     // West neighbor
-    if (col > 0 && excess[(col - 1) * nrows + row] >= trial_elevation) {
+    if (col > 0 && back[(col - 1) * nrows + row] >= 0) {
       float current_elevation = excess[(col - 1) * nrows + row];
       int layer = 0;
       while (layer < (nlayers - 1) &&
