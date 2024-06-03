@@ -131,4 +131,11 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                           float *dem, float *threshold, float cellsize,
                           ptrdiff_t nrows, ptrdiff_t ncols);
 
+TOPOTOOLBOX_API
+void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
+                            float *dem, float *lithstack,
+                            float *threshold_slopes, float cellsize,
+                            ptrdiff_t nrows, ptrdiff_t ncols,
+                            ptrdiff_t nlayers);
+
 #endif  // TOPOTOOLBOX_H
