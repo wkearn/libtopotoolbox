@@ -174,84 +174,60 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     ptrdiff_t row = trial % nrows;
 
     // South neighbor
-    if (row < nrows - 1 && pq_get_priority(&q,col * nrows + row + 1) >= trial_elevation) {
-      float current_elevation = pq_get_priority(&q,col * nrows + row + 1);
-      int layer = 0;
-      // If the current elevation is greater than the top of the
-      // lithstack, use the top layer
-      while (layer < (nlayers - 1) &&
-             current_elevation >=
-                 lithstack[(col * nrows + row + 1) * nlayers + layer]) {
-        layer++;
+    if (row < nrows - 1 &&
+        pq_get_priority(&q, col * nrows + row + 1) >= trial_elevation) {
+      float proposal = pq_get_priority(&q, col * nrows + row + 1);
+      for (int layer = 0; layer < nlayers; layer++) {
+        float fi = cellsize * threshold_slopes[layer];
+        proposal = eikonal_update(q.priorities, fi, row + 1, col, nrows, ncols);
+        if (proposal < lithstack[(col * nrows + row + 1) * nlayers + layer]) {
+          pq_decrease_key(&q, col * nrows + row + 1, proposal);
+          break;
+        }
       }
-      float fi = cellsize * threshold_slopes[layer];
-      float proposal =
-          eikonal_update(q.priorities, fi, row + 1, col, nrows, ncols);
-      if (proposal < current_elevation && q.back[col * nrows + row + 1] < 0) {
-        // This node had previously be deleted, reinsert
-        pq_insert(&q,col * nrows + row + 1,proposal);
-      } else {
-        pq_decrease_key(&q, col * nrows + row + 1, proposal);
-      }
-      
     }
 
     // North neighbor
-    if (row > 0 && pq_get_priority(&q,col * nrows + row - 1) >= trial_elevation) {
-      float current_elevation = pq_get_priority(&q, col * nrows + row - 1);
-      int layer = 0;
-      while (layer < (nlayers - 1) &&
-             current_elevation >=
-                 lithstack[(col * nrows + row - 1) * nlayers + layer]) {
-        layer++;
+    if (row > 0 &&
+        pq_get_priority(&q, col * nrows + row - 1) >= trial_elevation) {
+      float proposal = pq_get_priority(&q, col * nrows + row - 1);
+      for (int layer = 0; layer < nlayers; layer++) {
+        float fi = cellsize * threshold_slopes[layer];
+        proposal = eikonal_update(q.priorities, fi, row - 1, col, nrows, ncols);
+        if (proposal < lithstack[(col * nrows + row - 1) * nlayers + layer]) {
+          pq_decrease_key(&q, col * nrows + row - 1, proposal);
+          break;
+        }
       }
-      float fi = cellsize * threshold_slopes[layer];
-      float proposal =
-          eikonal_update(q.priorities, fi, row - 1, col, nrows, ncols);
-      if (proposal < current_elevation && q.back[col * nrows + row - 1] < 0) {
-        pq_insert(&q, col * nrows + row - 1,proposal);
-      } else {
-      pq_decrease_key(&q, col * nrows + row - 1, proposal);
-      }      
     }
 
     // East neighbor
-    if (col < ncols - 1 && pq_get_priority(&q,(col + 1) * nrows + row) >= trial_elevation) {
-      float current_elevation = pq_get_priority(&q, (col + 1) * nrows + row);
-      int layer = 0;
-      while (layer < (nlayers - 1) &&
-             current_elevation >=
-                 lithstack[((col + 1) * nrows + row) * nlayers + layer]) {
-        layer++;
-      }
-      float fi = cellsize * threshold_slopes[layer];
-      float proposal =
-          eikonal_update(q.priorities, fi, row, col + 1, nrows, ncols);
-      if (proposal < current_elevation && q.back[(col + 1) * nrows + row] < 0) {
-        pq_insert(&q, (col + 1) * nrows + row, proposal);
-      } else {
-        pq_decrease_key(&q, (col + 1) * nrows + row, proposal);
+    if (col < ncols - 1 &&
+        pq_get_priority(&q, (col + 1) * nrows + row) >= trial_elevation) {
+      float proposal = pq_get_priority(&q, (col + 1) * nrows + row);
+
+      for (int layer = 0; layer < nlayers; layer++) {
+        float fi = cellsize * threshold_slopes[layer];
+        proposal = eikonal_update(q.priorities, fi, row, col + 1, nrows, ncols);
+        if (proposal < lithstack[((col + 1) * nrows + row) * nlayers + layer]) {
+          pq_decrease_key(&q, (col + 1) * nrows + row, proposal);
+          break;
+        }
       }
     }
 
     // West neighbor
-    if (col > 0 && pq_get_priority(&q, (col - 1) * nrows + row) >= trial_elevation) {
-      float current_elevation = pq_get_priority(&q, (col - 1) * nrows + row);
-      int layer = 0;
-      while (layer < (nlayers - 1) &&
-             current_elevation >=
-                 lithstack[((col - 1) * nrows + row) * nlayers + layer]) {
-        layer++;
+    if (col > 0 &&
+        pq_get_priority(&q, (col - 1) * nrows + row) >= trial_elevation) {
+      float proposal = pq_get_priority(&q, (col - 1) * nrows + row);
+      for (int layer = 0; layer < nlayers; layer++) {
+        float fi = cellsize * threshold_slopes[layer];
+        proposal = eikonal_update(q.priorities, fi, row, col - 1, nrows, ncols);
+        if (proposal < lithstack[((col - 1) * nrows + row) * nlayers + layer]) {
+          pq_decrease_key(&q, (col - 1) * nrows + row, proposal);
+          break;
+        }
       }
-      float fi = cellsize * threshold_slopes[layer];
-      float proposal =
-          eikonal_update(q.priorities, fi, row, col - 1, nrows, ncols);
-      if (proposal < current_elevation && q.back[(col - 1) * nrows + row] < 0) {
-        pq_insert(&q, (col - 1) * nrows + row, proposal);
-      } else {
-        pq_decrease_key(&q, (col - 1) * nrows + row, proposal);
-      }
-      
     }
   }
 }
