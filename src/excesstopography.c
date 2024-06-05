@@ -113,9 +113,13 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold_slopes,
   }
 }
 
+/*
+  Compute the two-dimensional excess topography by solving the eikonal
+  equation with the fast marching method.
+ */
 TOPOTOOLBOX_API
 void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
-                          float *dem, float *threshold, float cellsize,
+                          float *dem, float *threshold_slopes, float cellsize,
                           ptrdiff_t nrows, ptrdiff_t ncols) {
   // Initialize the arrays
   // Pixels start with the elevation given by the DEM
@@ -127,6 +131,9 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
       heap[idx] = idx;
     }
   }
+
+  // Initialize a priority queue.
+  // See priority_queue.h for more details
   ptrdiff_t count = ncols * nrows;
   PriorityQueue q = pq_create(count, heap, back, excess, 1);
 
@@ -137,37 +144,35 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     ptrdiff_t col = trial / nrows;
     ptrdiff_t row = trial % nrows;
 
-    // Neighbors are only visited if they are not boundary pixels
-
     // South neighbor
     if (row < nrows - 1 && excess[col * nrows + row + 1] >= trial_elevation) {
-      float f = cellsize * threshold[col * nrows + row + 1];
+      float fi = cellsize * threshold_slopes[col * nrows + row + 1];
       float proposal =
-          eikonal_solver(q.priorities, f, row + 1, col, nrows, ncols);
+          eikonal_solver(q.priorities, fi, row + 1, col, nrows, ncols);
       pq_decrease_key(&q, col * nrows + row + 1, proposal);
     }
 
     // North neighbor
     if (row > 0 && excess[col * nrows + row - 1] >= trial_elevation) {
-      float f = cellsize * threshold[col * nrows + row - 1];
+      float fi = cellsize * threshold_slopes[col * nrows + row - 1];
       float proposal =
-          eikonal_solver(q.priorities, f, row - 1, col, nrows, ncols);
+          eikonal_solver(q.priorities, fi, row - 1, col, nrows, ncols);
       pq_decrease_key(&q, col * nrows + row - 1, proposal);
     }
 
     // East neighbor
     if (col < ncols - 1 && excess[(col + 1) * nrows + row] >= trial_elevation) {
-      float f = cellsize * threshold[(col + 1) * nrows + row];
+      float fi = cellsize * threshold_slopes[(col + 1) * nrows + row];
       float proposal =
-          eikonal_solver(q.priorities, f, row, col + 1, nrows, ncols);
+          eikonal_solver(q.priorities, fi, row, col + 1, nrows, ncols);
       pq_decrease_key(&q, (col + 1) * nrows + row, proposal);
     }
 
     // West neighbor
     if (col > 0 && excess[(col - 1) * nrows + row] >= trial_elevation) {
-      float f = cellsize * threshold[(col - 1) * nrows + row];
+      float fi = cellsize * threshold_slopes[(col - 1) * nrows + row];
       float proposal =
-          eikonal_solver(q.priorities, f, row, col - 1, nrows, ncols);
+          eikonal_solver(q.priorities, fi, row, col - 1, nrows, ncols);
       pq_decrease_key(&q, (col - 1) * nrows + row, proposal);
     }
   }

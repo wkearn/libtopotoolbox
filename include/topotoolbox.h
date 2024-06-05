@@ -128,7 +128,7 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold_slopes,
 
 TOPOTOOLBOX_API
 void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
-                          float *dem, float *threshold, float cellsize,
+                          float *dem, float *threshold_slopes, float cellsize,
                           ptrdiff_t nrows, ptrdiff_t ncols);
 
 TOPOTOOLBOX_API
