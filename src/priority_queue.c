@@ -3,11 +3,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define assert(c)     \
-  if (!(c)) {         \
-    __builtin_trap(); \
-  }
-
 float pq_get_priority(PriorityQueue *q, ptrdiff_t key) {
   return q->priorities[key];
 }
@@ -35,8 +30,6 @@ static void swap(PriorityQueue *q, ptrdiff_t node1, ptrdiff_t node2) {
 }
 
 static void siftup(PriorityQueue *q, ptrdiff_t position) {
-  assert(0 <= position && position < q->count);
-
   while (position > 0) {
     ptrdiff_t node = parent(position);
     if (q->priorities[q->heap[node]] < q->priorities[q->heap[position]]) {
@@ -48,8 +41,6 @@ static void siftup(PriorityQueue *q, ptrdiff_t position) {
 }
 
 static void siftdown(PriorityQueue *q, ptrdiff_t position) {
-  assert(0 <= position && position < q->count);
-
   while (!isleaf(q, position)) {
     ptrdiff_t child = left_child(position);
 
@@ -91,7 +82,6 @@ PriorityQueue pq_create(ptrdiff_t max_size, ptrdiff_t heap[max_size],
 }
 
 void pq_insert(PriorityQueue *q, ptrdiff_t key, float priority) {
-  assert(q->count < q->max_size);
 
   q->back[key] = q->count;
   q->heap[q->count] = key;
@@ -100,7 +90,6 @@ void pq_insert(PriorityQueue *q, ptrdiff_t key, float priority) {
 }
 
 ptrdiff_t pq_deletemin(PriorityQueue *q) {
-  assert(q->count > 0);
 
   ptrdiff_t root = q->heap[0];
   q->count--;
