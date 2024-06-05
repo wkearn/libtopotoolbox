@@ -5,18 +5,34 @@
 #include "priority_queue.h"
 #include "topotoolbox.h"
 
-float eikonal_update(float *solution, float fi, ptrdiff_t i, ptrdiff_t j,
+/*
+  Propose an updated value for pixel (i,j) based on the upwind
+  discretization of the eikonal equation.
+
+  fi is cellsize/f[i,j] or cellsize * threshold_slope[i,j]
+ */
+static float eikonal_solver(float *solution, float fi, ptrdiff_t i, ptrdiff_t j,
                      ptrdiff_t nrows, ptrdiff_t ncols) {
+
+  
+  // Find the vertical neighbors.
+  //
+  // Points outside the DEM are given infinite values. Since the
+  // minimum value of these is taken, gradients at boundary pixels are
+  // always computed from their neighboring interior pixels.
   float south = i < nrows - 1 ? solution[j * nrows + i + 1] : INFINITY;
   float north = i > 0 ? solution[j * nrows + i - 1] : INFINITY;
 
   float u1 = fminf(south, north);
 
+  // Find the horizontal neighbors
   float east = j < ncols - 1 ? solution[(j + 1) * nrows + i] : INFINITY;
   float west = j > 0 ? solution[(j - 1) * nrows + i] : INFINITY;
 
   float u2 = fminf(east, west);
 
+  // Solve the discretized eikonal equation for the central pixel
+  // using its two upwind derivatives.
   if (fabsf(u1 - u2) < fi) {
     return (u1 + u2) / 2 +
            sqrtf((u1 + u2) * (u1 + u2) - 2 * (u1 * u1 + u2 * u2 - fi * fi)) / 2;
@@ -42,7 +58,7 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold,
     for (ptrdiff_t col = 1; col < ncols - 1; col++) {
       for (ptrdiff_t row = 1; row < nrows - 1; row++) {
         float fi = cellsize * threshold[col * nrows + row];
-        float proposal = eikonal_update(excess, fi, row, col, nrows, ncols);
+        float proposal = eikonal_solver(excess, fi, row, col, nrows, ncols);
         if (proposal < excess[col * nrows + row]) {
           excess[col * nrows + row] = proposal;
           count += 1;
@@ -53,7 +69,7 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold,
     for (ptrdiff_t col = ncols - 2; col > 0; col--) {
       for (ptrdiff_t row = 1; row < nrows - 1; row++) {
         float fi = cellsize * threshold[col * nrows + row];
-        float proposal = eikonal_update(excess, fi, row, col, nrows, ncols);
+        float proposal = eikonal_solver(excess, fi, row, col, nrows, ncols);
         if (proposal < excess[col * nrows + row]) {
           excess[col * nrows + row] = proposal;
           count += 1;
@@ -65,7 +81,7 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold,
     for (ptrdiff_t col = ncols - 2; col > 0; col--) {
       for (ptrdiff_t row = nrows - 2; row > 0; row--) {
         float fi = cellsize * threshold[col * nrows + row];
-        float proposal = eikonal_update(excess, fi, row, col, nrows, ncols);
+        float proposal = eikonal_solver(excess, fi, row, col, nrows, ncols);
         if (proposal < excess[col * nrows + row]) {
           excess[col * nrows + row] = proposal;
           count += 1;
@@ -77,7 +93,7 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold,
     for (ptrdiff_t col = 1; col < ncols - 1; col++) {
       for (ptrdiff_t row = nrows - 2; row > 0; row--) {
         float fi = cellsize * threshold[col * nrows + row];
-        float proposal = eikonal_update(excess, fi, row, col, nrows, ncols);
+        float proposal = eikonal_solver(excess, fi, row, col, nrows, ncols);
         if (proposal < excess[col * nrows + row]) {
           excess[col * nrows + row] = proposal;
           count += 1;
@@ -117,7 +133,7 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     if (row < nrows - 1 && excess[col * nrows + row + 1] >= trial_elevation) {
       float f = cellsize * threshold[col * nrows + row + 1];
       float proposal =
-          eikonal_update(q.priorities, f, row + 1, col, nrows, ncols);
+          eikonal_solver(q.priorities, f, row + 1, col, nrows, ncols);
       pq_decrease_key(&q, col * nrows + row + 1, proposal);
     }
 
@@ -125,7 +141,7 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     if (row > 0 && excess[col * nrows + row - 1] >= trial_elevation) {
       float f = cellsize * threshold[col * nrows + row - 1];
       float proposal =
-          eikonal_update(q.priorities, f, row - 1, col, nrows, ncols);
+          eikonal_solver(q.priorities, f, row - 1, col, nrows, ncols);
       pq_decrease_key(&q, col * nrows + row - 1, proposal);
     }
 
@@ -133,7 +149,7 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     if (col < ncols - 1 && excess[(col + 1) * nrows + row] >= trial_elevation) {
       float f = cellsize * threshold[(col + 1) * nrows + row];
       float proposal =
-          eikonal_update(q.priorities, f, row, col + 1, nrows, ncols);
+          eikonal_solver(q.priorities, f, row, col + 1, nrows, ncols);
       pq_decrease_key(&q, (col + 1) * nrows + row, proposal);
     }
 
@@ -141,7 +157,7 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     if (col > 0 && excess[(col - 1) * nrows + row] >= trial_elevation) {
       float f = cellsize * threshold[(col - 1) * nrows + row];
       float proposal =
-          eikonal_update(q.priorities, f, row, col - 1, nrows, ncols);
+          eikonal_solver(q.priorities, f, row, col - 1, nrows, ncols);
       pq_decrease_key(&q, (col - 1) * nrows + row, proposal);
     }
   }
@@ -179,7 +195,7 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
       float proposal = pq_get_priority(&q, col * nrows + row + 1);
       for (int layer = 0; layer < nlayers; layer++) {
         float fi = cellsize * threshold_slopes[layer];
-        proposal = eikonal_update(q.priorities, fi, row + 1, col, nrows, ncols);
+        proposal = eikonal_solver(q.priorities, fi, row + 1, col, nrows, ncols);
         if (proposal < lithstack[(col * nrows + row + 1) * nlayers + layer]) {
           pq_decrease_key(&q, col * nrows + row + 1, proposal);
           break;
@@ -193,7 +209,7 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
       float proposal = pq_get_priority(&q, col * nrows + row - 1);
       for (int layer = 0; layer < nlayers; layer++) {
         float fi = cellsize * threshold_slopes[layer];
-        proposal = eikonal_update(q.priorities, fi, row - 1, col, nrows, ncols);
+        proposal = eikonal_solver(q.priorities, fi, row - 1, col, nrows, ncols);
         if (proposal < lithstack[(col * nrows + row - 1) * nlayers + layer]) {
           pq_decrease_key(&q, col * nrows + row - 1, proposal);
           break;
@@ -208,7 +224,7 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
 
       for (int layer = 0; layer < nlayers; layer++) {
         float fi = cellsize * threshold_slopes[layer];
-        proposal = eikonal_update(q.priorities, fi, row, col + 1, nrows, ncols);
+        proposal = eikonal_solver(q.priorities, fi, row, col + 1, nrows, ncols);
         if (proposal < lithstack[((col + 1) * nrows + row) * nlayers + layer]) {
           pq_decrease_key(&q, (col + 1) * nrows + row, proposal);
           break;
@@ -222,7 +238,7 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
       float proposal = pq_get_priority(&q, (col - 1) * nrows + row);
       for (int layer = 0; layer < nlayers; layer++) {
         float fi = cellsize * threshold_slopes[layer];
-        proposal = eikonal_update(q.priorities, fi, row, col - 1, nrows, ncols);
+        proposal = eikonal_solver(q.priorities, fi, row, col - 1, nrows, ncols);
         if (proposal < lithstack[((col - 1) * nrows + row) * nlayers + layer]) {
           pq_decrease_key(&q, (col - 1) * nrows + row, proposal);
           break;
