@@ -12,9 +12,7 @@
   fi is cellsize/f[i,j] or cellsize * threshold_slope[i,j]
  */
 static float eikonal_solver(float *solution, float fi, ptrdiff_t i, ptrdiff_t j,
-                     ptrdiff_t nrows, ptrdiff_t ncols) {
-
-  
+                            ptrdiff_t nrows, ptrdiff_t ncols) {
   // Find the vertical neighbors.
   //
   // Points outside the DEM are given infinite values. Since the
@@ -62,7 +60,7 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold_slopes,
     // Perform four eikonal_solver sweeps in alternating directions
 
     // TODO(wsk): Do we still have to skip the boundary pixels?
-    
+
     // Sweep 1
     for (ptrdiff_t col = 1; col < ncols - 1; col++) {
       for (ptrdiff_t row = 1; row < nrows - 1; row++) {

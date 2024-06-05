@@ -39,7 +39,6 @@ void pq_insert(PriorityQueue *q, ptrdiff_t key, float priority);
 // The corresponding priority can still be retrieved with get_priority
 ptrdiff_t pq_deletemin(PriorityQueue *q);
 
-// Q(wsk): Can we do this with insert?
 void pq_decrease_key(PriorityQueue *q, ptrdiff_t idx, float new_priority);
 
 // For testing
