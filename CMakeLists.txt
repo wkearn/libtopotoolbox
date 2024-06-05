@@ -6,6 +6,8 @@ project(
   LANGUAGES C CXX
 )
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -15,6 +17,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 OPTION(TT_BUILD_TESTS "Build libtopotoolbox tests" OFF)
+OPTION(TT_BUILD_DOCS "Build libtopotoolbox documentation" OFF)
 
 include(CTest)
 include(GNUInstallDirs)
@@ -30,6 +33,10 @@ add_subdirectory(src)
 
 if (TT_BUILD_TESTS)
   add_subdirectory(test)
+endif()
+
+if (TT_BUILD_DOCS)
+  add_subdirectory(docs)
 endif()
 
 

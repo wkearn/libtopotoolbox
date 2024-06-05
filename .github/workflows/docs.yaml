@@ -1,0 +1,39 @@
+name: docs
+
+on:
+  push:
+    branches: ["main","sphinx-doxygen"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install doxygen
+        run: |
+          sudo apt update
+          sudo apt install doxygen python3-sphinx python3-breathe python3-myst-parser python3-sphinx-book-theme
+      - name: Configure
+        run: >
+          cmake -B ${{github.workspace}}/build -DTT_BUILD_DOCS=ON
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --target docs
+      - name: Package artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{github.workspace}}/build/docs/docs/sphinx
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
