@@ -41,8 +41,12 @@ static float eikonal_solver(float *solution, float fi, ptrdiff_t i, ptrdiff_t j,
   }
 }
 
+/*
+  Compute the two dimensional excess topography by solving the eikonal
+  equation with the fast sweeping method.
+ */
 TOPOTOOLBOX_API
-void fsm_excesstopography(float *excess, float *dem, float *threshold,
+void fsm_excesstopography(float *excess, float *dem, float *threshold_slopes,
                           float cellsize, ptrdiff_t nrows, ptrdiff_t ncols) {
   // Initialize excess == dem
   for (ptrdiff_t col = 0; col < ncols; col++) {
@@ -54,10 +58,15 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold,
 
   while (count > 0) {
     count = 0;
+
+    // Perform four eikonal_solver sweeps in alternating directions
+
+    // TODO(wsk): Do we still have to skip the boundary pixels?
+    
     // Sweep 1
     for (ptrdiff_t col = 1; col < ncols - 1; col++) {
       for (ptrdiff_t row = 1; row < nrows - 1; row++) {
-        float fi = cellsize * threshold[col * nrows + row];
+        float fi = cellsize * threshold_slopes[col * nrows + row];
         float proposal = eikonal_solver(excess, fi, row, col, nrows, ncols);
         if (proposal < excess[col * nrows + row]) {
           excess[col * nrows + row] = proposal;
@@ -66,9 +75,10 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold,
       }
     }
 
+    // Sweep 2
     for (ptrdiff_t col = ncols - 2; col > 0; col--) {
       for (ptrdiff_t row = 1; row < nrows - 1; row++) {
-        float fi = cellsize * threshold[col * nrows + row];
+        float fi = cellsize * threshold_slopes[col * nrows + row];
         float proposal = eikonal_solver(excess, fi, row, col, nrows, ncols);
         if (proposal < excess[col * nrows + row]) {
           excess[col * nrows + row] = proposal;
@@ -80,7 +90,7 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold,
     // Sweep 3
     for (ptrdiff_t col = ncols - 2; col > 0; col--) {
       for (ptrdiff_t row = nrows - 2; row > 0; row--) {
-        float fi = cellsize * threshold[col * nrows + row];
+        float fi = cellsize * threshold_slopes[col * nrows + row];
         float proposal = eikonal_solver(excess, fi, row, col, nrows, ncols);
         if (proposal < excess[col * nrows + row]) {
           excess[col * nrows + row] = proposal;
@@ -92,7 +102,7 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold,
     // Sweep 4
     for (ptrdiff_t col = 1; col < ncols - 1; col++) {
       for (ptrdiff_t row = nrows - 2; row > 0; row--) {
-        float fi = cellsize * threshold[col * nrows + row];
+        float fi = cellsize * threshold_slopes[col * nrows + row];
         float proposal = eikonal_solver(excess, fi, row, col, nrows, ncols);
         if (proposal < excess[col * nrows + row]) {
           excess[col * nrows + row] = proposal;

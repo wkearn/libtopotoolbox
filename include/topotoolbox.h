@@ -123,7 +123,7 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
                        ptrdiff_t ncols);
 
 TOPOTOOLBOX_API
-void fsm_excesstopography(float *excess, float *dem, float *threshold,
+void fsm_excesstopography(float *excess, float *dem, float *threshold_slopes,
                           float cellsize, ptrdiff_t nrows, ptrdiff_t ncols);
 
 TOPOTOOLBOX_API
