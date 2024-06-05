@@ -178,6 +178,10 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
   }
 }
 
+/*
+  Compute the excess topography using three-dimensional lithological
+  variability and the fast marching method.
+ */
 TOPOTOOLBOX_API
 void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             float *dem, float *lithstack,
@@ -208,6 +212,9 @@ void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
     if (row < nrows - 1 &&
         pq_get_priority(&q, col * nrows + row + 1) >= trial_elevation) {
       float proposal = pq_get_priority(&q, col * nrows + row + 1);
+
+      // Choose the lowest layer that produces a proposal solution
+      // that is below the upper surface of that layer.
       for (int layer = 0; layer < nlayers; layer++) {
         float fi = cellsize * threshold_slopes[layer];
         proposal = eikonal_solver(q.priorities, fi, row + 1, col, nrows, ncols);
