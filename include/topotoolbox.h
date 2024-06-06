@@ -140,14 +140,6 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
  output topography is initiated with the DEM and only updates lower than the
  DEM are accepted.
 
- The output is the solution of the constrained eikonal equation. To
- compute the excess topography, the caller must subtract the output from the
- original DEM.
-
- The threshold_slopes array should be the same size as the DEM and the
- output array and contain the threshold slope, the tangent of the
- critical angle.
-
  The fast sweeping method is simpler than the fast marching method
  (excesstopography_fmm2d()), requires less memory, and can be faster,
  particularly when the threshold slopes are constant or change
@@ -161,16 +153,22 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
 
  Blöthe, Jan Henrik, Oliver Korup and Wolfgang Schwanghart
  (2015). Large landslides lie low: Excess topography in the
- Himalaya-Karakoram ranges.  Geology, 43, 6, 523-526.
+ Himalaya-Karakoram ranges. Geology, 43, 6, 523-526.
 
  Zhao, Hongkai (2004). A fast sweeping method for eikonal
  equations. Mathematics of Computation, 74, 250, 603-627.
 
- @param[out] excess           The topography constrained by the threshold slopes
- @param[in]  dem              The input digital elevation model
- @param[in]  threshold_slopes The threshold slopes at each grid cell
+ @param[out] excess           The solution of the constrained eikonal equation.
+                              To compute the excess topography, subtract this
+                              array elementwise from the DEM. A float array of
+                              size (nrows x ncols).
+ @param[in]  dem              The input digital elevation model. A float array
+                              of size (nrows x ncols).
+ @param[in]  threshold_slopes The threshold slopes (tangent of the critical
+                              angle) at each grid cell. A float array of size
+                              (nrows x ncols).
  @param[in]  cellsize         The spacing between grid cells, assumed to be
-                              constant and identical in the x- and y- directions
+                              constant and identical in the x- and y- directions                              
  @param[in]  nrows            The size of the input and output DEMs and the
                               threshold_slopes array in the fastest changing
                               dimension
