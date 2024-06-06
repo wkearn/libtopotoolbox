@@ -225,7 +225,7 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
                               for implementing the priority queue.
  @param[in]  back             A ptrdiff_t array of indices (nrows x ncols) used
                               for implementing the priority queue.
-@param[in]  dem              The input digital elevation model. A float array
+ @param[in]  dem              The input digital elevation model. A float array
                               of size (nrows x ncols).
  @param[in]  threshold_slopes The threshold slopes (tangent of the critical
                               angle) at each grid cell. A float array of size
@@ -244,6 +244,59 @@ void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             float *dem, float *threshold_slopes, float cellsize,
                             ptrdiff_t nrows, ptrdiff_t ncols);
 
+/**
+ @brief Compute excess topography with three-dimensionally variable
+ lithology using the fast marching method
+
+ The excess topography is computed by solving an eikonal equation with
+ the fast marching method (see excesstopography_fmm2d() for more
+ information). The threshold slope at a grid cell is computed from
+ that cell's position within the three-dimensional lithology.
+
+ The lithology consists of a set of discrete layers, each of which has
+ its own threshold slope, which is specified by the caller in the
+ `threshold_slopes` array from the bottom layer to the top layer. The
+ layer geometry is provided by the caller in the `lithstack` array,
+ which holds the elevation of the top surface of each layer at each
+ grid cell.
+
+ The algorithm proceeds similarly to the regular fast marching method,
+ using a priority queue to update grid cells from bottom to
+ top. Whenever a cell is updated, the eikonal solver is used to
+ propose a new elevation using the threshold slopes from each layer
+ from bottom to top. The first elevation that is proposed that lies
+ below the top surface of the layer whose slope is used in the
+ proposal is accepted as the provisional height for that grid cell.
+
+ @param[out] excess           The solution of the constrained eikonal equation.
+                              To compute the excess topography, subtract this
+                              array elementwise from the DEM. A float array of
+                              size (nrows x ncols).
+ @param[in]  heap             A ptrdiff_t array of indices (nrows x ncols) used
+                              for implementing the priority queue.
+ @param[in]  back             A ptrdiff_t array of indices (nrows x ncols) used
+                              for implementing the priority queue.
+ @param[in]  dem              The input digital elevation model. A float array
+                              of size (nrows x ncols).
+ @param[in] lithstack         The input lithology. A three-dimensional float
+                              array of size (nlayers x nrows x ncols). The value
+                              of `lithstack[layer,row,col]` is the elevation of
+                              the top surface of the given layer. Note that the
+                              first dimension is the layer, so that the layers
+                              of each cell are stored contiguously.
+ @param[in]  threshold_slopes The threshold slopes (tangent of the critical
+                              angle) for each layer. A float array of size
+                              (nlayers).
+ @param[in]  cellsize         The spacing between grid cells, assumed to be
+                              constant and identical in the x- and y- directions
+ @param[in]  nrows            The size of the input and output DEMs in the
+                              fastest changing dimension.
+ @param[in]  ncols            The size of the input and output DEMs and the
+                              in the slowest changing
+                              dimension.
+ @param[in]  nlayers          The number of layers in the lithstack and
+                              threshold_slopes arrays.
+ */
 TOPOTOOLBOX_API
 void excesstopography_fmm3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             float *dem, float *lithstack,

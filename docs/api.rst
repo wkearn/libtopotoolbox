@@ -12,4 +12,6 @@ API Documentation
 
 .. doxygenfunction:: excesstopography_fsm2d
 
-.. doxygenfunction:: excesstopography_fmm2d  
+.. doxygenfunction:: excesstopography_fmm2d
+
+.. doxygenfunction:: excesstopography_fmm3d  
