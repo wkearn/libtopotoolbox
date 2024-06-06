@@ -90,10 +90,10 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, ptrdiff_t nlayers,
     threshold_slopes3d[layer] = (layer % 2 == 0) ? 1.0f : 0.5f;
   }
 
-  fsm_excesstopography(fsm_excess, dem, threshold, cellsize, nrows, ncols);
-  fmm_excesstopography(fmm_excess, heap, back, dem, threshold, cellsize, nrows,
-                       ncols);
-  fmm_excesstopography3d(fmm_excess3d, heap3d, back3d, dem, lithstack,
+  excesstopography_fsm2d(fsm_excess, dem, threshold, cellsize, nrows, ncols);
+  excesstopography_fmm2d(fmm_excess, heap, back, dem, threshold, cellsize,
+                         nrows, ncols);
+  excesstopography_fmm3d(fmm_excess3d, heap3d, back3d, dem, lithstack,
                          threshold_slopes3d, cellsize, nrows, ncols, nlayers);
   for (ptrdiff_t col = 0; col < ncols; col++) {
     for (ptrdiff_t row = 0; row < nrows; row++) {

@@ -44,8 +44,8 @@ static float eikonal_solver(float *solution, float fi, ptrdiff_t i, ptrdiff_t j,
   equation with the fast sweeping method.
  */
 TOPOTOOLBOX_API
-void fsm_excesstopography(float *excess, float *dem, float *threshold_slopes,
-                          float cellsize, ptrdiff_t nrows, ptrdiff_t ncols) {
+void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
+                            float cellsize, ptrdiff_t nrows, ptrdiff_t ncols) {
   // Initialize excess == dem
   for (ptrdiff_t col = 0; col < ncols; col++) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
@@ -116,9 +116,9 @@ void fsm_excesstopography(float *excess, float *dem, float *threshold_slopes,
   equation with the fast marching method.
  */
 TOPOTOOLBOX_API
-void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
-                          float *dem, float *threshold_slopes, float cellsize,
-                          ptrdiff_t nrows, ptrdiff_t ncols) {
+void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
+                            float *dem, float *threshold_slopes, float cellsize,
+                            ptrdiff_t nrows, ptrdiff_t ncols) {
   // Initialize the arrays
   // Pixels start with the elevation given by the DEM
   for (ptrdiff_t j = 0; j < ncols; j++) {
@@ -181,7 +181,7 @@ void fmm_excesstopography(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
   variability and the fast marching method.
  */
 TOPOTOOLBOX_API
-void fmm_excesstopography3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
+void excesstopography_fmm3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             float *dem, float *lithstack,
                             float *threshold_slopes, float cellsize,
                             ptrdiff_t nrows, ptrdiff_t ncols,
