@@ -121,13 +121,72 @@ TOPOTOOLBOX_API
 void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
                        float *original_dem, float *filled_dem, ptrdiff_t nrows,
                        ptrdiff_t ncols);
+
+/**
+ @brief Compute excess topography with 2D varying threshold slopes
+ using the fast sweeping method
+
+ The excess topography (Blöthe et al. 2015) is computed by solving an
+ eikonal equation (Anand et al. 2023) constrained to lie below the
+ original DEM. Where the slope of the DEM is greater than the
+ threshold slope, the eikonal solver limits the output topography to
+ that slope, but where the slope of the DEM is lower that the
+ threshold slope, the output follows the DEM.
+
+ The eikonal equation is solved using the fast sweeping method (Zhao
+ 2004), which iterates over the DEM in alternating directions and
+ updates the topography according to an upwind discretization of the
+ gradient. To constrain the solution by the original DEM, the
+ output topography is initiated with the DEM and only updates lower than the
+ DEM are accepted.
+
+ The output is the solution of the constrained eikonal equation. To
+ compute the excess topography, the caller must subtract the output from the
+ original DEM.
+
+ The threshold_slopes array should be the same size as the DEM and the
+ output array and contain the threshold slope, the tangent of the
+ critical angle.
+
+ The fast sweeping method is simpler than the fast marching method
+ (excesstopography_fmm2d()), requires less memory, and can be faster,
+ particularly when the threshold slopes are constant or change
+ infrequently across the domain.
+
+ # References
+
+ Anand, Shashank Kumar, Matteo B. Bertagni, Arvind Singh and Amilcare
+ Porporato (2023). Eikonal equation reproduces natural landscapes with
+ threshold hillslopes. Geophysical Research Letters, 50, 21.
+
+ Blöthe, Jan Henrik, Oliver Korup and Wolfgang Schwanghart
+ (2015). Large landslides lie low: Excess topography in the
+ Himalaya-Karakoram ranges.  Geology, 43, 6, 523-526.
+
+ Zhao, Hongkai (2004). A fast sweeping method for eikonal
+ equations. Mathematics of Computation, 74, 250, 603-627.
+
+ @param[out] excess           The topography constrained by the threshold slopes
+ @param[in]  dem              The input digital elevation model
+ @param[in]  threshold_slopes The threshold slopes at each grid cell
+ @param[in]  cellsize         The spacing between grid cells, assumed to be
+                              constant and identical in the x- and y- directions
+ @param[in]  nrows            The size of the input and output DEMs and the
+                              threshold_slopes array in the fastest changing
+                              dimension
+ @param[in]  ncols            The size of the input and output DEMs and the
+                              threshold_slopes array in the slowest changing
+                              dimension
+ */
 TOPOTOOLBOX_API
 void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
                             float cellsize, ptrdiff_t nrows, ptrdiff_t ncols);
+
 TOPOTOOLBOX_API
 void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             float *dem, float *threshold_slopes, float cellsize,
                             ptrdiff_t nrows, ptrdiff_t ncols);
+
 TOPOTOOLBOX_API
 void excesstopography_fmm3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             float *dem, float *lithstack,
