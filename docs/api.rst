@@ -9,3 +9,7 @@ API Documentation
 
 
 .. doxygenfunction:: gwdt_computecosts
+
+.. doxygenfunction:: excesstopography_fsm2d
+
+.. doxygenfunction:: excesstopography_fmm2d  
