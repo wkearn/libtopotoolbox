@@ -275,6 +275,10 @@ void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
           ptrdiff_t *back, ptrdiff_t nrows, ptrdiff_t ncols) {
   // Initialize the priority queue
   PriorityQueue q = {0};
+  q.back = back;
+  q.heap = heap;
+  q.priorities = dist;
+  q.max_size = nrows * ncols;
   for (ptrdiff_t col = 0; col < ncols; col++) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
       ptrdiff_t idx = col * nrows + row;

@@ -39,7 +39,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
       dem[col * nrows + row] = 100.0f * pcg4d(row, col, seed, 1);
     }
   }
-  
+
   float *filled_dem = new float[nrows * ncols];
   int32_t *flats = new int32_t[nrows * ncols];
 
@@ -53,7 +53,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   float *dist = new float[nrows * ncols];
   ptrdiff_t *heap = new ptrdiff_t[nrows * ncols];
   ptrdiff_t *back = new ptrdiff_t[nrows * ncols];
-  
+
   gwdt(dist, costs, flats, heap, back, nrows, ncols);
 
   return 0;
