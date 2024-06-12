@@ -205,8 +205,8 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
         ptrdiff_t neighbor_row = row + forward_row_offset[neighbor];
         ptrdiff_t neighbor_pixel = neighbor_col * nrows + neighbor_row;
 
-        if (neighbor_col < 0 || neighbor_col >= ncols || row < 0 ||
-            row >= ncols) {
+        if (neighbor_col < 0 || neighbor_col >= ncols || neighbor_row < 0 ||
+            neighbor_row >= nrows) {
           // This should be unreachable, because no border pixel is
           // also a flat pixel.
           continue;
@@ -287,9 +287,9 @@ void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
       // Only put flat pixels into the queue
       if (flats[idx] & 1) {
         // Presill pixels are the sources ("seed locations"). They are
-        // initialized with distance 0. Other flats are initialized at
+        // initialized with distance 1.0. Other flats are initialized at
         // infinity.
-        float d = (flats[idx] & 4) ? 0.0f : INFINITY;
+        float d = (flats[idx] & 4) ? 1.0f : INFINITY;
         pq_insert(&q, idx, d);
       }
     }
