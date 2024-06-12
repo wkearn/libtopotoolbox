@@ -123,6 +123,13 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
                        ptrdiff_t ncols);
 
 /**
+   @brief Compute the gray-weighted distance transform
+ */
+TOPOTOOLBOX_API
+void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
+          ptrdiff_t *back, ptrdiff_t nrows, ptrdiff_t ncols);
+
+/**
  @brief Compute excess topography with 2D varying threshold slopes
  using the fast sweeping method
 
