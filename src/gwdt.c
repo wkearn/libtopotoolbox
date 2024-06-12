@@ -7,6 +7,8 @@
 #include "priority_queue.h"
 #include "topotoolbox.h"
 
+#define SQRT2f 1.41421356237309504880f
+
 // Gray-weighted distance transforms for auxiliary topography
 
 /*
@@ -293,15 +295,16 @@ void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
     }
   }
 
+  ptrdiff_t row_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+  ptrdiff_t col_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+  float chamfer[8] = {SQRT2f, 1.0, SQRT2f, 1.0, 1.0, SQRT2f, 1.0, SQRT2f};
+
   while (!pq_isempty(&q)) {
     ptrdiff_t trial = pq_deletemin(&q);
     float trial_distance = pq_get_priority(&q, trial);
 
     ptrdiff_t col = trial / nrows;
     ptrdiff_t row = trial % nrows;
-
-    ptrdiff_t row_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-    ptrdiff_t col_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 
     for (ptrdiff_t neighbor = 0; neighbor < 8; neighbor++) {
       ptrdiff_t neighbor_row = row + row_offset[neighbor];
@@ -315,7 +318,8 @@ void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
       }
 
       float proposal =
-          trial_distance + (costs[neighbor_idx] + costs[trial]) / 2;
+          trial_distance +
+          chamfer[neighbor] * (costs[neighbor_idx] + costs[trial]) / 2;
       pq_decrease_key(&q, neighbor_idx, proposal);
     }
   }
