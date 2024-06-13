@@ -67,8 +67,8 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, ptrdiff_t nlayers,
   ptrdiff_t *back3d = new ptrdiff_t[nrows * ncols];
   float *threshold = new float[nrows * ncols];
 
-  for (ptrdiff_t col = 0; col < ncols; col++) {
-    for (ptrdiff_t row = 0; row < nrows; row++) {
+  for (uint32_t col = 0; col < ncols; col++) {
+    for (uint32_t row = 0; row < nrows; row++) {
       ptrdiff_t idx = col * nrows + row;
       dem[idx] = 100.0f * pcg4d(row, col, seed, 0);
       fsm_excess[idx] = dem[idx];
