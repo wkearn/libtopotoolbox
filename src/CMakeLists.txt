@@ -15,7 +15,10 @@ target_include_directories(
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
 
-target_link_libraries(topotoolbox m)
+find_library(MATH_LIBRARY m)
+if(MATH_LIBRARY)
+    target_link_libraries(topotoolbox PUBLIC ${MATH_LIBRARY})
+endif()
 
 if (BUILD_SHARED_LIBS)
 else()
