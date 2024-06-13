@@ -168,7 +168,7 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
                               angle) at each grid cell. A float array of size
                               (nrows x ncols).
  @param[in]  cellsize         The spacing between grid cells, assumed to be
-                              constant and identical in the x- and y- directions                              
+                              constant and identical in the x- and y- directions
  @param[in]  nrows            The size of the input and output DEMs and the
                               threshold_slopes array in the fastest changing
                               dimension
@@ -231,7 +231,7 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
                               angle) at each grid cell. A float array of size
                               (nrows x ncols).
  @param[in]  cellsize         The spacing between grid cells, assumed to be
-                              constant and identical in the x- and y- directions                              
+                              constant and identical in the x- and y- directions
  @param[in]  nrows            The size of the input and output DEMs and the
                               threshold_slopes array in the fastest changing
                               dimension

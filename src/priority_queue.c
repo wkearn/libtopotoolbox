@@ -75,14 +75,13 @@ PriorityQueue pq_create(ptrdiff_t max_size, ptrdiff_t heap[max_size],
 
   if (flag) {
     q.count = max_size;
-    build_heap(&q);    
+    build_heap(&q);
   }
-  
+
   return q;
 }
 
 void pq_insert(PriorityQueue *q, ptrdiff_t key, float priority) {
-
   q->back[key] = q->count;
   q->heap[q->count] = key;
   q->priorities[q->count] = priority;
@@ -90,7 +89,6 @@ void pq_insert(PriorityQueue *q, ptrdiff_t key, float priority) {
 }
 
 ptrdiff_t pq_deletemin(PriorityQueue *q) {
-
   ptrdiff_t root = q->heap[0];
   q->count--;
   if (q->count > 0) {
@@ -98,7 +96,7 @@ ptrdiff_t pq_deletemin(PriorityQueue *q) {
     swap(q, 0, q->count);
     siftdown(q, 0);
   }
-  q->back[root] = -1; // Sentinel value for deleted values
+  q->back[root] = -1;  // Sentinel value for deleted values
   return root;
 }
 
