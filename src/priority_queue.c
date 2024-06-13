@@ -64,9 +64,8 @@ static void build_heap(PriorityQueue *q) {
   }
 }
 
-PriorityQueue pq_create(ptrdiff_t max_size, ptrdiff_t heap[max_size],
-                        ptrdiff_t back[max_size], float priorities[max_size],
-                        int32_t flag) {
+PriorityQueue pq_create(ptrdiff_t max_size, ptrdiff_t *heap, ptrdiff_t *back,
+                        float *priorities, int32_t flag) {
   PriorityQueue q = {0};
   q.back = back;
   q.heap = heap;

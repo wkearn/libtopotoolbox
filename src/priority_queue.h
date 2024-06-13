@@ -22,9 +22,8 @@ typedef struct {
 //
 // If flag is nonzero, assume that the arrays have been pre-filled and
 // run the heap algorithm to ensure that the queue is ready to use.
-PriorityQueue pq_create(ptrdiff_t count, ptrdiff_t heap[count],
-                        ptrdiff_t back[count], float priorities[count],
-                        int32_t flag);
+PriorityQueue pq_create(ptrdiff_t count, ptrdiff_t *heap, ptrdiff_t *back,
+                        float *priorities, int32_t flag);
 
 // Returns 1 if queue is empty, 0 if queue has elements
 int32_t pq_isempty(PriorityQueue *q);
