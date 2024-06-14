@@ -7,7 +7,9 @@ libtopotoolbox is a C library for the analysis of digital elevation models that 
 
 If you are primarily interested in using TopoToolbox for your work, studies or research, you may find the `main TopoToolbox documentation <https://topotoolbox.github.io>`_ useful.
 
-More information about the algorithms provided by libtopotoolbox and how to integrate the library into your project is available in the `API documentation <https://topotoolbox.github.io/libtopotoolbox>`_.
+A tutorial on :doc:`tutorials/fillsinks/tutorial` shows how to incorporate libtopotoolbox into your own project.
+
+The :doc:`api` contains more information on the functions provided by libtopotoolbox.
 
 Bindings for libtopotoolbox in higher-level programming languages provide a user-friendly interface to the library and enable data import and export, visualization and interaction with the geospatial data analysis ecosystems of those languages. Bindings are currently implemented for
 
@@ -23,5 +25,6 @@ If you would like to contribute to libtopotoolbox, check out the :doc:`CONTRIBUT
    :maxdepth: 1
    :hidden:
 
+   tutorials/fillsinks/tutorial
    api
    CONTRIBUTING
