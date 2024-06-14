@@ -36,8 +36,8 @@ static float pcg4d(uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
 int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   float *dem = new float[nrows * ncols];
 
-  for (ptrdiff_t col = 0; col < ncols; col++) {
-    for (ptrdiff_t row = 0; row < nrows; row++) {
+  for (uint32_t col = 0; col < ncols; col++) {
+    for (uint32_t row = 0; row < nrows; row++) {
       dem[col * nrows + row] = 100.0f * pcg4d(row, col, seed, 1);
     }
   }
@@ -87,7 +87,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
         ptrdiff_t parent_col = parent / nrows;
         ptrdiff_t parent_row = parent % nrows;
         float chamfer =
-            (parent_col != col) && (parent_row != row) ? SQRT2f : 1.0;
+            (parent_col != col) && (parent_row != row) ? SQRT2f : 1.0f;
         float proposed_dist =
             dist[parent] + chamfer * (costs[idx] + costs[parent]) / 2;
         if (proposed_dist != dist[idx]) {
