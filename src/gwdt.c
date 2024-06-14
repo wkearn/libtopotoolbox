@@ -273,8 +273,8 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
   (1994) and chamfer weights based on a quasi-Euclidean metric.
  */
 TOPOTOOLBOX_API
-void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
-          ptrdiff_t *back, ptrdiff_t nrows, ptrdiff_t ncols) {
+void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
+          ptrdiff_t *heap, ptrdiff_t *back, ptrdiff_t nrows, ptrdiff_t ncols) {
   // Initialize the priority queue
   PriorityQueue q = {0};
   q.back = back;
@@ -284,6 +284,11 @@ void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
   for (ptrdiff_t col = 0; col < ncols; col++) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
       ptrdiff_t idx = col * nrows + row;
+      // prev points to self for any pixel that doesn't have a lower neighbor
+      if (prev != NULL) {
+        prev[idx] = idx;
+      }
+
       dist[idx] = 0.0f;
       // Only put flat pixels into the queue
       if (flats[idx] & 1) {
@@ -321,7 +326,12 @@ void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
       float proposal =
           trial_distance +
           chamfer[neighbor] * (costs[neighbor_idx] + costs[trial]) / 2;
-      pq_decrease_key(&q, neighbor_idx, proposal);
+      if (proposal < pq_get_priority(&q, neighbor_idx)) {
+        pq_decrease_key(&q, neighbor_idx, proposal);
+        if (prev != NULL) {
+          prev[neighbor_idx] = trial;
+        }
+      }
     }
   }
 }

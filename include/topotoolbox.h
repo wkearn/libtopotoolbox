@@ -144,6 +144,11 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
 
    @param[out] dist             The computed gray-weighted distance transform.
                                 A float array of size (nrows x ncols).
+   @param[out] prev             Backlinks to the previous pixel along the
+                                geodesic path. A ptrdiff_t array of size (nrows
+                                x ncols). If backlinks are not required, a null
+                                pointer can be passed here: it is checked for
+                                NULL before being accessed.
    @param[in]  costs            The input costs as computed by
                                 gwdt_computecosts().
                                 A float array of size (nrows x ncols).
@@ -160,8 +165,8 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
                                 slowest changing dimension
  */
 TOPOTOOLBOX_API
-void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
-          ptrdiff_t *back, ptrdiff_t nrows, ptrdiff_t ncols);
+void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
+          ptrdiff_t *heap, ptrdiff_t *back, ptrdiff_t nrows, ptrdiff_t ncols);
 
 /**
  @brief Compute excess topography with 2D varying threshold slopes
