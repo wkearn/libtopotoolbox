@@ -284,6 +284,7 @@ void gwdt(float *dist, float *costs, int32_t *flats, ptrdiff_t *heap,
   for (ptrdiff_t col = 0; col < ncols; col++) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
       ptrdiff_t idx = col * nrows + row;
+      dist[idx] = 0.0f;
       // Only put flat pixels into the queue
       if (flats[idx] & 1) {
         // Presill pixels are the sources ("seed locations"). They are
