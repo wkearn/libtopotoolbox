@@ -1,14 +1,13 @@
 API Documentation
 =================
 
-
 .. doxygenfunction:: fillsinks
-
 		     
 .. doxygenfunction:: identifyflats
 
-
 .. doxygenfunction:: gwdt_computecosts
+
+.. doxygenfunction:: gwdt
 
 .. doxygenfunction:: excesstopography_fsm2d
 
