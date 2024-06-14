@@ -4,6 +4,8 @@ add_library(topotoolbox
   identifyflats.c
   gwdt.c
   morphology/reconstruct.c
+  priority_queue.c
+  excesstopography.c
 )
 
 target_include_directories(
@@ -12,6 +14,11 @@ target_include_directories(
   $<BUILD_INTERFACE:${topotoolbox_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
+
+find_library(MATH_LIBRARY m)
+if(MATH_LIBRARY)
+    target_link_libraries(topotoolbox PUBLIC ${MATH_LIBRARY})
+endif()
 
 if (BUILD_SHARED_LIBS)
 else()
