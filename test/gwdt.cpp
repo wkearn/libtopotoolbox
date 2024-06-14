@@ -56,12 +56,43 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 
   gwdt(dist, costs, flats, heap, back, nrows, ncols);
 
+  for (ptrdiff_t col = 0; col < ncols; col++) {
+    for (ptrdiff_t row = 0; row < nrows; row++) {
+      ptrdiff_t idx = col * nrows + row;
+      if (dist[idx] < 0) {
+        // Distances for should be non-negative for all pixels
+        std::cout << "Pixel (" << row << ", " << col
+                  << ") distance is negative." << std::endl;
+        return -1;
+      }
+      if (flats[idx] & 4) {
+        if (dist[idx] > 1.0) {
+          // Distances should be 1.0 for presills
+          std::cout << "Presill (" << row << ", " << col
+                    << ") distance is greater than 1." << std::endl;
+        }
+      } else if (flats[idx] & 1) {
+        if (dist[idx] <= 1.0) {
+          // Distances should be > 1.0 for non-presill flats
+          std::cout << "Flat pixel (" << row << ", " << col
+                    << ") distance is less than 1." << std::endl;
+        }
+      } else {
+        if (dist[idx] > 0) {
+          // Distances should be == 0.0 for all non-flat pixels
+          std::cout << "Nonflat pixel (" << row << ", " << col
+                    << ") distance is nonzero." << std::endl;
+        }
+      }
+    }
+  }
+
   return 0;
 }
 
 int main(int argc, char *argv[]) {
-  ptrdiff_t nrows = 5;
-  ptrdiff_t ncols = 5;
+  ptrdiff_t nrows = 200;
+  ptrdiff_t ncols = 100;
 
   for (uint32_t test = 0; test < 100; test++) {
     int32_t result = random_dem_test(nrows, ncols, test);
