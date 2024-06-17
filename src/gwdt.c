@@ -4,7 +4,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "priority_queue.h"
 #include "topotoolbox.h"
+
+#define SQRT2f 1.41421356237309504880f
 
 // Gray-weighted distance transforms for auxiliary topography
 
@@ -202,8 +205,8 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
         ptrdiff_t neighbor_row = row + forward_row_offset[neighbor];
         ptrdiff_t neighbor_pixel = neighbor_col * nrows + neighbor_row;
 
-        if (neighbor_col < 0 || neighbor_col >= ncols || row < 0 ||
-            row >= ncols) {
+        if (neighbor_col < 0 || neighbor_col >= ncols || neighbor_row < 0 ||
+            neighbor_row >= nrows) {
           // This should be unreachable, because no border pixel is
           // also a flat pixel.
           continue;
@@ -256,6 +259,79 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
 
       costs[current_pixel] =
           powf(costs[current_pixel] - current_depth, tweight) + CarveMinVal;
+    }
+  }
+}
+
+/*
+  Gray-weighted distance transform
+
+  Uses Dijkstra's algorithm with the priority queue implemented in
+  priority_queue.c.
+
+  Computes distances using the geodesic time algorithm of Soille
+  (1994) and chamfer weights based on a quasi-Euclidean metric.
+ */
+TOPOTOOLBOX_API
+void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
+          ptrdiff_t *heap, ptrdiff_t *back, ptrdiff_t nrows, ptrdiff_t ncols) {
+  // Initialize the priority queue
+  PriorityQueue q = {0};
+  q.back = back;
+  q.heap = heap;
+  q.priorities = dist;
+  q.max_size = nrows * ncols;
+  for (ptrdiff_t col = 0; col < ncols; col++) {
+    for (ptrdiff_t row = 0; row < nrows; row++) {
+      ptrdiff_t idx = col * nrows + row;
+      // prev points to self for any pixel that doesn't have a lower neighbor
+      if (prev != NULL) {
+        prev[idx] = idx;
+      }
+
+      dist[idx] = 0.0f;
+      // Only put flat pixels into the queue
+      if (flats[idx] & 1) {
+        // Presill pixels are the sources ("seed locations"). They are
+        // initialized with distance 1.0. Other flats are initialized at
+        // infinity.
+        float d = (flats[idx] & 4) ? 1.0f : INFINITY;
+        pq_insert(&q, idx, d);
+      }
+    }
+  }
+
+  ptrdiff_t row_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+  ptrdiff_t col_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+  float chamfer[8] = {SQRT2f, 1.0, SQRT2f, 1.0, 1.0, SQRT2f, 1.0, SQRT2f};
+
+  while (!pq_isempty(&q)) {
+    ptrdiff_t trial = pq_deletemin(&q);
+    float trial_distance = pq_get_priority(&q, trial);
+
+    ptrdiff_t col = trial / nrows;
+    ptrdiff_t row = trial % nrows;
+
+    for (ptrdiff_t neighbor = 0; neighbor < 8; neighbor++) {
+      ptrdiff_t neighbor_row = row + row_offset[neighbor];
+      ptrdiff_t neighbor_col = col + col_offset[neighbor];
+      ptrdiff_t neighbor_idx = neighbor_col * nrows + neighbor_row;
+
+      // Skip pixels outside the boundary or non-flat pixels
+      if (neighbor_row < 0 || neighbor_row >= nrows || neighbor_col < 0 ||
+          neighbor_col >= ncols || !(flats[neighbor_idx] & 1)) {
+        continue;
+      }
+
+      float proposal =
+          trial_distance +
+          chamfer[neighbor] * (costs[neighbor_idx] + costs[trial]) / 2;
+      if (proposal < pq_get_priority(&q, neighbor_idx)) {
+        pq_decrease_key(&q, neighbor_idx, proposal);
+        if (prev != NULL) {
+          prev[neighbor_idx] = trial;
+        }
+      }
     }
   }
 }

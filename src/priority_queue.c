@@ -83,7 +83,7 @@ PriorityQueue pq_create(ptrdiff_t max_size, ptrdiff_t *heap, ptrdiff_t *back,
 void pq_insert(PriorityQueue *q, ptrdiff_t key, float priority) {
   q->back[key] = q->count;
   q->heap[q->count] = key;
-  q->priorities[q->count] = priority;
+  q->priorities[key] = priority;
   siftup(q, q->count++);
 }
 
