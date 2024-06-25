@@ -19,7 +19,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create $TAG --generate-notes -p
+          gh release create $TAG --generate-notes -p --latest
           
           
   
