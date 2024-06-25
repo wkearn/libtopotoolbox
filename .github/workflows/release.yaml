@@ -9,6 +9,7 @@ jobs:
     name: Tag and create a new release
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Generate tag
         run: echo "TAG=$(date -u +%Y-W%W)" >> $GITHUB_ENV
       - run: 'echo "TAG: $TAG"'
