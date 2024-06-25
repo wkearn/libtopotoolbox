@@ -19,7 +19,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create $TAG --generate-notes --latest
+          gh release create $TAG --generate-notes --latest -n "This \
+          is an automatically generated weekly release of the \
+          libtopotoolbox source code. Weekly releases have been \
+          tested, but they should be considered unstable. Check the \
+          release notes associated with each release before \
+          upgrading."
           
           
   
