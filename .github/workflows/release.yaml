@@ -8,6 +8,8 @@ jobs:
   release:
     name: Tag and create a new release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Generate tag
