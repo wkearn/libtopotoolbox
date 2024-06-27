@@ -145,12 +145,59 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, ptrdiff_t nlayers,
   return 0;
 }
 
+// This test represents an excesstopography use case that produces
+// rounding errors that affect the eikonal solver. It uses random
+// threshold slopes and fixes the boundary pixels to zero, but the
+// interior of the DEM is made infinite and thus unconstrained. When
+// slopes are very low and elevations relatively high, this can lead
+// to taking the square root of negative numbers, so that the proposed
+// elevation is NaN. This proposal is never accepted, and the pixels
+// are left at their infinite values.
+int32_t eikonal_numerics_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t test) {
+  float *dem = new float[nrows * ncols];
+  float *excess = new float[nrows * ncols];
+  ptrdiff_t *heap = new ptrdiff_t[nrows * ncols];
+  ptrdiff_t *back = new ptrdiff_t[nrows * ncols];
+  float *threshold = new float[nrows * ncols];
+
+  for (uint32_t j = 0; j < ncols; j++) {
+    for (uint32_t i = 0; i < nrows; i++) {
+      threshold[i + j * nrows] = pcg4d(i, j, test, 0);
+      if (i > 0 && i < nrows - 1 && j > 0 && j < ncols - 1) {
+        dem[i + j * nrows] = INFINITY;
+      } else {
+        dem[i + j * nrows] = 0.0f;
+      }
+    }
+  }
+
+  excesstopography_fmm2d(excess, heap, back, dem, threshold, 30.0, nrows,
+                         ncols);
+
+  for (ptrdiff_t j = 0; j < ncols; j++) {
+    for (ptrdiff_t i = 0; i < nrows; i++) {
+      if (excess[i + j * ncols] == INFINITY) {
+        std::cout << "Pixel (" << i << ", " << j << ") is infinite"
+                  << std::endl;
+        return -1;
+      }
+    }
+  }
+
+  return 0;
+}
+
 int main(int argc, char *argv[]) {
   ptrdiff_t nrows = 200;
   ptrdiff_t ncols = 100;
 
   for (uint32_t test = 0; test < 100; test++) {
     int32_t result = random_dem_test(nrows, ncols, 8, test);
+    if (result < 0) {
+      return result;
+    }
+
+    result = eikonal_numerics_test(nrows, ncols, test);
     if (result < 0) {
       return result;
     }

@@ -34,8 +34,7 @@ static float eikonal_solver(float *solution, float fi, ptrdiff_t i, ptrdiff_t j,
   // Solve the discretized eikonal equation for the central pixel
   // using its two upwind derivatives.
   if (fabsf(u1 - u2) < fi) {
-    return (u1 + u2) / 2 +
-           sqrtf((u1 + u2) * (u1 + u2) - 2 * (u1 * u1 + u2 * u2 - fi * fi)) / 2;
+    return (u1 + u2) / 2 + sqrtf(-(u1 - u2) * (u1 - u2) + 2 * (fi * fi)) / 2;
   } else {
     return fminf(u1 + fi, u2 + fi);
   }
