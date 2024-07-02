@@ -27,7 +27,7 @@ set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 if (MSVC)
   add_compile_options(/W4 /wd4100)
 else()
-  add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter -g)
+  add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
 endif()
 
 add_subdirectory(src)
