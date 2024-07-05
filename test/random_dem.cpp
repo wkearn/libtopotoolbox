@@ -10,7 +10,7 @@ extern "C" {
 
 /*
   Each pixel of the filled DEM should be greater than or equal to
-  the corresponding pixel in the original DEM
+  the corresponding pixel in the original DEM.
  */
 int32_t test_fillsinks_ge(float *original_dem, float *filled_dem,
                           ptrdiff_t nrows, ptrdiff_t ncols) {
@@ -23,7 +23,7 @@ int32_t test_fillsinks_ge(float *original_dem, float *filled_dem,
 }
 /*
   No pixel in the filled DEM should be completely surrounded by pixels higher
-  than it
+  than it.
  */
 int32_t test_fillsinks_filled(float *filled_dem, ptrdiff_t nrows,
                               ptrdiff_t ncols) {
