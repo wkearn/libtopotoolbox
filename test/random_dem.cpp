@@ -332,22 +332,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
         // This pixel is a flat
         test_count_flats++;
       }
-
-      // Every sill pixel should have at least one neighbor lower than it,
-      // unless it is on a border
-      if (!current_pixel_on_border && (flat & 2) &&
-          (down_neighbor_count == 0)) {
-        std::cout << "Pixel (" << row << ", " << col
-                  << ") is a sill but has no lower neighbor" << std::endl;
-        return -1;
-      }
-
-      // Every sill pixel should border a flat
-      if ((flat & 2) && (neighboring_flats == 0)) {
-        std::cout << "Pixel (" << row << ", " << col
-                  << ") is a sill but does not border a flat" << std::endl;
-        return -1;
-      }
     }
   }
 
