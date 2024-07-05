@@ -45,6 +45,42 @@ int32_t test_fillsinks_filled(float *filled_dem, ptrdiff_t nrows,
   }
   return 0;
 }
+
+/*
+  Every pixel with no lower neighbors and fewer than 8 higher
+  neighbors should be labeled a flat. Likewise, every flat should have
+  no lower neighbors and fewer than 8 higher neighbors.
+ */
+int32_t test_identifyflats_flats(int32_t *flats, float *dem, ptrdiff_t nrows,
+                                 ptrdiff_t ncols) {
+  ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
+  ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
+
+  for (ptrdiff_t j = 2; j < ncols - 1; j++) {
+    for (ptrdiff_t i = 2; i < nrows - 1; i++) {
+      float z = dem[i + nrows * j];
+      int32_t flat = flats[i + nrows * j];
+
+      int32_t up_neighbor_count = 0;
+      int32_t down_neighbor_count = 0;
+      for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
+        float neighbor_height =
+            dem[i + row_offset[neighbor] + nrows * (j + col_offset[neighbor])];
+
+        if (neighbor_height > z) {
+          up_neighbor_count++;
+        } else if (neighbor_height < z) {
+          down_neighbor_count++;
+        }
+      }
+      assert(((down_neighbor_count == 0) && (up_neighbor_count < 8)) ==
+             ((flat & 1) == 1));
+    }
+  }
+
+  return 0;
+}
+
 int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   // Allocate variables
 
@@ -81,6 +117,10 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   // Number of flats identified in the test
   test_fillsinks_ge(dem, filled_dem, nrows, ncols);
   test_fillsinks_filled(filled_dem, nrows, ncols);
+
+  identifyflats(flats, filled_dem, nrows, ncols);
+
+  test_identifyflats_flats(flats, filled_dem, nrows, ncols);
   ptrdiff_t test_count_flats = 0;
 
   // Test properties of filled DEM and identified flats
@@ -185,16 +225,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
           down_neighbor_count == 0) {
         // This pixel is a flat
         test_count_flats++;
-      }
-
-      // Every pixel with no lower neighbors and fewer than 8
-      // up_neighbors should be labeled a flat
-      if (!current_pixel_on_border && up_neighbor_count < 8 &&
-          down_neighbor_count == 0 && !(flat & 1)) {
-        std::cout << "Pixel (" << row << ", " << col
-                  << ") is has no lower neighbors but is not labeled a flat"
-                  << std::endl;
-        return -1;
       }
 
       // Every pixel that has a lower neighbor, borders a flat, and
