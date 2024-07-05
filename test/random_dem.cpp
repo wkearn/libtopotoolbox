@@ -241,9 +241,12 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   test_fillsinks_ge(dem, filled_dem, nrows, ncols);
   test_fillsinks_filled(filled_dem, nrows, ncols);
 
-  identifyflats(flats, filled_dem, nrows, ncols);
+  ptrdiff_t count_flats = identifyflats(flats, filled_dem, nrows, ncols);
 
   test_identifyflats_flats(flats, filled_dem, nrows, ncols);
+  test_identifyflats_sills(flats, filled_dem, nrows, ncols);
+  test_identifyflats_presills(flats, filled_dem, nrows, ncols);
+
   gwdt_computecosts(costs, conncomps, flats, dem, filled_dem, nrows, ncols);
 
   test_gwdt_costs(costs, flats, nrows, ncols);
