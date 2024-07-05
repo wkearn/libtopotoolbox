@@ -30,13 +30,20 @@ int32_t test_fillsinks_filled(float *filled_dem, ptrdiff_t nrows,
   ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
   ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
 
-  for (ptrdiff_t j = 2; j < ncols - 1; j++) {
-    for (ptrdiff_t i = 2; i < nrows - 1; i++) {
+  for (ptrdiff_t j = 0; j < ncols; j++) {
+    for (ptrdiff_t i = 0; i < nrows; i++) {
       float z = filled_dem[i + nrows * j];
       ptrdiff_t up_neighbor_count = 0;
       for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
-        if (filled_dem[i + row_offset[neighbor] +
-                       nrows * (j + col_offset[neighbor])] > z) {
+        ptrdiff_t neighbor_i = i + row_offset[neighbor];
+        ptrdiff_t neighbor_j = j + col_offset[neighbor];
+
+        if (neighbor_i < 0 || neighbor_i >= nrows || neighbor_j < 0 ||
+            neighbor_j >= ncols) {
+          continue;
+        }
+
+        if (filled_dem[neighbor_i + nrows * neighbor_j] > z) {
           up_neighbor_count++;
         }
       }
@@ -47,25 +54,32 @@ int32_t test_fillsinks_filled(float *filled_dem, ptrdiff_t nrows,
 }
 
 /*
-  Every pixel with no lower neighbors and fewer than 8 higher
-  neighbors should be labeled a flat. Likewise, every flat should have
-  no lower neighbors and fewer than 8 higher neighbors.
+  Every pixel not on the boundary with no lower neighbors and fewer than
+  8 higher neighbors should be labeled a flat. Likewise, every flat
+  should have no lower neighbors and fewer than 8 higher neighbors.
  */
 int32_t test_identifyflats_flats(int32_t *flats, float *dem, ptrdiff_t nrows,
                                  ptrdiff_t ncols) {
   ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
   ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
 
-  for (ptrdiff_t j = 2; j < ncols - 1; j++) {
-    for (ptrdiff_t i = 2; i < nrows - 1; i++) {
+  for (ptrdiff_t j = 0; j < ncols; j++) {
+    for (ptrdiff_t i = 0; i < nrows; i++) {
       float z = dem[i + nrows * j];
       int32_t flat = flats[i + nrows * j];
 
       int32_t up_neighbor_count = 0;
       int32_t down_neighbor_count = 0;
       for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
-        float neighbor_height =
-            dem[i + row_offset[neighbor] + nrows * (j + col_offset[neighbor])];
+        ptrdiff_t neighbor_i = i + row_offset[neighbor];
+        ptrdiff_t neighbor_j = j + col_offset[neighbor];
+
+        if (neighbor_i < 0 || neighbor_i >= nrows || neighbor_j < 0 ||
+            neighbor_j >= ncols) {
+          continue;
+        }
+
+        float neighbor_height = dem[neighbor_i + nrows * neighbor_j];
 
         if (neighbor_height > z) {
           up_neighbor_count++;
@@ -73,8 +87,16 @@ int32_t test_identifyflats_flats(int32_t *flats, float *dem, ptrdiff_t nrows,
           down_neighbor_count++;
         }
       }
-      assert(((down_neighbor_count == 0) && (up_neighbor_count < 8)) ==
-             ((flat & 1) == 1));
+      int32_t current_pixel_on_boundary =
+          i == 0 || i == nrows - 1 || j == 0 || j == ncols - 1;
+
+      assert((!current_pixel_on_boundary && (down_neighbor_count == 0) &&
+              (up_neighbor_count < 8)) == ((flat & 1) == 1));
+    }
+  }
+
+  return 0;
+}
     }
   }
 
