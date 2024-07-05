@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -97,6 +98,49 @@ int32_t test_identifyflats_flats(int32_t *flats, float *dem, ptrdiff_t nrows,
 
   return 0;
 }
+
+/*
+  Every pixel that has a lower neighbor, borders a flat, and has the
+  same elevation as a flat that it touches should be labeled a sill.
+*/
+int32_t test_identifyflats_sills(int32_t *flats, float *dem, ptrdiff_t nrows,
+                                 ptrdiff_t ncols) {
+  ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
+  ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
+
+  for (ptrdiff_t j = 0; j < ncols; j++) {
+    for (ptrdiff_t i = 0; i < nrows; i++) {
+      float z = dem[i + j * nrows];
+      int32_t flat = flats[i + j * nrows];
+
+      int32_t down_neighbor_count = 0;
+      int32_t equal_neighbor_flats = 0;
+
+      for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
+        ptrdiff_t neighbor_i = i + row_offset[neighbor];
+        ptrdiff_t neighbor_j = j + col_offset[neighbor];
+
+        if (neighbor_i < 0 || neighbor_i >= nrows || neighbor_j < 0 ||
+            neighbor_j >= ncols) {
+          // Count boundary pixels as down neighbors so sills can
+          // drain off the map.
+          down_neighbor_count++;
+          continue;
+        }
+
+        float neighbor_height = dem[neighbor_i + nrows * neighbor_j];
+        int32_t neighbor_flat = flats[neighbor_i + nrows * neighbor_j];
+
+        if (neighbor_height < z) {
+          down_neighbor_count++;
+        }
+
+        if ((neighbor_flat & 1) && (neighbor_height == z)) {
+          equal_neighbor_flats++;
+        }
+      }
+      assert(((flat & 2) > 0) ==
+             ((down_neighbor_count > 0) && (equal_neighbor_flats > 0)));
     }
   }
 
@@ -247,18 +291,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
           down_neighbor_count == 0) {
         // This pixel is a flat
         test_count_flats++;
-      }
-
-      // Every pixel that has a lower neighbor, borders a flat, and
-      // has the same elevation as a flat that it touches should be
-      // labeled a sill.
-      if (equal_neighboring_flats > 0 && down_neighbor_count > 0 &&
-          !(flat & 2)) {
-        std::cout << "Pixel (" << row << ", " << col
-                  << ") neighbors a flat and has lower neighbors but is not "
-                     "labeled a sill"
-                  << std::endl;
-        return -1;
       }
 
       // Every pixel that is a flat and borders a sill of the same
