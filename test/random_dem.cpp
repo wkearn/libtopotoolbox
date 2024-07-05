@@ -9,6 +9,8 @@ extern "C" {
 #include "utils.h"
 }
 
+#define SQRT2f 1.41421356237309504880f
+
 /*
   Each pixel of the filled DEM should be greater than or equal to
   the corresponding pixel in the original DEM.
@@ -22,6 +24,7 @@ int32_t test_fillsinks_ge(float *original_dem, float *filled_dem,
   }
   return 0;
 }
+
 /*
   No pixel in the filled DEM should be completely surrounded by pixels higher
   than it.
@@ -242,6 +245,43 @@ int32_t test_gwdt_conncomps(ptrdiff_t *conncomps, int32_t *flats,
   return 0;
 }
 
+/*
+  Gray-weighted distances should be
+
+  1. non-negative for all pixels
+  2. 1 for presills
+  3. >1 for other flats
+  4. equal to the distance to the parent pixel plus the geodesic distance
+  between the parent and the current pixel.
+ */
+int32_t test_gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
+                  ptrdiff_t nrows, ptrdiff_t ncols) {
+  for (ptrdiff_t j = 0; j < ncols; j++) {
+    for (ptrdiff_t i = 0; i < nrows; i++) {
+      float d = dist[i + j * nrows];
+      int32_t flat = flats[i + j * nrows];
+
+      assert(d >= 0);
+
+      if (flat & 4) {
+        assert(d == 1.0);
+      } else if (flat & 1) {
+        assert(d > 1.0);
+
+        ptrdiff_t parent = prev[i + j * nrows];
+        ptrdiff_t parent_j = parent / nrows;
+        ptrdiff_t parent_i = parent % nrows;
+        float chamfer = (parent_j != j) && (parent_i != i) ? SQRT2f : 1.0f;
+        float proposed_dist =
+            dist[parent] + chamfer * (costs[i + j * nrows] + costs[parent]) / 2;
+        assert(proposed_dist == d);
+      }
+    }
+  }
+
+  return 0;
+}
+
 int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   // Allocate variables
 
@@ -263,6 +303,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   ptrdiff_t *heap = new ptrdiff_t[nrows * ncols];
   ptrdiff_t *back = new ptrdiff_t[nrows * ncols];
   ptrdiff_t *prev = new ptrdiff_t[nrows * ncols];
+
   for (uint32_t col = 0; col < ncols; col++) {
     for (uint32_t row = 0; row < nrows; row++) {
       dem[col * nrows + row] = 100.0f * pcg4d(row, col, seed, 1);
@@ -271,11 +312,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 
   // Run flow routing algorithms
   fillsinks(filled_dem, dem, nrows, ncols);
-  ptrdiff_t count_flats = identifyflats(flats, filled_dem, nrows, ncols);
-  gwdt_computecosts(costs, conncomps, flats, dem, filled_dem, nrows, ncols);
-  gwdt(dist, prev, costs, flats, heap, back, nrows, ncols);
 
-  // Number of flats identified in the test
   test_fillsinks_ge(dem, filled_dem, nrows, ncols);
   test_fillsinks_filled(filled_dem, nrows, ncols);
 
@@ -289,9 +326,12 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 
   test_gwdt_costs(costs, flats, nrows, ncols);
   test_gwdt_conncomps(conncomps, flats, nrows, ncols);
+
+  gwdt(dist, prev, costs, flats, heap, back, nrows, ncols);
+  test_gwdt(dist, prev, costs, flats, nrows, ncols);
+
   ptrdiff_t test_count_flats = 0;
 
-  // Test properties of filled DEM and identified flats
   ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
   ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
 
@@ -367,6 +407,10 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   delete[] flats;
   delete[] conncomps;
   delete[] costs;
+  delete[] dist;
+  delete[] heap;
+  delete[] back;
+  delete[] prev;
 
   return 0;
 }
