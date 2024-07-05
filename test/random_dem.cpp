@@ -8,6 +8,19 @@ extern "C" {
 #include "utils.h"
 }
 
+/*
+  Each pixel of the filled DEM should be greater than or equal to
+  the corresponding pixel in the original DEM
+ */
+int32_t test_fillsinks_ge(float *original_dem, float *filled_dem,
+                          ptrdiff_t nrows, ptrdiff_t ncols) {
+  for (ptrdiff_t j = 0; j < ncols; j++) {
+    for (ptrdiff_t i = 0; i < nrows; i++) {
+      assert(filled_dem[i + nrows * j] >= original_dem[i + nrows * j]);
+    }
+  }
+  return 0;
+}
 int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   // Allocate variables
 
@@ -42,6 +55,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   gwdt(dist, prev, costs, flats, heap, back, nrows, ncols);
 
   // Number of flats identified in the test
+  test_fillsinks_ge(dem, filled_dem, nrows, ncols);
   ptrdiff_t test_count_flats = 0;
 
   // Test properties of filled DEM and identified flats
@@ -58,15 +72,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 
       int32_t current_pixel_on_border =
           row == 0 || row == nrows - 1 || col == 0 || col == ncols - 1;
-
-      // Each pixel of the filled raster should be >= the DEM
-      if (z < dem[col * nrows + row]) {
-        std::cout << "Pixel (" << row << ", " << col << ") is below the DEM"
-                  << std::endl;
-        std::cout << "Value: " << z << std::endl;
-        std::cout << "DEM: " << dem[col * nrows + row] << std::endl;
-        return -1;
-      }
 
       // Test cost computation
       if (flat & 1) {
