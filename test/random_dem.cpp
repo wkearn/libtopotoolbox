@@ -21,6 +21,30 @@ int32_t test_fillsinks_ge(float *original_dem, float *filled_dem,
   }
   return 0;
 }
+/*
+  No pixel in the filled DEM should be completely surrounded by pixels higher
+  than it
+ */
+int32_t test_fillsinks_filled(float *filled_dem, ptrdiff_t nrows,
+                              ptrdiff_t ncols) {
+  ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
+  ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
+
+  for (ptrdiff_t j = 2; j < ncols - 1; j++) {
+    for (ptrdiff_t i = 2; i < nrows - 1; i++) {
+      float z = filled_dem[i + nrows * j];
+      ptrdiff_t up_neighbor_count = 0;
+      for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
+        if (filled_dem[i + row_offset[neighbor] +
+                       nrows * (j + col_offset[neighbor])] > z) {
+          up_neighbor_count++;
+        }
+      }
+      assert(up_neighbor_count != 8);
+    }
+  }
+  return 0;
+}
 int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   // Allocate variables
 
@@ -56,6 +80,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 
   // Number of flats identified in the test
   test_fillsinks_ge(dem, filled_dem, nrows, ncols);
+  test_fillsinks_filled(filled_dem, nrows, ncols);
   ptrdiff_t test_count_flats = 0;
 
   // Test properties of filled DEM and identified flats
@@ -100,9 +125,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
       // Number of neighbors lower than the current pixel
       int32_t down_neighbor_count = 0;
 
-      // Number of neighbors higher than the current pixel
-      int32_t up_neighbor_count = 0;
-
       // Number of neighbors that are flats
       int32_t neighboring_flats = 0;
 
@@ -127,10 +149,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
         int32_t neighboring_flat = flats[neighbor_col * nrows + neighbor_row];
         ptrdiff_t neighbor_label =
             conncomps[neighbor_col * nrows + neighbor_row];
-
-        if (z < neighbor_height) {
-          up_neighbor_count++;
-        }
 
         if (z > neighbor_height) {
           down_neighbor_count++;
@@ -161,14 +179,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
             equal_neighboring_sills++;
           }
         }
-      }
-
-      // No pixel of the filled raster should be surrounded by
-      // neighbors that are higher than it
-      if (up_neighbor_count == 8) {
-        std::cout << "Pixel (" << row << ", " << col << ") is a sink"
-                  << std::endl;
-        return -1;
       }
 
       if (!current_pixel_on_border && up_neighbor_count < 8 &&
