@@ -187,6 +187,23 @@ int32_t test_identifyflats_presills(int32_t *flats, float *dem, ptrdiff_t nrows,
   return 0;
 }
 
+/*
+  Costs should be zero on nonflats and positive on flats.
+ */
+int32_t test_gwdt_costs(float *costs, int32_t *flats, ptrdiff_t nrows,
+                        ptrdiff_t ncols) {
+  for (ptrdiff_t j = 0; j < ncols; j++) {
+    for (ptrdiff_t i = 0; i < nrows; i++) {
+      float cost = costs[i + nrows * j];
+      int32_t flat = flats[i + nrows * j];
+
+      assert((cost >= 0) && (((flat & 1) > 0) == (cost > 0)));
+    }
+  }
+
+  return 0;
+}
+
 int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   // Allocate variables
 
@@ -227,6 +244,9 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   identifyflats(flats, filled_dem, nrows, ncols);
 
   test_identifyflats_flats(flats, filled_dem, nrows, ncols);
+  gwdt_computecosts(costs, conncomps, flats, dem, filled_dem, nrows, ncols);
+
+  test_gwdt_costs(costs, flats, nrows, ncols);
   ptrdiff_t test_count_flats = 0;
 
   // Test properties of filled DEM and identified flats
@@ -237,7 +257,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
       float z = filled_dem[col * nrows + row];
       int32_t flat = flats[col * nrows + row];
-      float cost = costs[col * nrows + row];
       ptrdiff_t label = conncomps[col * nrows + row];
       float d = dist[idx];
 
@@ -246,24 +265,10 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 
       // Test cost computation
       if (flat & 1) {
-        if (cost <= 0) {
-          std::cout << "The cost at pixel (" << row << ", " << col
-                    << ") is nonpositive" << std::endl;
-          return -1;
-        }
-
         if (label == 0) {
           std::cout << "Pixel (" << row << ", " << col
                     << ") is a flat but has a connected component label of 0"
                     << std::endl;
-          return -1;
-        }
-      }
-
-      if (!(flat & 1)) {
-        if (cost != 0) {
-          std::cout << "The cost " << cost << " at nonflat pixel (" << row
-                    << ", " << col << ") is nonzero" << std::endl;
           return -1;
         }
       }
