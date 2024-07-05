@@ -24,6 +24,11 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   ptrdiff_t *conncomps = new ptrdiff_t[nrows * ncols];
   float *costs = new float[nrows * ncols];
 
+  // Outputs and intermediate needs for gwdt
+  float *dist = new float[nrows * ncols];
+  ptrdiff_t *heap = new ptrdiff_t[nrows * ncols];
+  ptrdiff_t *back = new ptrdiff_t[nrows * ncols];
+  ptrdiff_t *prev = new ptrdiff_t[nrows * ncols];
   for (uint32_t col = 0; col < ncols; col++) {
     for (uint32_t row = 0; row < nrows; row++) {
       dem[col * nrows + row] = 100.0f * pcg4d(row, col, seed, 1);
@@ -34,6 +39,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   fillsinks(filled_dem, dem, nrows, ncols);
   ptrdiff_t count_flats = identifyflats(flats, filled_dem, nrows, ncols);
   gwdt_computecosts(costs, conncomps, flats, dem, filled_dem, nrows, ncols);
+  gwdt(dist, prev, costs, flats, heap, back, nrows, ncols);
 
   // Number of flats identified in the test
   ptrdiff_t test_count_flats = 0;
@@ -48,6 +54,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
       int32_t flat = flats[col * nrows + row];
       float cost = costs[col * nrows + row];
       ptrdiff_t label = conncomps[col * nrows + row];
+      float d = dist[idx];
 
       int32_t current_pixel_on_border =
           row == 0 || row == nrows - 1 || col == 0 || col == ncols - 1;
