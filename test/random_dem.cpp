@@ -147,6 +147,46 @@ int32_t test_identifyflats_sills(int32_t *flats, float *dem, ptrdiff_t nrows,
   return 0;
 }
 
+/*
+  Every pixel that is a flat and borders a sill of the same
+  height should be labeled a presill
+*/
+int32_t test_identifyflats_presills(int32_t *flats, float *dem, ptrdiff_t nrows,
+                                    ptrdiff_t ncols) {
+  ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
+  ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
+
+  for (ptrdiff_t j = 0; j < ncols; j++) {
+    for (ptrdiff_t i = 0; i < nrows; i++) {
+      float z = dem[i + j * nrows];
+      int32_t flat = flats[i + j * nrows];
+
+      int32_t equal_neighbor_sills = 0;
+
+      for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
+        ptrdiff_t neighbor_i = i + row_offset[neighbor];
+        ptrdiff_t neighbor_j = j + col_offset[neighbor];
+
+        if (neighbor_i < 0 || neighbor_i >= nrows || neighbor_j < 0 ||
+            neighbor_j >= ncols) {
+          continue;
+        }
+
+        float neighbor_height = dem[neighbor_i + nrows * neighbor_j];
+        int32_t neighbor_flat = flats[neighbor_i + nrows * neighbor_j];
+
+        if (((neighbor_flat & 2) > 0) && (neighbor_height == z)) {
+          equal_neighbor_sills++;
+        }
+      }
+      assert(((flat & 1) > 0 && (equal_neighbor_sills > 0)) ==
+             ((flat & 4) > 0));
+    }
+  }
+
+  return 0;
+}
+
 int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   // Allocate variables
 
@@ -291,16 +331,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
           down_neighbor_count == 0) {
         // This pixel is a flat
         test_count_flats++;
-      }
-
-      // Every pixel that is a flat and borders a sill of the same
-      // height should be labeled a presill
-      if ((flat & 1) && (equal_neighboring_sills > 0) && !(flat & 4)) {
-        std::cout
-            << "Pixel (" << row << ", " << col
-            << ") is a flat that neighbors a sill but is not labeled a presill"
-            << std::endl;
-        return -1;
       }
 
       // No flat should border a lower pixel
