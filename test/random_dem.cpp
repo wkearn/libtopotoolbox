@@ -316,7 +316,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   test_fillsinks_ge(dem, filled_dem, nrows, ncols);
   test_fillsinks_filled(filled_dem, nrows, ncols);
 
-  ptrdiff_t count_flats = identifyflats(flats, filled_dem, nrows, ncols);
+  identifyflats(flats, filled_dem, nrows, ncols);
 
   test_identifyflats_flats(flats, filled_dem, nrows, ncols);
   test_identifyflats_sills(flats, filled_dem, nrows, ncols);
@@ -329,78 +329,6 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 
   gwdt(dist, prev, costs, flats, heap, back, nrows, ncols);
   test_gwdt(dist, prev, costs, flats, nrows, ncols);
-
-  ptrdiff_t test_count_flats = 0;
-
-  ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
-  ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
-
-  for (ptrdiff_t col = 0; col < ncols; col++) {
-    for (ptrdiff_t row = 0; row < nrows; row++) {
-      float z = filled_dem[col * nrows + row];
-
-      int32_t current_pixel_on_border =
-          row == 0 || row == nrows - 1 || col == 0 || col == ncols - 1;
-
-      // Number of neighbors lower than the current pixel
-      int32_t down_neighbor_count = 0;
-
-      // Number of neighbors that are flats
-      int32_t neighboring_flats = 0;
-
-      // Number of neighboring flats that have the same elevation as
-      // the current pixel
-      int32_t equal_neighboring_flats = 0;
-
-      // Number of neighboring sills that have the same elevation as
-      // the current pixel
-      int32_t equal_neighboring_sills = 0;
-
-      for (ptrdiff_t neighbor = 0; neighbor < 8; neighbor++) {
-        ptrdiff_t neighbor_row = row + row_offset[neighbor];
-        ptrdiff_t neighbor_col = col + col_offset[neighbor];
-
-        if (neighbor_row < 0 || neighbor_row >= nrows || neighbor_col < 0 ||
-            neighbor_col >= ncols) {
-          continue;
-        }
-
-        float neighbor_height = filled_dem[neighbor_col * nrows + neighbor_row];
-        int32_t neighboring_flat = flats[neighbor_col * nrows + neighbor_row];
-
-        if (z > neighbor_height) {
-          down_neighbor_count++;
-        }
-
-        if (neighboring_flat & 1) {
-          neighboring_flats++;
-
-          if (z == neighbor_height) {
-            equal_neighboring_flats++;
-          }
-        }
-
-        if (neighboring_flat & 2) {
-          if (z == neighbor_height) {
-            equal_neighboring_sills++;
-          }
-        }
-      }
-
-      if (!current_pixel_on_border && up_neighbor_count < 8 &&
-          down_neighbor_count == 0) {
-        // This pixel is a flat
-        test_count_flats++;
-      }
-    }
-  }
-
-  if (test_count_flats != count_flats) {
-    std::cout << "Number of flats identified in the test is not equal to the "
-                 "number of flats computed by identifyflats"
-              << std::endl;
-    return -1;
-  }
 
   delete[] dem;
   delete[] filled_dem;
