@@ -283,7 +283,9 @@ int32_t test_gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
   return 0;
 }
 
-int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
+int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t strides[2], uint32_t seed) {
+  ptrdiff_t nrows = dims[0];
+  ptrdiff_t ncols = dims[1];
   // Allocate variables
 
   // Input DEM
@@ -312,7 +314,7 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
   }
 
   // Run flow routing algorithms
-  fillsinks(filled_dem, dem, nrows, ncols);
+  fillsinks(filled_dem, dem, dims, strides);
 
   test_fillsinks_ge(dem, filled_dem, nrows, ncols);
   test_fillsinks_filled(filled_dem, nrows, ncols);
@@ -345,11 +347,11 @@ int32_t random_dem_test(ptrdiff_t nrows, ptrdiff_t ncols, uint32_t seed) {
 }
 
 int main(int argc, char *argv[]) {
-  ptrdiff_t nrows = 100;
-  ptrdiff_t ncols = 200;
+  ptrdiff_t dims[2] = {100,200};
+  ptrdiff_t strides[2] = {1, 100};
 
   for (uint32_t test = 0; test < 100; test++) {
-    int32_t result = random_dem_test(nrows, ncols, test);
+    int32_t result = random_dem_test(dims, strides, test);
     if (result < 0) {
       return result;
     }
