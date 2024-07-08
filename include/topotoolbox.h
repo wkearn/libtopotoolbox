@@ -48,7 +48,8 @@ int has_topotoolbox(void);
    @param[in]  ncols  The size of both DEMs in the slowest changing dimension
  */
 TOPOTOOLBOX_API
-void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
+void fillsinks(float *output, float *dem, ptrdiff_t dims[2],
+               ptrdiff_t strides[2]);
 
 /**
    @brief Labels flat, sill and presill pixels in the provided DEM
