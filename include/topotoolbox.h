@@ -42,10 +42,14 @@ int has_topotoolbox(void);
 
    Uses an algorithm based on grayscale morphological reconstruction.
 
-   @param[out] output The filled DEM
-   @param[in]  dem    The input DEM
-   @param[in]  nrows  The size of both DEMs in the fastest changing dimension
-   @param[in]  ncols  The size of both DEMs in the slowest changing dimension
+   @param[out] output  The filled DEM
+   @param[in]  dem     The input DEM
+   @param[in]  dims    The size of both DEMs. The first element should be the
+                       dimension whose index changes most quickly as one steps
+                       through the array, and the second element should be the
+                       dimension whose index changes most slowly
+   @param[in]  strides The distance between adjacent elements in the first and
+                       second dimensions
  */
 TOPOTOOLBOX_API
 void fillsinks(float *output, float *dem, ptrdiff_t dims[2],
