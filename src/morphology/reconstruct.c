@@ -142,8 +142,10 @@ ptrdiff_t backward_scan(float *marker, float *mask, ptrdiff_t dims[2],
   (1993).
 
   Both `marker` and `mask` should point to two-dimensional arrays of
-  size (nrows, ncols) with the first dimension (nrows) changing
-  fastest. The `marker` array is updated with the result in-place.
+  size `dims` with the first listed dimension changing the
+  fastest. The distance between adjacent elements in the first and
+  second dimensions are given by the elements of `strides`. The
+  `marker` array is updated with the result in-place.
 
   The algorithm alternately scans the marker image in the forward and
   reverse directions performing a partial reconstruction in each
