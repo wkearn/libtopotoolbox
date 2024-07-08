@@ -17,10 +17,11 @@ extern "C" {
   the corresponding pixel in the original DEM.
  */
 int32_t test_fillsinks_ge(float *original_dem, float *filled_dem,
-                          ptrdiff_t nrows, ptrdiff_t ncols) {
-  for (ptrdiff_t j = 0; j < ncols; j++) {
-    for (ptrdiff_t i = 0; i < nrows; i++) {
-      assert(filled_dem[i + nrows * j] >= original_dem[i + nrows * j]);
+                          ptrdiff_t dims[2], ptrdiff_t strides[2]) {
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      assert(filled_dem[i * strides[0] + j * strides[1]] >=
+             original_dem[i * strides[0] + j * strides[1]]);
     }
   }
   return 0;
@@ -30,25 +31,25 @@ int32_t test_fillsinks_ge(float *original_dem, float *filled_dem,
   No pixel in the filled DEM should be completely surrounded by pixels higher
   than it.
  */
-int32_t test_fillsinks_filled(float *filled_dem, ptrdiff_t nrows,
-                              ptrdiff_t ncols) {
-  ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
-  ptrdiff_t row_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
+int32_t test_fillsinks_filled(float *filled_dem, ptrdiff_t dims[2],
+                              ptrdiff_t strides[2]) {
+  ptrdiff_t i_offset[8] = {1, 0, -1, -1, -1, 0, 1, 1};
+  ptrdiff_t j_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
 
-  for (ptrdiff_t j = 0; j < ncols; j++) {
-    for (ptrdiff_t i = 0; i < nrows; i++) {
-      float z = filled_dem[i + nrows * j];
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[1]; i++) {
+      float z = filled_dem[i * strides[0] + j * strides[1]];
       ptrdiff_t up_neighbor_count = 0;
       for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
-        ptrdiff_t neighbor_i = i + row_offset[neighbor];
-        ptrdiff_t neighbor_j = j + col_offset[neighbor];
+        ptrdiff_t neighbor_i = i + i_offset[neighbor];
+        ptrdiff_t neighbor_j = j + j_offset[neighbor];
 
-        if (neighbor_i < 0 || neighbor_i >= nrows || neighbor_j < 0 ||
-            neighbor_j >= ncols) {
+        if (neighbor_i < 0 || neighbor_i >= dims[0] || neighbor_j < 0 ||
+            neighbor_j >= dims[1]) {
           continue;
         }
 
-        if (filled_dem[neighbor_i + nrows * neighbor_j] > z) {
+        if (filled_dem[neighbor_i * strides[0] + neighbor_j * strides[1]] > z) {
           up_neighbor_count++;
         }
       }
@@ -283,41 +284,42 @@ int32_t test_gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
   return 0;
 }
 
-int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t strides[2], uint32_t seed) {
+int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t strides[2],
+                        uint32_t seed) {
   ptrdiff_t nrows = dims[0];
   ptrdiff_t ncols = dims[1];
   // Allocate variables
 
   // Input DEM
-  float *dem = new float[nrows * ncols];
+  float *dem = new float[dims[0] * dims[1]];
 
   // Output for fillsinks
-  float *filled_dem = new float[nrows * ncols];
+  float *filled_dem = new float[dims[0] * dims[1]];
 
   // Output for identifyflats
-  int32_t *flats = new int32_t[nrows * ncols];
+  int32_t *flats = new int32_t[dims[0] * dims[1]];
 
   // Outputs for compute_costs
-  ptrdiff_t *conncomps = new ptrdiff_t[nrows * ncols];
-  float *costs = new float[nrows * ncols];
+  ptrdiff_t *conncomps = new ptrdiff_t[dims[0] * dims[1]];
+  float *costs = new float[dims[0] * dims[1]];
 
   // Outputs and intermediate needs for gwdt
-  float *dist = new float[nrows * ncols];
-  ptrdiff_t *heap = new ptrdiff_t[nrows * ncols];
-  ptrdiff_t *back = new ptrdiff_t[nrows * ncols];
-  ptrdiff_t *prev = new ptrdiff_t[nrows * ncols];
+  float *dist = new float[dims[0] * dims[1]];
+  ptrdiff_t *heap = new ptrdiff_t[dims[0] * dims[1]];
+  ptrdiff_t *back = new ptrdiff_t[dims[0] * dims[1]];
+  ptrdiff_t *prev = new ptrdiff_t[dims[0] * dims[1]];
 
-  for (uint32_t col = 0; col < ncols; col++) {
-    for (uint32_t row = 0; row < nrows; row++) {
-      dem[col * nrows + row] = 100.0f * pcg4d(row, col, seed, 1);
+  for (uint32_t j = 0; j < dims[1]; j++) {
+    for (uint32_t i = 0; i < dims[0]; i++) {
+      dem[i * strides[0] + j * strides[1]] = 100.0f * pcg4d(i, j, seed, 1);
     }
   }
 
   // Run flow routing algorithms
   fillsinks(filled_dem, dem, dims, strides);
 
-  test_fillsinks_ge(dem, filled_dem, nrows, ncols);
-  test_fillsinks_filled(filled_dem, nrows, ncols);
+  test_fillsinks_ge(dem, filled_dem, dims, strides);
+  test_fillsinks_filled(filled_dem, dims, strides);
 
   identifyflats(flats, filled_dem, nrows, ncols);
 
@@ -347,10 +349,10 @@ int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t strides[2], uint32_t seed) 
 }
 
 int main(int argc, char *argv[]) {
-  ptrdiff_t cm_dims[2] = {100,200};
+  ptrdiff_t cm_dims[2] = {100, 200};
   ptrdiff_t cm_strides[2] = {1, 100};
 
-  ptrdiff_t rm_dims[2] = {200,100};
+  ptrdiff_t rm_dims[2] = {200, 100};
   ptrdiff_t rm_strides[2] = {1, 200};
 
   for (uint32_t test = 0; test < 50; test++) {
@@ -359,7 +361,7 @@ int main(int argc, char *argv[]) {
       return result;
     }
 
-    result = random_dem_test(rm_dims,rm_strides,2 * test);
+    result = random_dem_test(rm_dims, rm_strides, 2 * test);
     if (result < 0) {
       return result;
     }
