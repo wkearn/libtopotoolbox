@@ -347,11 +347,19 @@ int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t strides[2], uint32_t seed) 
 }
 
 int main(int argc, char *argv[]) {
-  ptrdiff_t dims[2] = {100,200};
-  ptrdiff_t strides[2] = {1, 100};
+  ptrdiff_t cm_dims[2] = {100,200};
+  ptrdiff_t cm_strides[2] = {1, 100};
 
-  for (uint32_t test = 0; test < 100; test++) {
-    int32_t result = random_dem_test(dims, strides, test);
+  ptrdiff_t rm_dims[2] = {200,100};
+  ptrdiff_t rm_strides[2] = {1, 200};
+
+  for (uint32_t test = 0; test < 50; test++) {
+    int32_t result = random_dem_test(cm_dims, cm_strides, test);
+    if (result < 0) {
+      return result;
+    }
+
+    result = random_dem_test(rm_dims,rm_strides,2 * test);
     if (result < 0) {
       return result;
     }
