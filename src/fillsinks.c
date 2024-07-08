@@ -21,7 +21,9 @@
   Sinks are filled using grayscale morphological reconstruction.
 */
 TOPOTOOLBOX_API
-void fillsinks(float *output, float *dem, ptrdiff_t nrows, ptrdiff_t ncols) {
+void fillsinks(float *output, float *dem, ptrdiff_t dims[2], ptrdiff_t strides[2]) {
+  ptrdiff_t nrows = dims[0];
+  ptrdiff_t ncols = dims[1];
   for (ptrdiff_t col = 0; col < ncols; col++) {
     for (ptrdiff_t row = 0; row < nrows; row++) {
       // Invert the DEM
