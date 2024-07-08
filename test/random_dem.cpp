@@ -355,6 +355,9 @@ int main(int argc, char *argv[]) {
   ptrdiff_t rm_dims[2] = {200, 100};
   ptrdiff_t rm_strides[2] = {1, 200};
 
+  ptrdiff_t strided_cm_dims[2] = {100, 200};
+  ptrdiff_t strided_cm_strides[2] = {3, 300};
+
   for (uint32_t test = 0; test < 50; test++) {
     int32_t result = random_dem_test(cm_dims, cm_strides, test);
     if (result < 0) {
@@ -362,6 +365,11 @@ int main(int argc, char *argv[]) {
     }
 
     result = random_dem_test(rm_dims, rm_strides, 2 * test);
+    if (result < 0) {
+      return result;
+    }
+
+    result = random_dem_test(strided_cm_dims, strided_cm_strides, 3 * test);
     if (result < 0) {
       return result;
     }
