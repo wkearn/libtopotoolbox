@@ -11,8 +11,10 @@
   Fill sinks in a digital elevation model.
 
   The arrays pointed to by `output` and `dem` should represent a two
-  dimensional array of size (nrows, ncols). The filled DEM is written
-  to the `output` array.
+  dimensional array of size `dims` with the first dimension changing
+  the fastest in the array. The distance between adjacent elements in
+  the first and second dimensions is given by the respective elements
+  of `strides`. The filled DEM is written to the `output` array.
 
   `dem` is modified during the processing, but the modifications are
   reverted before the function returns. Be careful when accessing
@@ -21,7 +23,8 @@
   Sinks are filled using grayscale morphological reconstruction.
 */
 TOPOTOOLBOX_API
-void fillsinks(float *output, float *dem, ptrdiff_t dims[2], ptrdiff_t strides[2]) { 
+void fillsinks(float *output, float *dem, ptrdiff_t dims[2],
+               ptrdiff_t strides[2]) {
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
       // Invert the DEM
@@ -29,9 +32,9 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2], ptrdiff_t strides[2
 
       // Set the boundary pixels of the output equal to the DEM and
       // the interior pixels equal to -INFINITY.
-      if ((i == 0 || i == (dims[0] - 1)) ||
-          (j == 0 || j == (dims[1] - 1))) {
-        output[i * strides[0] + j * strides[1]] = dem[i * strides[0] + j * strides[1]];
+      if ((i == 0 || i == (dims[0] - 1)) || (j == 0 || j == (dims[1] - 1))) {
+        output[i * strides[0] + j * strides[1]] =
+            dem[i * strides[0] + j * strides[1]];
       } else {
         output[i * strides[0] + j * strides[1]] = -INFINITY;
       }
