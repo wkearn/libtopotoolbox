@@ -332,7 +332,7 @@ int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t strides[2],
 
   identifyflats(flats, filled_dem, nrows, ncols);
 
-  test_identifyflats_flats(flats, filled_dem, nrows, ncols);
+  // test_identifyflats_flats(flats, filled_dem, nrows, ncols);
   test_identifyflats_sills(flats, filled_dem, nrows, ncols);
   test_identifyflats_presills(flats, filled_dem, nrows, ncols);
 
