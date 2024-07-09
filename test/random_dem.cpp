@@ -299,31 +299,31 @@ int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t strides[2],
 
   // Input DEM
   float *dem =
-      new float[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1];
+      new float[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1]();
 
   // Output for fillsinks
   float *filled_dem =
-      new float[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1];
+      new float[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1]();
 
   // Output for identifyflats
   int32_t *flats =
-      new int32_t[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1];
+      new int32_t[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1]();
 
   // Outputs for compute_costs
   ptrdiff_t *conncomps = new ptrdiff_t[(dims[0] - 1) * strides[0] +
-                                       (dims[1] - 1) * strides[1] + 1];
+                                       (dims[1] - 1) * strides[1] + 1]();
   float *costs =
-      new float[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1];
+      new float[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1]();
 
   // Outputs and intermediate needs for gwdt
   float *dist =
-      new float[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1];
+      new float[(dims[0] - 1) * strides[0] + (dims[1] - 1) * strides[1] + 1]();
   ptrdiff_t *heap = new ptrdiff_t[(dims[0] - 1) * strides[0] +
-                                  (dims[1] - 1) * strides[1] + 1];
+                                  (dims[1] - 1) * strides[1] + 1]();
   ptrdiff_t *back = new ptrdiff_t[(dims[0] - 1) * strides[0] +
-                                  (dims[1] - 1) * strides[1] + 1];
+                                  (dims[1] - 1) * strides[1] + 1]();
   ptrdiff_t *prev = new ptrdiff_t[(dims[0] - 1) * strides[0] +
-                                  (dims[1] - 1) * strides[1] + 1];
+                                  (dims[1] - 1) * strides[1] + 1]();
 
   for (uint32_t j = 0; j < dims[1]; j++) {
     for (uint32_t i = 0; i < dims[0]; i++) {
