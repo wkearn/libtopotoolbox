@@ -205,13 +205,22 @@ According to the header file and the libtopotoolbox API documentation,
 
 .. code:: C
 
-    void fillsinks(float *output, float *dem, ptrdiff_t nrows, ptrdiff_t ncols);
+    void fillsinks(float *output, float *dem, ptrdiff_t dims[2], ptrdiff_t strides[2]);
 
-``dem`` is a pointer to the input data, an array of size ``nrows * ncols``. ``nrows`` refers to the fastest changing dimension in the
-two-dimensional array and ``ncols`` to the slowest changing
-dimension. For data read by GDAL, this means that ``nrows`` corresponds
-to the X dimension (``xsize``) and ``ncols`` corresponds to the Y
-dimension (``ysize``).
+``dem`` is a pointer to the input data, an array of size ``dims[0] * dims[1]``, which represents a two-dimensional array. The first element
+of the ``dims`` array gives the size of the dimension whose indices
+change most quickly as you step through the array, and the second
+element is the size of the dimension whose indices change most
+slowly. Data read by GDAL scan through the X dimension first and then
+the Y dimension, so ``dims[0]`` corresponds to ``xsize`` and ``dims[1]``
+corresponds to ``ysize``. The ``strides`` array gives the number of
+elements between adjacent elements in each dimension. For a contiguous
+GDAL array, these should be ``strides[0] = 1`` and ``strides[1] = xsize``.
+
+.. code:: C
+
+    ptrdiff_t dims[2] = {xsize, ysize};
+    ptrdiff_t strides[2] = {1, xsize};
 
 The ``output`` array must be the same size as the input array, and we
 must allocate it ourselves following our GDAL reading code in ``main``.
@@ -224,7 +233,7 @@ Following that, we have what we need to call ``fillsinks``:
 
 .. code:: C
 
-    fillsinks(output, dem, xsize, ysize);
+    fillsinks(output, dem, dims, strides);
 
 The ``output`` array now contains the DEM with all of the sinks removed
 using a grayscale morphological reconstruction algorithm.
@@ -399,10 +408,11 @@ Complete code
         return -1;
       }
 
+      ptrdiff_t dims[2] = {xsize, ysize};
+      ptrdiff_t strides[2] = {1, xsize};
       float *output = malloc(sizeof(*output)*xsize*ysize);
 
-      fillsinks(output, dem, xsize, ysize);
-
+      fillsinks(output, dem, dims, strides);
       GDALDatasetH outDataset = GDALCreateCopy(hDriver, "filled_dem.tif", hDataset,
                                                FALSE, NULL, NULL, NULL);
 
