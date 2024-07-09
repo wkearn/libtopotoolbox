@@ -86,7 +86,7 @@ jobs:
           -DTT_BUILD_TESTS=ON
           -DBUILD_SHARED_LIBS=OFF
       - name: Build static library
-        run: cmake --build ${{github.workspace}}/build/static --config Release
+        run: cmake --build ${{github.workspace}}/build/static -v --config Release
       - name: Test static library
         run: ctest --test-dir ${{github.workspace}}/build/static -C Release --output-on-failure
       - name: Configure shared library
