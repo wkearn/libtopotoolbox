@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: ["main"]
   push:
-    branches: ["main"]
+    branches: ["main", "fillsinks-strides-macos"]
 
 jobs:
   format-check:
@@ -31,6 +31,23 @@ jobs:
           -DTT_SANITIZE=ON
       - name: Build library
         run: cmake --build ${{github.workspace}}/build/debug --config Debug
+      - name: Test
+        run: ctest --test-dir ${{github.workspace}}/build/debug -C Debug --output-on-failure
+  macos-debug-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >
+          cmake -B ${{github.workspace}}/build/debug
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+          -DTT_BUILD_TESTS=ON
+          -DBUILD_SHARED_LIBS=OFF
+          -DTT_SANITIZE=ON
+      - name: Build library
+        run: cmake --build ${{github.workspace}}/build/debug -v --config Debug
       - name: Test
         run: ctest --test-dir ${{github.workspace}}/build/debug -C Debug --output-on-failure
   release-build:
