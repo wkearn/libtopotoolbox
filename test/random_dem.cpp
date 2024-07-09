@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 
 extern "C" {
@@ -96,8 +97,14 @@ int32_t test_identifyflats_flats(int32_t *flats, float *dem, ptrdiff_t nrows,
       int32_t current_pixel_on_boundary =
           i == 0 || i == nrows - 1 || j == 0 || j == ncols - 1;
 
-      assert((!current_pixel_on_boundary && (down_neighbor_count == 0) &&
-              (up_neighbor_count < 8)) == ((flat & 1) == 1));
+      if (!((!current_pixel_on_boundary && (down_neighbor_count == 0) &&
+             (up_neighbor_count < 8)) == ((flat & 1) == 1))) {
+        printf("Current pixel on boundary?: %d", current_pixel_on_boundary);
+        printf("Down neighbor count: %d", down_neighbor_count);
+        printf("Up neighbor count: %d", up_neighbor_count);
+        printf("Flat?: %d", flat);
+        assert(0);
+      }
     }
   }
 
@@ -332,7 +339,7 @@ int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t strides[2],
 
   identifyflats(flats, filled_dem, nrows, ncols);
 
-  // test_identifyflats_flats(flats, filled_dem, nrows, ncols);
+  test_identifyflats_flats(flats, filled_dem, nrows, ncols);
   test_identifyflats_sills(flats, filled_dem, nrows, ncols);
   test_identifyflats_presills(flats, filled_dem, nrows, ncols);
 
