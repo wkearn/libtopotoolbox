@@ -1,5 +1,6 @@
 #define TOPOTOOLBOX_BUILD
 
+#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -64,7 +65,7 @@ ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t nrows,
             min_height < neighbor_height ? min_height : neighbor_height;
       }
 
-      if (dem_height == min_height) {
+      if (fabsf(dem_height - min_height) < 1e-6) {
         // Pixel is a flat
         output[col * nrows + row] |= 1;
         count_flats++;

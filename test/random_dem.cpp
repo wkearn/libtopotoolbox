@@ -99,9 +99,9 @@ int32_t test_identifyflats_flats(int32_t *flats, float *dem, ptrdiff_t nrows,
 
       if (!((!current_pixel_on_boundary && (down_neighbor_count == 0) &&
              (up_neighbor_count < 8)) == ((flat & 1) == 1))) {
-        printf("Current pixel on boundary?: %d", current_pixel_on_boundary);
-        printf("Down neighbor count: %d", down_neighbor_count);
-        printf("Up neighbor count: %d", up_neighbor_count);
+        printf("Current pixel on boundary?: %d\n", current_pixel_on_boundary);
+        printf("Down neighbor count: %d\n", down_neighbor_count);
+        printf("Up neighbor count: %d\n", up_neighbor_count);
         printf("Flat?: %d", flat);
         assert(0);
       }
