@@ -374,7 +374,6 @@ int main(int argc, char *argv[]) {
       return result;
     }
 
-
     result = random_dem_test(rm_dims, rm_strides, 3 * test + 1);
     if (result < 0) {
       return result;
