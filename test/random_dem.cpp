@@ -37,7 +37,7 @@ int32_t test_fillsinks_filled(float *filled_dem, ptrdiff_t dims[2],
   ptrdiff_t j_offset[8] = {-1, -1, -1, 0, 1, 1, 1, 0};
 
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
-    for (ptrdiff_t i = 0; i < dims[1]; i++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
       float z = filled_dem[i * strides[0] + j * strides[1]];
       ptrdiff_t up_neighbor_count = 0;
       for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
@@ -368,10 +368,12 @@ int main(int argc, char *argv[]) {
   ptrdiff_t strided_cm_strides[2] = {3, 300};
 
   for (uint32_t test = 0; test < 50; test++) {
-    int32_t result = random_dem_test(cm_dims, cm_strides, 3 * test);
+    int32_t result = 0;
+    result = random_dem_test(cm_dims, cm_strides, 3 * test);
     if (result < 0) {
       return result;
     }
+
 
     result = random_dem_test(rm_dims, rm_strides, 3 * test + 1);
     if (result < 0) {
