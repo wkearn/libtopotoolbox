@@ -44,11 +44,11 @@ int has_topotoolbox(void);
 
    @param[out] output The filled DEM
    @param[in]  dem    The input DEM
-   @param[in]  nrows  The size of both DEMs in the fastest changing dimension
-   @param[in]  ncols  The size of both DEMs in the slowest changing dimension
+   @param[in]  dims   The dimensions of both DEMs with the fastest changing
+                      dimension first
  */
 TOPOTOOLBOX_API
-void fillsinks(float *output, float *dem, ptrdiff_t nrows, ptrdiff_t ncols);
+void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
 
 /**
    @brief Labels flat, sill and presill pixels in the provided DEM
@@ -83,12 +83,11 @@ void fillsinks(float *output, float *dem, ptrdiff_t nrows, ptrdiff_t ncols);
 
    @param[out] output The integer-valued output array with pixel labels
    @param[in]  dem    The input DEM
-   @param[in]  nrows  The size of both DEMs in the fastest changing dimension
-   @param[in]  ncols  The size of both DEMs in the slowest changing dimension
+   @param[in]  dims   The dimensions of both DEMs with the fastest changing
+                      dimension first
  */
 TOPOTOOLBOX_API
-ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t nrows,
-                        ptrdiff_t ncols);
+ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t dims[2]);
 
 /**
   @brief Compute costs for the gray-weighted distance transform
@@ -114,13 +113,13 @@ ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t nrows,
   @param[in]  flats        Array identifying the flat pixels
   @param[in]  original_dem The DEM prior to sink filling
   @param[in]  filled_dem   The DEM after sink filling
-  @param[in]  nrows  The size of both DEMs in the fastest changing dimension
-  @param[in]  ncols  The size of both DEMs in the slowest changing dimension
+  @param[in]  dims         The dimensions of both DEMs with the fastest changing
+                           dimension first
  */
 TOPOTOOLBOX_API
 void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
-                       float *original_dem, float *filled_dem, ptrdiff_t nrows,
-                       ptrdiff_t ncols);
+                       float *original_dem, float *filled_dem,
+                       ptrdiff_t dims[2]);
 
 /**
    @brief Compute the gray-weighted distance transform
@@ -143,30 +142,27 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
    time. Pattern Recognition Letters 15, 1235-1240.
 
    @param[out] dist             The computed gray-weighted distance transform.
-                                A float array of size (nrows x ncols).
+                                A float array of size (dims[0] x dims[1]).
    @param[out] prev             Backlinks to the previous pixel along the
-                                geodesic path. A ptrdiff_t array of size (nrows
-                                x ncols). If backlinks are not required, a null
-                                pointer can be passed here: it is checked for
-                                NULL before being accessed.
+                                geodesic path. A ptrdiff_t array of size
+   (dims[0] x dims[1]). If backlinks are not required, a null pointer can be
+   passed here: it is checked for NULL before being accessed.
    @param[in]  costs            The input costs as computed by
                                 gwdt_computecosts().
-                                A float array of size (nrows x ncols).
+                                A float array of size (dims[0] x dims[1]).
    @param[in]  flats            Array identifying the flat and presill pixels
                                 using the encoding of identifyflats(). An
-                                int32_t array of size (nrows x ncols).
-   @param[in]  heap             A ptrdiff_t array of indices (nrows x ncols)
+                                int32_t array of size (dims[0] x dims[1]).
+   @param[in]  heap             A ptrdiff_t array of indices (dims[0] x dims[1])
                                 used for implementing the priority queue.
-   @param[in]  back             A ptrdiff_t array of indices (nrows x ncols)
+   @param[in]  back             A ptrdiff_t array of indices (dims[0] x dims[1])
                                 used for implementing the priority queue.
-   @param[in]  nrows            The size of the input and output arrays in the
-                                fastest changing dimension
-   @param[in]  ncols            The size of the input and output arrays in the
-                                slowest changing dimension
+   @param[in]  dims             The dimensions of both DEMs with the fastest
+                                changing dimension first
  */
 TOPOTOOLBOX_API
 void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
-          ptrdiff_t *heap, ptrdiff_t *back, ptrdiff_t nrows, ptrdiff_t ncols);
+          ptrdiff_t *heap, ptrdiff_t *back, ptrdiff_t dims[2]);
 
 /**
  @brief Compute excess topography with 2D varying threshold slopes
@@ -207,24 +203,20 @@ void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
  @param[out] excess           The solution of the constrained eikonal equation.
                               To compute the excess topography, subtract this
                               array elementwise from the DEM. A float array of
-                              size (nrows x ncols).
+                              size (dims[0] x dims[1]).
  @param[in]  dem              The input digital elevation model. A float array
-                              of size (nrows x ncols).
+                              of size (dims[0] x dims[1]).
  @param[in]  threshold_slopes The threshold slopes (tangent of the critical
                               angle) at each grid cell. A float array of size
-                              (nrows x ncols).
+                              (dims[0] x dims[1]).
  @param[in]  cellsize         The spacing between grid cells, assumed to be
                               constant and identical in the x- and y- directions
- @param[in]  nrows            The size of the input and output DEMs and the
-                              threshold_slopes array in the fastest changing
-                              dimension
- @param[in]  ncols            The size of the input and output DEMs and the
-                              threshold_slopes array in the slowest changing
-                              dimension
+ @param[in]  dims             The dimensions of both DEMs with the fastest
+                              changing dimension first
  */
 TOPOTOOLBOX_API
 void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
-                            float cellsize, ptrdiff_t nrows, ptrdiff_t ncols);
+                            float cellsize, ptrdiff_t dims[2]);
 
 /**
  @brief Compute excess topography with 2D varying threshold slopes
@@ -266,29 +258,25 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
  @param[out] excess           The solution of the constrained eikonal equation.
                               To compute the excess topography, subtract this
                               array elementwise from the DEM. A float array of
-                              size (nrows x ncols).
- @param[in]  heap             A ptrdiff_t array of indices (nrows x ncols) used
-                              for implementing the priority queue.
- @param[in]  back             A ptrdiff_t array of indices (nrows x ncols) used
-                              for implementing the priority queue.
+                              size (dims[0] x dims[1]).
+ @param[in]  heap             A ptrdiff_t array of indices (dims[0] x dims[1])
+ used for implementing the priority queue.
+ @param[in]  back             A ptrdiff_t array of indices (dims[0] x dims[1])
+ used for implementing the priority queue.
  @param[in]  dem              The input digital elevation model. A float array
-                              of size (nrows x ncols).
+                              of size (dims[0] x dims[1]).
  @param[in]  threshold_slopes The threshold slopes (tangent of the critical
                               angle) at each grid cell. A float array of size
-                              (nrows x ncols).
+                              (dims[0] x dims[1]).
  @param[in]  cellsize         The spacing between grid cells, assumed to be
                               constant and identical in the x- and y- directions
- @param[in]  nrows            The size of the input and output DEMs and the
-                              threshold_slopes array in the fastest changing
-                              dimension
- @param[in]  ncols            The size of the input and output DEMs and the
-                              threshold_slopes array in the slowest changing
-                              dimension
+ @param[in]  dims             The dimensions of both DEMs with the fastest
+                              changing dimension first
  */
 TOPOTOOLBOX_API
 void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             float *dem, float *threshold_slopes, float cellsize,
-                            ptrdiff_t nrows, ptrdiff_t ncols);
+                            ptrdiff_t dims[2]);
 
 /**
  @brief Compute excess topography with three-dimensionally variable
@@ -317,29 +305,25 @@ void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
  @param[out] excess           The solution of the constrained eikonal equation.
                               To compute the excess topography, subtract this
                               array elementwise from the DEM. A float array of
-                              size (nrows x ncols).
- @param[in]  heap             A ptrdiff_t array of indices (nrows x ncols) used
-                              for implementing the priority queue.
- @param[in]  back             A ptrdiff_t array of indices (nrows x ncols) used
-                              for implementing the priority queue.
+                              size (dims[0] x dims[1]).
+ @param[in]  heap             A ptrdiff_t array of indices (dims[0] x dims[1])
+ used for implementing the priority queue.
+ @param[in]  back             A ptrdiff_t array of indices (dims[0] x dims[1])
+ used for implementing the priority queue.
  @param[in]  dem              The input digital elevation model. A float array
-                              of size (nrows x ncols).
+                              of size (dims[0] x dims[1]).
  @param[in] lithstack         The input lithology. A three-dimensional float
-                              array of size (nlayers x nrows x ncols). The value
-                              of `lithstack[layer,row,col]` is the elevation of
-                              the top surface of the given layer. Note that the
-                              first dimension is the layer, so that the layers
-                              of each cell are stored contiguously.
+                              array of size (nlayers x dims[0] x dims[1]). The
+ value of `lithstack[layer,row,col]` is the elevation of the top surface of the
+ given layer. Note that the first dimension is the layer, so that the layers of
+ each cell are stored contiguously.
  @param[in]  threshold_slopes The threshold slopes (tangent of the critical
                               angle) for each layer. A float array of size
                               (nlayers).
  @param[in]  cellsize         The spacing between grid cells, assumed to be
                               constant and identical in the x- and y- directions
- @param[in]  nrows            The size of the input and output DEMs in the
-                              fastest changing dimension.
- @param[in]  ncols            The size of the input and output DEMs and the
-                              in the slowest changing
-                              dimension.
+ @param[in]  dims             The dimensions of both DEMs with the fastest
+                              changing dimension first
  @param[in]  nlayers          The number of layers in the lithstack and
                               threshold_slopes arrays.
  */
@@ -347,7 +331,6 @@ TOPOTOOLBOX_API
 void excesstopography_fmm3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             float *dem, float *lithstack,
                             float *threshold_slopes, float cellsize,
-                            ptrdiff_t nrows, ptrdiff_t ncols,
-                            ptrdiff_t nlayers);
+                            ptrdiff_t dims[2], ptrdiff_t nlayers);
 
 #endif  // TOPOTOOLBOX_H
