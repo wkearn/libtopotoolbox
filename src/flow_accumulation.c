@@ -14,7 +14,7 @@ void flow_accumulation(float *acc, ptrdiff_t *source, uint8_t *direction,
   // Initialize
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      float w = (weights == NULL) ? 1.0 : weights[j * dims[0] + i];
+      float w = (weights == NULL) ? 1.0f : weights[j * dims[0] + i];
       acc[j * dims[0] + i] = w;
     }
   }
