@@ -160,11 +160,11 @@ void flow_routing_d8(ptrdiff_t *source, uint8_t *direction, float *dem,
             // node has not been discovered yet
 
             // Compute its Cartesian indices
-            ptrdiff_t i = node % dims[0];
-            ptrdiff_t j = node / dims[0];
+            ptrdiff_t node_i = node % dims[0];
+            ptrdiff_t node_j = node / dims[0];
 
             uint8_t flowdir =
-                compute_flowdirection(i, j, dem, dist, flats, dims);
+                compute_flowdirection(node_i, node_j, dem, dist, flats, dims);
 
             if (flowdir == 0) {
               // This node is a sink/outlet
@@ -182,8 +182,8 @@ void flow_routing_d8(ptrdiff_t *source, uint8_t *direction, float *dem,
             while (v >>= 1) {
               r++;
             }
-            ptrdiff_t neighbor_i = i + i_offset[r];
-            ptrdiff_t neighbor_j = j + j_offset[r];
+            ptrdiff_t neighbor_i = node_i + i_offset[r];
+            ptrdiff_t neighbor_j = node_j + j_offset[r];
 
             if (neighbor_i < 0 || neighbor_i >= dims[0] || neighbor_j < 0 ||
                 neighbor_j >= dims[1]) {
