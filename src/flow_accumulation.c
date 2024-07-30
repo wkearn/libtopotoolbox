@@ -1,14 +1,10 @@
 #define TOPOTOOLBOX_BUILD
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include "topotoolbox.h"
-
-#define assert(c)     \
-  if (!(c)) {         \
-    __builtin_trap(); \
-  }
 
 void flow_accumulation(float *acc, ptrdiff_t *source, uint8_t *direction,
                        float *weights, ptrdiff_t dims[2]) {
