@@ -68,6 +68,7 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{matrix.cpp_compiler}}
           -DTT_BUILD_TESTS=ON
           -DBUILD_SHARED_LIBS=OFF
+          -DCMAKE_CONFIGURATION_TYPES="Release"
           --profiling-format=google-trace
           --profiling-output ${{matrix.os}}_${{matrix.c_compiler}}_config_profile.json
       - name: Build static library
