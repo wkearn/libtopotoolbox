@@ -85,3 +85,10 @@ jobs:
           -DTT_SANITIZE=OFF
       - name: Build shared library
         run: cmake --build ${{github.workspace}}/build/shared --config Release
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake_profiles
+          path: ${{matrix.os}}_${{matrix.c_compiler}}_config_profile.json
+          
+        
