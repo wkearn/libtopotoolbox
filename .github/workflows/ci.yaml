@@ -60,6 +60,10 @@ jobs:
             c_compiler: cl
     steps:
       - uses: actions/checkout@v4
+      - name: Set environment variables on Windows
+        if: matrix.os == "windows-latest"
+        run:
+          echo "CMAKE_GENERATOR=Ninja" >> "$GITHUB_ENV"
       - name: Configure static library
         run: >
           cmake -B ${{github.workspace}}/build/static
@@ -68,7 +72,6 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{matrix.cpp_compiler}}
           -DTT_BUILD_TESTS=ON
           -DBUILD_SHARED_LIBS=OFF
-          -DCMAKE_CONFIGURATION_TYPES="Release"
           --profiling-format=google-trace
           --profiling-output ${{matrix.os}}_${{matrix.c_compiler}}_config_profile.json
       - name: Build static library
