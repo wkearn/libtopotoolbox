@@ -88,7 +88,5 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cmake_profiles
+          name: ${{matrix.os}}_${{matrix.c_compiler}}_cmake_profiles
           path: ${{matrix.os}}_${{matrix.c_compiler}}_config_profile.json
-          
-        
