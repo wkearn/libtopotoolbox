@@ -70,7 +70,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |          
           echo "CMAKE_GENERATOR=Ninja" >> "$env:GITHUB_ENV" &&
-          echo "CMAKE_CONFIGURATION_TYPES=\"Release\"" >> "$env:GITHUB_ENV"
+          echo "CMAKE_CONFIGURATION_TYPES=Release" >> "$env:GITHUB_ENV"
       - name: Configure static library
         run: >
           cmake -B ${{github.workspace}}/build/static
