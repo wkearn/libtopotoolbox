@@ -60,6 +60,13 @@ jobs:
             c_compiler: cl
     steps:
       - uses: actions/checkout@v4
+      - name: Install ninja on windows
+        uses: seanmiddleditch/gha-setup-ninja@master
+        if: matrix.os == 'windows-latest'
+      - name: Set environment variables on Windows
+        if: matrix.os == 'windows-latest'
+        run:
+          echo "CMAKE_GENERATOR=Ninja" >> "$env:GITHUB_ENV"
       - name: Configure static library
         run: >
           cmake -B ${{github.workspace}}/build/static
