@@ -61,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set environment variables on Windows
-        if: matrix.os == "windows-latest"
+        if: matrix.os == windows-latest
         run:
           echo "CMAKE_GENERATOR=Ninja" >> "$GITHUB_ENV"
       - name: Configure static library
