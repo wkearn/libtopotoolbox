@@ -451,7 +451,7 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   gwdt(dist, prev, costs, flats, heap, back, dims);
   test_gwdt(dist, prev, costs, flats, dims);
 
-  flow_routing_d8(source, direction, filled_dem, dist, flats, dims);
+  flow_routing_d8_carve(source, direction, filled_dem, dist, flats, dims);
   test_routeflowd8_direction(direction, filled_dem, dist, flats, dims);
   test_routeflowd8_tsort(marks, source, direction, dims);
 
