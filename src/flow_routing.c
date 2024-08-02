@@ -110,8 +110,8 @@ uint8_t compute_flowdirection_TT2(ptrdiff_t i, ptrdiff_t j, float *dem,
 }
 
 TOPOTOOLBOX_API
-void flow_routing_d8(ptrdiff_t *source, uint8_t *direction, float *dem,
-                     float *dist, int32_t *flats, ptrdiff_t dims[2]) {
+void flow_routing_d8_carve(ptrdiff_t *source, uint8_t *direction, float *dem,
+                           float *dist, int32_t *flats, ptrdiff_t dims[2]) {
   // source[i] is the linear index of the i-th source in the
   // topologically sorted graph.
   //
