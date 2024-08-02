@@ -6,6 +6,8 @@ add_library(topotoolbox
   morphology/reconstruct.c
   priority_queue.c
   excesstopography.c
+  flow_routing.c
+  flow_accumulation.c
 )
 
 target_include_directories(
