@@ -97,8 +97,8 @@ ptrdiff_t backward_scan(float *marker, float *mask, ptrdiff_t dims[2]) {
 
   // Note that the loop decreases. p must have a signed type for this
   // to work correctly.
-  for (ptrdiff_t j = dims[1] - 1; j > 0; j--) {
-    for (ptrdiff_t i = dims[0] - 1; i > 0; i--) {
+  for (ptrdiff_t j = dims[1] - 1; j >= 0; j--) {
+    for (ptrdiff_t i = dims[0] - 1; i >= 0; i--) {
       ptrdiff_t p = j * dims[0] + i;
 
       // Compute the maximum of the marker at the current pixel and all
