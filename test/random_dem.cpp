@@ -392,6 +392,9 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   float *filled_dem = new float[dims[0] * dims[1]];
   assert(filled_dem != NULL);
 
+  ptrdiff_t *queue = new ptrdiff_t[dims[0] * dims[1]];
+  assert(queue != NULL);
+
   // Output for identifyflats
   int32_t *flats = new int32_t[dims[0] * dims[1]];
   assert(flats != NULL);
@@ -432,7 +435,14 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   }
 
   // Run flow routing algorithms
-  fillsinks(filled_dem, dem, dims);
+
+  // Alternate between the hybrid and the sequential fillsinks
+  // algorithms.
+  if (seed & 1) {
+    fillsinks_hybrid(filled_dem, queue, dem, dims);
+  } else {
+    fillsinks(filled_dem, dem, dims);
+  }
 
   test_fillsinks_ge(dem, filled_dem, dims);
   test_fillsinks_filled(filled_dem, dims);
@@ -460,6 +470,7 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
 
   delete[] dem;
   delete[] filled_dem;
+  delete[] queue;
   delete[] flats;
   delete[] conncomps;
   delete[] costs;
