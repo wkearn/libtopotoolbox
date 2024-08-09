@@ -51,6 +51,32 @@ TOPOTOOLBOX_API
 void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
 
 /**
+   @brief Fills sinks in a digital elevation model
+
+   Uses an algorithm based on grayscale morphological
+   reconstruction. Uses the hybrid algorithm of Vincent (1993) for
+   higher performance than fillsinks(), but requires additional memory
+   allocation for a FIFO queue.
+
+   # References
+
+   Vincent, Luc. (1993). Morphological grayscale reconstruction in
+   image analysis: applications and efficient algorithms. IEEE
+   Transactions on Image Processing, Vol. 2, No. 2.
+   https://doi.org/10.1109/83.217222
+
+   @param[out] output The filled DEM
+   @param[out] queue  An array of `ptrdiff_t` the same size as the DEMs used as
+                      the backing store for the queue
+   @param[in]  dem    The input DEM
+   @param[in]  dims   The dimensions of both DEMs with the fastest changing
+                      dimension first
+ */
+TOPOTOOLBOX_API
+void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem,
+                      ptrdiff_t dims[2]);
+
+/**
    @brief Labels flat, sill and presill pixels in the provided DEM
 
    A flat pixel is one surrounded by pixels with the same or higher
