@@ -15,6 +15,6 @@ API Documentation
 
 .. doxygenfunction:: excesstopography_fmm3d
 
-.. doxygenfunction:: flow_routing_d8
+.. doxygenfunction:: flow_routing_d8_carve
 
 .. doxygenfunction:: flow_accumulation
