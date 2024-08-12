@@ -171,8 +171,9 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
                                 A float array of size (dims[0] x dims[1]).
    @param[out] prev             Backlinks to the previous pixel along the
                                 geodesic path. A ptrdiff_t array of size
-   (dims[0] x dims[1]). If backlinks are not required, a null pointer can be
-   passed here: it is checked for NULL before being accessed.
+                                (dims[0] x dims[1]). If backlinks are not
+                                required, a null pointer can be passed here: it
+                                is checked for NULL before being accessed.
    @param[in]  costs            The input costs as computed by
                                 gwdt_computecosts().
                                 A float array of size (dims[0] x dims[1]).
@@ -286,9 +287,9 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
                               array elementwise from the DEM. A float array of
                               size (dims[0] x dims[1]).
  @param[in]  heap             A ptrdiff_t array of indices (dims[0] x dims[1])
- used for implementing the priority queue.
+                              used for implementing the priority queue.
  @param[in]  back             A ptrdiff_t array of indices (dims[0] x dims[1])
- used for implementing the priority queue.
+                              used for implementing the priority queue.
  @param[in]  dem              The input digital elevation model. A float array
                               of size (dims[0] x dims[1]).
  @param[in]  threshold_slopes The threshold slopes (tangent of the critical
@@ -333,16 +334,18 @@ void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                               array elementwise from the DEM. A float array of
                               size (dims[0] x dims[1]).
  @param[in]  heap             A ptrdiff_t array of indices (dims[0] x dims[1])
- used for implementing the priority queue.
+                              used for implementing the priority queue.
  @param[in]  back             A ptrdiff_t array of indices (dims[0] x dims[1])
- used for implementing the priority queue.
+                              used for implementing the priority queue.
  @param[in]  dem              The input digital elevation model. A float array
                               of size (dims[0] x dims[1]).
  @param[in] lithstack         The input lithology. A three-dimensional float
                               array of size (nlayers x dims[0] x dims[1]). The
- value of `lithstack[layer,row,col]` is the elevation of the top surface of the
- given layer. Note that the first dimension is the layer, so that the layers of
- each cell are stored contiguously.
+                              value of `lithstack[layer,row,col]` is the
+                              elevation of the top surface of the given layer.
+                              Note that the first dimension is the layer, so
+                              that the layers of each cell are stored
+                              contiguously.
  @param[in]  threshold_slopes The threshold slopes (tangent of the critical
                               angle) for each layer. A float array of size
                               (nlayers).
@@ -402,7 +405,7 @@ void flow_routing_d8_carve(ptrdiff_t *source, uint8_t *direction, float *dem,
 /**
    @brief Compute downstream pixel indices from flow directions
 
-   The `source` and `direction` outputs from flow_routing_d8()
+   The `source` and `direction` outputs from flow_routing_d8_carve()
    implicitly define the downstream targets of each edge in the flow
    network. This function computes the linear indices of those
    downstream targets and stores them in the `target` array.
@@ -422,20 +425,20 @@ void flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
    @brief Compute flow accumulation
 
    Accumulates flow by summing contributing areas along flow paths. Uses the
-   `source` and `direction` outputs of flow_routing_d8().
+   `source` and `direction` outputs of flow_routing_d8_carve().
 
    @param[out] acc          The computed flow accumulation
    @param[in]  source       The source pixel for each edge, sorted
                             topologically.
    @param[in]  direction    The flow directions as a bit field. The directions
                             are indexed by the scheme described for
-                            flow_routing_d8().
+                            flow_routing_d8_carve().
    @param[in]  weights      Initial water depths which can be used to simulate
                             variable precipitation. A null pointer can be passed
                             to indicate the default weight of 1.0 for every
                             pixel.
    @param[in]  dims         The dimensions of the arrays with the fastest-
-                            changing dimension firts
+                            changing dimension first
  */
 TOPOTOOLBOX_API
 void flow_accumulation(float *acc, ptrdiff_t *source, uint8_t *direction,
