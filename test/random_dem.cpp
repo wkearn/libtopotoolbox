@@ -381,6 +381,38 @@ int32_t test_flowaccumulation_max(float *acc, ptrdiff_t dims[2]) {
   return 0;
 }
 
+/*
+  The target corresponding to source should be equal to the source
+  plus the correct offset in the flow direction.
+ */
+int32_t test_flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
+                                  uint8_t *direction, ptrdiff_t dims[2]) {
+  ptrdiff_t i_offset[8] = {0, 1, 1, 1, 0, -1, -1, -1};
+  ptrdiff_t j_offset[8] = {1, 1, 0, -1, -1, -1, 0, 1};
+
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      ptrdiff_t u = source[j * dims[0] + i];
+      ptrdiff_t u_i = u % dims[0];
+      ptrdiff_t u_j = u / dims[0];
+
+      uint8_t flowdir = direction[u];
+      uint8_t r = 0;
+      while (flowdir >>= 1) {
+        r++;
+      }
+
+      ptrdiff_t neighbor_i = u_i + i_offset[r];
+      ptrdiff_t neighbor_j = u_j + j_offset[r];
+
+      ptrdiff_t v = neighbor_j * dims[0] + neighbor_i;
+
+      assert(v == target[j * dims[0] + i]);
+    }
+  }
+  return 0;
+}
+
 int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   // Allocate variables
 
@@ -428,6 +460,9 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   float *accum = new float[dims[0] * dims[1]]();
   assert(accum != NULL);
 
+  ptrdiff_t *target = new ptrdiff_t[dims[0] * dims[1]];
+  assert(target != NULL);
+
   for (uint32_t col = 0; col < dims[1]; col++) {
     for (uint32_t row = 0; row < dims[0]; row++) {
       dem[col * dims[0] + row] = 100.0f * pcg4d(row, col, seed, 1);
@@ -468,6 +503,9 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   flow_accumulation(accum, source, direction, NULL, dims);
   test_flowaccumulation_max(accum, dims);
 
+  flow_routing_targets(target, source, direction, dims);
+  test_flow_routing_targets(target, source, direction, dims);
+
   delete[] dem;
   delete[] filled_dem;
   delete[] queue;
@@ -482,6 +520,7 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   delete[] direction;
   delete[] marks;
   delete[] accum;
+  delete[] target;
 
   return 0;
 }
