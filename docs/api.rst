@@ -17,4 +17,6 @@ API Documentation
 
 .. doxygenfunction:: flow_routing_d8_carve
 
+.. doxygenfunction:: flow_routing_targets
+
 .. doxygenfunction:: flow_accumulation
