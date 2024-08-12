@@ -400,6 +400,25 @@ void flow_routing_d8_carve(ptrdiff_t *source, uint8_t *direction, float *dem,
                            float *dist, int32_t *flats, ptrdiff_t dims[2]);
 
 /**
+   @brief Compute downstream pixel indices from flow directions
+
+   The `source` and `direction` outputs from flow_routing_d8()
+   implicitly define the downstream targets of each edge in the flow
+   network. This function computes the linear indices of those
+   downstream targets and stores them in the `target` array.
+
+   @param[out]  target     The target pixel for each edge.
+   @param[in]   source     The source pixel for each edge.
+   @param[in]   direction  The flow directions as a bit field encoded as in
+                           flow_routing_d8_carve();
+   @param[in]   dims       The dimensions of the arrays with the fastest
+                           changing dimension first.
+ */
+TOPOTOOLBOX_API
+void flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
+                          uint8_t *direction, ptrdiff_t dims[2]);
+
+/**
    @brief Compute flow accumulation
 
    Accumulates flow by summing contributing areas along flow paths. Uses the
