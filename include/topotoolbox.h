@@ -32,8 +32,13 @@
 #include <stdint.h>
 
 /**
-        Used to ensure that topotoolbox is compiled and linked
-        correctly. Always returns 1.
+   @brief Test if topotoolbox is present.
+
+   @details
+   Used to ensure that topotoolbox is compiled and linked correctly.
+
+   @return
+   Always returns 1.
  */
 TOPOTOOLBOX_API
 int has_topotoolbox(void);
