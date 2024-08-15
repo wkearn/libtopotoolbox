@@ -284,7 +284,7 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
 
    @param  back Storage for the priority queue
    @parblock
-   A `ptrdiff_t` array of indices `dims[0]` x `dims[1]`
+   A pointer to a `ptrdiff_t` array of indices `dims[0]` x `dims[1]`
    @endparblock
 
    @param[in]  dims   The dimensions of the arrays
@@ -427,7 +427,7 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
 
    @param  back Storage for the priority queue
    @parblock
-   A `ptrdiff_t` array of indices `dims[0]` x `dims[1]`
+   A pointer to a `ptrdiff_t` array of indices `dims[0]` x `dims[1]`
    @endparblock
 
    @param[in]  dem              The input digital elevation model.
@@ -463,55 +463,83 @@ void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
                             ptrdiff_t dims[2]);
 
 /**
- @brief Compute excess topography with three-dimensionally variable
- lithology using the fast marching method
+   @brief Compute excess topography with three-dimensionally variable
+   lithology using the fast marching method
 
- The excess topography is computed by solving an eikonal equation with
- the fast marching method (see excesstopography_fmm2d() for more
- information). The threshold slope at a grid cell is computed from
- that cell's position within the three-dimensional lithology.
+   The excess topography is computed by solving an eikonal equation with
+   the fast marching method (see excesstopography_fmm2d() for more
+   information). The threshold slope at a grid cell is computed from
+   that cell's position within the three-dimensional lithology.
 
- The lithology consists of a set of discrete layers, each of which has
- its own threshold slope, which is specified by the caller in the
- `threshold_slopes` array from the bottom layer to the top layer. The
- layer geometry is provided by the caller in the `lithstack` array,
- which holds the elevation of the top surface of each layer at each
- grid cell.
+   The lithology consists of a set of discrete layers, each of which has
+   its own threshold slope, which is specified by the caller in the
+   `threshold_slopes` array from the bottom layer to the top layer. The
+   layer geometry is provided by the caller in the `lithstack` array,
+   which holds the elevation of the top surface of each layer at each
+   grid cell.
 
- The algorithm proceeds similarly to the regular fast marching method,
- using a priority queue to update grid cells from bottom to
- top. Whenever a cell is updated, the eikonal solver is used to
- propose a new elevation using the threshold slopes from each layer
- from bottom to top. The first elevation that is proposed that lies
- below the top surface of the layer whose slope is used in the
- proposal is accepted as the provisional height for that grid cell.
+   The algorithm proceeds similarly to the regular fast marching method,
+   using a priority queue to update grid cells from bottom to
+   top. Whenever a cell is updated, the eikonal solver is used to
+   propose a new elevation using the threshold slopes from each layer
+   from bottom to top. The first elevation that is proposed that lies
+   below the top surface of the layer whose slope is used in the
+   proposal is accepted as the provisional height for that grid cell.
 
- @param[out] excess           The solution of the constrained eikonal equation.
-                              To compute the excess topography, subtract this
-                              array elementwise from the DEM. A float array of
-                              size (dims[0] x dims[1]).
- @param[in]  heap             A ptrdiff_t array of indices (dims[0] x dims[1])
-                              used for implementing the priority queue.
- @param[in]  back             A ptrdiff_t array of indices (dims[0] x dims[1])
-                              used for implementing the priority queue.
- @param[in]  dem              The input digital elevation model. A float array
-                              of size (dims[0] x dims[1]).
- @param[in] lithstack         The input lithology. A three-dimensional float
-                              array of size (nlayers x dims[0] x dims[1]). The
-                              value of `lithstack[layer,row,col]` is the
-                              elevation of the top surface of the given layer.
-                              Note that the first dimension is the layer, so
-                              that the layers of each cell are stored
-                              contiguously.
- @param[in]  threshold_slopes The threshold slopes (tangent of the critical
-                                                                                angle) for each layer. A float array of size
-                                                                                (nlayers).
- @param[in]  cellsize         The spacing between grid cells, assumed to be
-                              constant and identical in the x- and y- directions
- @param[in]  dims             The dimensions of both DEMs with the fastest
-                              changing dimension first
- @param[in]  nlayers          The number of layers in the lithstack and
-                                                                                threshold_slopes arrays.
+   @param[out] excess The solution of the constrained eikonal equation
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+
+   To compute the excess topography, subtract this array elementwise from the
+   DEM.
+   @endparblock
+
+   @param heap Storage for the priority queue
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param back Storage for the priority queue
+   @parblock
+   A pointer to a `ptrdiff_t` array of indices `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in] dem The input digital elevation model
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in] lithstack The input lithology.
+   @parblock
+   A pointer to a `float` array of size `nlayers` x `dims[0]` x `dims[1]`
+
+   The value of `lithstack[layer,row,col]` is the elevation of the top
+   surface of the given layer.  Note that the first dimension is the
+   layer, so that the layers of each cell are stored contiguously.
+   @endparblock
+
+   @param[in] threshold_slopes The threshold slopes for each layer
+   @parblock
+   A pointer to a `float` array of size `nlayers`
+   @endparblock
+
+   @param[in]  cellsize The spacing between grid cells
+   @parblock
+   A `float`
+
+   The spacing is assumed to be constant and identical in the x- and y-
+   directions.
+   @endparblock
+
+   @param[in]  dims The horizontal dimensions of the arrays
+   @parblock
+   A pointer to a `ptrdiff_t` array of size 2
+
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
+   @param[in] nlayers The number of layers in lithstack and threshold_slopes
+
  */
 TOPOTOOLBOX_API
 void excesstopography_fmm3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
