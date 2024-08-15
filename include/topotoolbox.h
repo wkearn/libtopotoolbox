@@ -662,18 +662,44 @@ void flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
    Accumulates flow by summing contributing areas along flow paths. Uses the
    `source` and `direction` outputs of flow_routing_d8_carve().
 
-   @param[out] acc          The computed flow accumulation
-   @param[in]  source       The source pixel for each edge, sorted
-                            topologically.
-   @param[in]  direction    The flow directions as a bit field. The directions
-                            are indexed by the scheme described for
-                            flow_routing_d8_carve().
-   @param[in]  weights      Initial water depths which can be used to simulate
-                            variable precipitation. A null pointer can be passed
-                            to indicate the default weight of 1.0 for every
-                            pixel.
-   @param[in]  dims         The dimensions of the arrays with the fastest-
-                            changing dimension first
+   @param[out] acc The computed flow accumulation
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in] source The source pixel for each edge
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+
+   The source pixels must be in a topological order.
+   @endparblock
+
+   @param[in] direction The flow directions as a bit field
+   @parblock
+   A pointer to a `uint8_t` array of size `dims[0]` x `dims[1]`
+
+   The flow directions should be encoded as they are in flow_routing_d8_carve().
+   @endparblock
+
+   @param[in] weights Initial water depths
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+
+   The initial weights can be used to represent spatially variable
+   precipitation.
+
+   If a null pointer is passed, a default weight of 1.0 for every
+   pixel is used. In this case the resulting flow accumulation is the
+   upstream area in number of pixels.
+   @endparblock
+
+   @param[in] dims The dimensions of the arrays
+   @parblock
+   A pointer to a `ptrdiff_t` array of size 2
+
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
  */
 TOPOTOOLBOX_API
 void flow_accumulation(float *acc, ptrdiff_t *source, uint8_t *direction,
