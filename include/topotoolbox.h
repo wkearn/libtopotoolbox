@@ -466,6 +466,7 @@ void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
    @brief Compute excess topography with three-dimensionally variable
    lithology using the fast marching method
 
+   @details
    The excess topography is computed by solving an eikonal equation with
    the fast marching method (see excesstopography_fmm2d() for more
    information). The threshold slope at a grid cell is computed from
