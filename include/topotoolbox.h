@@ -120,6 +120,7 @@ void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem,
 /**
    @brief Labels flat, sill and presill pixels in the provided DEM
 
+   @details
    A flat pixel is one surrounded by pixels with the same or higher
    elevations. A sill pixel has the same elevation as a neighboring
    flat pixel but borders a pixel with a lower elevation. A presill
@@ -148,10 +149,23 @@ void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem,
    }
    ```
 
-   @param[out] output The integer-valued output array with pixel labels
+   @param[out] output The pixel labels
+   @parblock
+   An `int32_t` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
    @param[in]  dem    The input DEM
-   @param[in]  dims   The dimensions of both DEMs with the fastest changing
-                      dimension first
+   @parblock
+   A `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in]  dims   The dimensions of the arrays
+   @parblock
+   `ptrdiff_t` array of size 2
+
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
  */
 TOPOTOOLBOX_API
 ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t dims[2]);
