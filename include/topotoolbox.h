@@ -54,12 +54,12 @@ int has_topotoolbox(void);
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  dem    The input DEM
+   @param[in] dem The input DEM
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  dims   The dimensions of the arrays
+   @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
@@ -91,7 +91,7 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param queue       A pixel queue
+   @param queue A pixel queue
    @parblock
    A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
 
@@ -100,12 +100,12 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
    fillsinks_hybrid() returns.
    @endparblock
 
-   @param[in]  dem    The input DEM
+   @param[in] dem The input DEM
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  dims   The dimensions of the arrays
+   @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
@@ -154,12 +154,12 @@ void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem,
    A pointer to an `int32_t` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  dem    The input DEM
+   @param[in] dem The input DEM
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  dims   The dimensions of the arrays
+   @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
@@ -190,17 +190,17 @@ ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t dims[2]);
   connected component with the maximum difference between the filled
   and the output DEMs.
 
-  @param[out] costs        The gray-weighted distance transform costs
+  @param[out] costs The gray-weighted distance transform costs
   @parblock
   A pointer to a `float` array of size `dims[0]` x `dims[1]`
   @endparblock
 
-  @param[out] conncomps    Labeled connected components for each flat pixel
+  @param[out] conncomps Labeled connected components for each flat pixel
   @parblock
   A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
   @endparblock
 
-  @param[in]  flats        Array identifying the flat pixels
+  @param[in] flats Array identifying the flat pixels
   @parblock
   A pointer to an `int32_t` array of size `dims[0]` x `dims[1]`
 
@@ -208,17 +208,17 @@ ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t dims[2]);
   `flats[pixels] & 1` is nonzero for any flat pixel.
   @endparblock
 
-  @param[in]  original_dem The DEM prior to sink filling
+  @param[in] original_dem The DEM prior to sink filling
   @parblock
   A pointer to a `float` array of size `dims[0]` x `dims[1]`
   @endparblock
 
-  @param[in]  filled_dem   The DEM after sink filling
+  @param[in] filled_dem The DEM after sink filling
   @parblock
   A pointer to a `float` array of size `dims[0]` x `dims[1]`
   @endparblock
 
-  @param[in]  dims   The dimensions of the arrays
+  @param[in] dims The dimensions of the arrays
   @parblock
   A pointer to a `ptrdiff_t` array of size 2
 
@@ -265,29 +265,29 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
    checked for NULL before being accessed.
    @endparblock
 
-   @param[in]  costs The input costs computed by gwdt_computecosts()
+   @param[in] costs The input costs computed by gwdt_computecosts()
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  flats Array identifying the flat pixels
+   @param[in] flats Array identifying the flat pixels
    @parblock
    A pointer to an `int32_t` array of size `dims[0]` x `dims[1]`
 
    The flat pixels must be identified as they are by identifyflats().
    @endparblock
 
-   @param  heap Storage for the priority queue
+   @param heap Storage for the priority queue
    @parblock
    A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param  back Storage for the priority queue
+   @param back Storage for the priority queue
    @parblock
    A pointer to a `ptrdiff_t` array of indices `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  dims   The dimensions of the arrays
+   @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
@@ -336,7 +336,7 @@ void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
    Zhao, Hongkai (2004). A fast sweeping method for eikonal
    equations. Mathematics of Computation, 74, 250, 603-627.
 
-   @param[out] excess           The solution of the constrained eikonal equation
+   @param[out] excess The solution of the constrained eikonal equation
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
 
@@ -344,17 +344,17 @@ void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
    DEM.
    @endparblock
 
-   @param[in]  dem              The input digital elevation model.
+   @param[in] dem The input digital elevation model.
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  threshold_slopes The threshold slopes at each grid cell.
+   @param[in] threshold_slopes The threshold slopes at each grid cell.
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  cellsize         The spacing between grid cells
+   @param[in] cellsize The spacing between grid cells
    @parblock
    A `float`
 
@@ -362,7 +362,7 @@ void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
    directions.
    @endparblock
 
-   @param[in]  dims   The dimensions of the arrays
+   @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
@@ -412,7 +412,7 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
    monotonically advancing fronts. Proceedings of the National Academy
    of Sciences, 93, 4, 1591-1595.
 
-   @param[out] excess           The solution of the constrained eikonal equation
+   @param[out] excess The solution of the constrained eikonal equation
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
 
@@ -420,27 +420,27 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
    DEM.
    @endparblock
 
-   @param  heap Storage for the priority queue
+   @param heap Storage for the priority queue
    @parblock
    A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param  back Storage for the priority queue
+   @param back Storage for the priority queue
    @parblock
    A pointer to a `ptrdiff_t` array of indices `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  dem              The input digital elevation model.
+   @param[in] dem The input digital elevation model.
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  threshold_slopes The threshold slopes at each grid cell.
+   @param[in] threshold_slopes The threshold slopes at each grid cell.
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  cellsize         The spacing between grid cells
+   @param[in] cellsize The spacing between grid cells
    @parblock
    A `float`
 
@@ -448,7 +448,7 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
    directions.
    @endparblock
 
-   @param[in]  dims   The dimensions of the arrays
+   @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
@@ -523,7 +523,7 @@ void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
    A pointer to a `float` array of size `nlayers`
    @endparblock
 
-   @param[in]  cellsize The spacing between grid cells
+   @param[in] cellsize The spacing between grid cells
    @parblock
    A `float`
 
@@ -531,7 +531,7 @@ void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
    directions.
    @endparblock
 
-   @param[in]  dims The horizontal dimensions of the arrays
+   @param[in] dims The horizontal dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
@@ -588,26 +588,26 @@ void excesstopography_fmm3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
    sign of an error.
    @endparblock
 
-   @param[in]  dem The input digital elevation model
+   @param[in] dem The input digital elevation model
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]  dist The auxiliary topography for routing over floats
+   @param[in] dist The auxiliary topography for routing over floats
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
 
    This will typically be generated by gwdt() as the output `dist`.
    @endparblock
 
-   @param[in]  flats Array identifying the flat pixels
+   @param[in] flats Array identifying the flat pixels
    @parblock
    A pointer to an `int32_t` array of size `dims[0]` x `dims[1]`
 
    The flat pixels must be identified as they are by identifyflats().
    @endparblock
 
-   @param[in]  dims   The dimensions of the arrays
+   @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
@@ -627,24 +627,24 @@ void flow_routing_d8_carve(ptrdiff_t *source, uint8_t *direction, float *dem,
    network. This function computes the linear indices of those
    downstream targets and stores them in the `target` array.
 
-   @param[out]  target The target pixel for each edge
+   @param[out] target The target pixel for each edge
    @parblock
    A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]   source The source pixel for each edge
+   @param[in] source The source pixel for each edge
    @parblock
    A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
    @endparblock
 
-   @param[in]   direction  The flow directions as a bit field
+   @param[in] direction The flow directions as a bit field
    @parblock
    A pointer to a `uint8_t` array of size `dims[0]` x `dims[1]`
 
    The flow directions should be encoded as they are in flow_routing_d8_carve().
    @endparblock
 
-   @param[in]  dims   The dimensions of the arrays
+   @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
 
