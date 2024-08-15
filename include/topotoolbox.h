@@ -171,60 +171,60 @@ TOPOTOOLBOX_API
 ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t dims[2]);
 
 /**
-  @brief Compute costs for the gray-weighted distance transform
+   @brief Compute costs for the gray-weighted distance transform
 
-  @details
-  The costs used to route flow over flat regions with the
-  gray-weighted distance transform are based on the difference between
-  original and filled DEMs at each pixel. This difference is
-  subtracted from the maximum difference over the flat region to which
-  the pixel belongs. It is then squared and a small constant
-  (currently set to 0.1) is added.
+   @details
+   The costs used to route flow over flat regions with the
+   gray-weighted distance transform are based on the difference between
+   original and filled DEMs at each pixel. This difference is
+   subtracted from the maximum difference over the flat region to which
+   the pixel belongs. It is then squared and a small constant
+   (currently set to 0.1) is added.
 
-  This function identifies the connected components of flat pixels,
-  provided in the `flats` array, computes the maximum difference
-  between the `original_dem` and the `filled_dem` over each connected
-  component and then computes the cost for each flat pixel. The
-  `costs` are returned, as are the connected components labels
-  (`conncomps`). These labels are the linear index of the pixel in the
-  connected component with the maximum difference between the filled
-  and the output DEMs.
+   This function identifies the connected components of flat pixels,
+   provided in the `flats` array, computes the maximum difference
+   between the `original_dem` and the `filled_dem` over each connected
+   component and then computes the cost for each flat pixel. The
+   `costs` are returned, as are the connected components labels
+   (`conncomps`). These labels are the linear index of the pixel in the
+   connected component with the maximum difference between the filled
+   and the output DEMs.
 
-  @param[out] costs The gray-weighted distance transform costs
-  @parblock
-  A pointer to a `float` array of size `dims[0]` x `dims[1]`
-  @endparblock
+   @param[out] costs The gray-weighted distance transform costs
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
 
-  @param[out] conncomps Labeled connected components for each flat pixel
-  @parblock
-  A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
-  @endparblock
+   @param[out] conncomps Labeled connected components for each flat pixel
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+   @endparblock
 
-  @param[in] flats Array identifying the flat pixels
-  @parblock
-  A pointer to an `int32_t` array of size `dims[0]` x `dims[1]`
+   @param[in] flats Array identifying the flat pixels
+   @parblock
+   A pointer to an `int32_t` array of size `dims[0]` x `dims[1]`
 
-  The flat pixels must be identified as they are by identifyflats() such that
-  `flats[pixels] & 1` is nonzero for any flat pixel.
-  @endparblock
+   The flat pixels must be identified as they are by identifyflats() such that
+   `flats[pixels] & 1` is nonzero for any flat pixel.
+   @endparblock
 
-  @param[in] original_dem The DEM prior to sink filling
-  @parblock
-  A pointer to a `float` array of size `dims[0]` x `dims[1]`
-  @endparblock
+   @param[in] original_dem The DEM prior to sink filling
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
 
-  @param[in] filled_dem The DEM after sink filling
-  @parblock
-  A pointer to a `float` array of size `dims[0]` x `dims[1]`
-  @endparblock
+   @param[in] filled_dem The DEM after sink filling
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
 
-  @param[in] dims The dimensions of the arrays
-  @parblock
-  A pointer to a `ptrdiff_t` array of size 2
+   @param[in] dims The dimensions of the arrays
+   @parblock
+   A pointer to a `ptrdiff_t` array of size 2
 
-  The fastest changing dimension should be provided first. For column-major
-  arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
-  @endparblock
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
  */
 TOPOTOOLBOX_API
 void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
