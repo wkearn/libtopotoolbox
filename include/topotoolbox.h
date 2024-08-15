@@ -336,8 +336,7 @@ void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
    Zhao, Hongkai (2004). A fast sweeping method for eikonal
    equations. Mathematics of Computation, 74, 250, 603-627.
 
-   @param[out] excess           The solution of the constrained eikonal
-   equation.
+   @param[out] excess           The solution of the constrained eikonal equation
    @parblock
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
 
@@ -376,59 +375,87 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
                             float cellsize, ptrdiff_t dims[2]);
 
 /**
- @brief Compute excess topography with 2D varying threshold slopes
- using the fast marching method
+   @brief Compute excess topography with 2D varying threshold slopes
+   using the fast marching method
 
- The excess topography (Blöthe et al. 2015) is computed by solving an
- eikonal equation (Anand et al. 2023) constrained to lie below the
- original DEM. Where the slope of the DEM is greater than the
- threshold slope, the eikonal solver limits the output topography to
- that slope, but where the slope of the DEM is lower that the
- threshold slope, the output follows the DEM.
+   @details
+   The excess topography (Blöthe et al. 2015) is computed by solving an
+   eikonal equation (Anand et al. 2023) constrained to lie below the
+   original DEM. Where the slope of the DEM is greater than the
+   threshold slope, the eikonal solver limits the output topography to
+   that slope, but where the slope of the DEM is lower that the
+   threshold slope, the output follows the DEM.
 
- The eikonal equation is solved using the fast marching method
- (Sethian 1996), which uses a priority queue to propagate slopes from
- the lowest elevation pixels to the highest according to an upwind
- discretization of the gradient. To constrain the solution by the
- original DEM, the output topography is initiated with the DEM and
- only updates lower than the DEM are accepted.
+   The eikonal equation is solved using the fast marching method
+   (Sethian 1996), which uses a priority queue to propagate slopes from
+   the lowest elevation pixels to the highest according to an upwind
+   discretization of the gradient. To constrain the solution by the
+   original DEM, the output topography is initiated with the DEM and
+   only updates lower than the DEM are accepted.
 
- The fast marching method is more complicated than the fast sweeping
- method (excesstopography_fmm2d()) and requires pre-allocated memory
- for the priority queue. It is faster than the fast sweeping method
- when the threshold slopes change frequently.
+   The fast marching method is more complicated than the fast sweeping
+   method (excesstopography_fmm2d()) and requires pre-allocated memory
+   for the priority queue. It is faster than the fast sweeping method
+   when the threshold slopes change frequently.
 
- # References
+   # References
 
- Anand, Shashank Kumar, Matteo B. Bertagni, Arvind Singh and Amilcare
- Porporato (2023). Eikonal equation reproduces natural landscapes with
- threshold hillslopes. Geophysical Research Letters, 50, 21.
+   Anand, Shashank Kumar, Matteo B. Bertagni, Arvind Singh and Amilcare
+   Porporato (2023). Eikonal equation reproduces natural landscapes with
+   threshold hillslopes. Geophysical Research Letters, 50, 21.
 
- Blöthe, Jan Henrik, Oliver Korup and Wolfgang Schwanghart
- (2015). Large landslides lie low: Excess topography in the
- Himalaya-Karakoram ranges. Geology, 43, 6, 523-526.
+   Blöthe, Jan Henrik, Oliver Korup and Wolfgang Schwanghart
+   (2015). Large landslides lie low: Excess topography in the
+   Himalaya-Karakoram ranges. Geology, 43, 6, 523-526.
 
- Sethian, James (1996). A fast marching level set method for
- monotonically advancing fronts. Proceedings of the National Academy
- of Sciences, 93, 4, 1591-1595.
+   Sethian, James (1996). A fast marching level set method for
+   monotonically advancing fronts. Proceedings of the National Academy
+   of Sciences, 93, 4, 1591-1595.
 
- @param[out] excess           The solution of the constrained eikonal equation.
-                              To compute the excess topography, subtract this
-                              array elementwise from the DEM. A float array of
-                              size (dims[0] x dims[1]).
- @param[in]  heap             A ptrdiff_t array of indices (dims[0] x dims[1])
-                              used for implementing the priority queue.
- @param[in]  back             A ptrdiff_t array of indices (dims[0] x dims[1])
-                              used for implementing the priority queue.
- @param[in]  dem              The input digital elevation model. A float array
-                              of size (dims[0] x dims[1]).
- @param[in]  threshold_slopes The threshold slopes (tangent of the critical
-                              angle) at each grid cell. A float array of size
-                              (dims[0] x dims[1]).
- @param[in]  cellsize         The spacing between grid cells, assumed to be
-                              constant and identical in the x- and y- directions
- @param[in]  dims             The dimensions of both DEMs with the fastest
-                              changing dimension first
+   @param[out] excess           The solution of the constrained eikonal equation
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+
+   To compute the excess topography, subtract this array elementwise from the
+   DEM.
+   @endparblock
+
+   @param  heap Storage for the priority queue
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param  back Storage for the priority queue
+   @parblock
+   A `ptrdiff_t` array of indices `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in]  dem              The input digital elevation model.
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in]  threshold_slopes The threshold slopes at each grid cell.
+   @parblock
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in]  cellsize         The spacing between grid cells
+   @parblock
+   A `float`
+
+   The spacing is assumed to be constant and identical in the x- and y-
+   directions.
+   @endparblock
+
+   @param[in]  dims   The dimensions of the arrays
+   @parblock
+   A pointer to a `ptrdiff_t` array of size 2
+
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
+
  */
 TOPOTOOLBOX_API
 void excesstopography_fmm2d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
