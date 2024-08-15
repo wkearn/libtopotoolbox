@@ -1,8 +1,8 @@
 /**
-        @file topotoolbox.h
-        @version 3.0.0
+   @file topotoolbox.h
+   @version 3.0.0
 
-        @brief Public API for libtopotoolbox
+   @brief Public API for libtopotoolbox
  */
 #ifndef TOPOTOOLBOX_H
 #define TOPOTOOLBOX_H
@@ -39,9 +39,9 @@ TOPOTOOLBOX_API
 int has_topotoolbox(void);
 
 /**
-        @brief Fills sinks in a digital elevation model
+   @brief Fills sinks in a digital elevation model
 
-        Uses an algorithm based on grayscale morphological reconstruction.
+   Uses an algorithm based on grayscale morphological reconstruction.
 
    @param[out] output The filled DEM
    @param[in]  dem    The input DEM
@@ -238,7 +238,7 @@ void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
                               angle) at each grid cell. A float array of size
                               (dims[0] x dims[1]).
  @param[in]  cellsize         The spacing between grid cells, assumed to be
-                              constant and identical in the x- and y- directions
+ constant and identical in the x- and y- directions
  @param[in]  dims             The dimensions of both DEMs with the fastest
                               changing dimension first
  */
@@ -444,29 +444,31 @@ void flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
 TOPOTOOLBOX_API
 void flow_accumulation(float *acc, ptrdiff_t *source, uint8_t *direction,
                        float *weights, ptrdiff_t dims[2]);
-#include "graphflood/define_types.h"
-/*
-        @brief Computes a single flow graph:
-        Receivers/Donors using the steepest descent method and topological
-   ordering following a modified Braun and Willett (2013)
-        @param[in]  topo: the topographic surface
-        @param[out] Sreceivers: array of steepest receiver vectorised index
-        @param[out] distToReceivers: array of distance to steepest receiver
-   vectorised index
-        @param[out] Sdonors: array of donors to steepest receiver vectorised
-   index (index * (8 or 4) + 0:NSdonors[index] to get them)
-        @param[out] NSdonors: array of number of steepest donors (nodes having
-   this one as steepest receivers)
-        @param[out] Stack: topologically ordered list of nodes, from the
-   baselevel to the sources
-        @param[in]  BCs: codes for boundary conditions and no data management,
-   see gf_utils.h or examples for the meaning
-        @param[in]  dims: [rows,columns] if row major and [columns, rows] if
-   column major
-        @param[in]  dx: spatial step
-        @param[in]  D8: true for topology including cardinals + diagonals, false
-   for cardinals only
 
+#include "graphflood/define_types.h"
+
+/**
+   @brief Computes a single flow graph:
+   Receivers/Donors using the steepest descent method and topological
+   ordering following a modified Braun and Willett (2013)
+
+   @param[in]  topo: the topographic surface
+   @param[out] Sreceivers: array of steepest receiver vectorised index
+   @param[out] distToReceivers: array of distance to steepest receiver
+   vectorised index
+   @param[out] Sdonors: array of donors to steepest receiver vectorised
+   index (index * (8 or 4) + 0:NSdonors[index] to get them)
+   @param[out] NSdonors: array of number of steepest donors (nodes having
+   this one as steepest receivers)
+   @param[out] Stack: topologically ordered list of nodes, from the
+   baselevel to the sources
+   @param[in]  BCs: codes for boundary conditions and no data management,
+   see gf_utils.h or examples for the meaning
+   @param[in]  dims: [rows,columns] if row major and [columns, rows] if
+   column major
+   @param[in]  dx: spatial step
+   @param[in]  D8: true for topology including cardinals + diagonals, false
+   for cardinals only
 */
 TOPOTOOLBOX_API
 void compute_sfgraph(GF_FLOAT *topo, GF_UINT *Sreceivers,
@@ -474,8 +476,8 @@ void compute_sfgraph(GF_FLOAT *topo, GF_UINT *Sreceivers,
                      uint8_t *NSdonors, GF_UINT *Stack, uint8_t *BCs,
                      GF_UINT *dim, GF_FLOAT dx, bool D8);
 
-/*
-@brief Compute the graphflood single flow graph and fills local minima using
+/**
+   @brief Compute the graphflood single flow graph and fills local minima using
 Priority Floods - Barnes 2014 (see compute_sfgraph for details)
 */
 TOPOTOOLBOX_API
@@ -485,33 +487,33 @@ void compute_sfgraph_priority_flood(GF_FLOAT *topo, GF_UINT *Sreceivers,
                                     uint8_t *BCs, GF_UINT *dim, GF_FLOAT dx,
                                     bool D8);
 
-/*
-        @brief Fills the depressions in place in the topography using Priority
+/**
+   @brief Fills the depressions in place in the topography using Priority
    Floods Barnes (2014, modified to impose a minimal slope)
 
-        @param[inout]  topo: array of surface elevation
-        @param[in]     BCs: codes for boundary conditions and no data
+   @param[inout]  topo: array of surface elevation
+   @param[in]     BCs: codes for boundary conditions and no data
    management, see gf_utils.h or examples for the meaning
-        @param[in]     dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]     dims: [rows,columns] if row major and [columns, rows] if
    column major
-        @param[in]     D8: true for topology including cardinals + diagonals,
+   @param[in]     D8: true for topology including cardinals + diagonals,
    false for cardinals only
 */
 TOPOTOOLBOX_API
 void compute_priority_flood(float *topo, uint8_t *BCs, GF_UINT *dim, bool D8);
 
-/*
-        @brief Fills the depressions in place in the topography using Priority
+/**
+   @brief Fills the depressions in place in the topography using Priority
    Floods Barnes (2014, modified to impose a minimal slope) This variant
    computes the topological order on the go (slightly slower as it uses a
    priority queue for all the nodes including in depressions)
 
-        @param[inout]  topo: array of surface elevation
-        @param[in]     BCs: codes for boundary conditions and no data
+   @param[inout]  topo: array of surface elevation
+   @param[in]     BCs: codes for boundary conditions and no data
    management, see gf_utils.h or examples for the meaning
-        @param[in]     dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]     dims: [rows,columns] if row major and [columns, rows] if
    column major
-        @param[in]     D8: true for topology including cardinals + diagonals,
+   @param[in]     D8: true for topology including cardinals + diagonals,
    false for cardinals only
 */
 TOPOTOOLBOX_API
@@ -520,34 +522,34 @@ void compute_priority_flood_plus_topological_ordering(float *topo,
                                                       uint8_t *BCs,
                                                       GF_UINT *dim, bool D8);
 
-/*
-        @brief Accumulate single flow drainage area downstream from a calculated
+/**
+   @brief Accumulate single flow drainage area downstream from a calculated
    graphflood single flow graph
-        @param[out] output: the field of drainage area
-        @param[in]  Sreceivers: array of steepest receiver vectorised index
-        @param[in]  Stack: topologically ordered list of nodes, from the
+   @param[out] output: the field of drainage area
+   @param[in]  Sreceivers: array of steepest receiver vectorised index
+   @param[in]  Stack: topologically ordered list of nodes, from the
    baselevel to the sources
-        @param[in]  dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]  dims: [rows,columns] if row major and [columns, rows] if
    column major
-        @param[in]  dx: spatial step
+   @param[in]  dx: spatial step
 */
 TOPOTOOLBOX_API
 void compute_drainage_area_single_flow(GF_FLOAT *output, GF_UINT *Sreceivers,
                                        GF_UINT *Stack, GF_UINT *dim,
                                        GF_FLOAT dx);
 
-/*
-        @brief Accumulate single flow drainage area downstream from a calculated
+/**
+   @brief Accumulate single flow drainage area downstream from a calculated
    graphflood single flow graph weighted by an arbitrary input (e.g.
    Precipitation rates to get effective discharge)
-        @param[out] output: the field of drainage area
-        @param[in]  weights: node-wise weights
-        @param[in]  Sreceivers: array of steepest receiver vectorised index
-        @param[in]  Stack: topologically ordered list of nodes, from the
+   @param[out] output: the field of drainage area
+   @param[in]  weights: node-wise weights
+   @param[in]  Sreceivers: array of steepest receiver vectorised index
+   @param[in]  Stack: topologically ordered list of nodes, from the
    baselevel to the sources
-        @param[in]  dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]  dims: [rows,columns] if row major and [columns, rows] if
    column major
-        @param[in]  dx: spatial step
+   @param[in]  dx: spatial step
 */
 TOPOTOOLBOX_API
 void compute_weighted_drainage_area_single_flow(GF_FLOAT *output,
@@ -556,23 +558,23 @@ void compute_weighted_drainage_area_single_flow(GF_FLOAT *output,
                                                 GF_UINT *Stack, GF_UINT *dim,
                                                 GF_FLOAT dx);
 
-/*
-        @brief Run N iteration of graphflood as described in Gailleton et al.,
+/**
+   @brief Run N iteration of graphflood as described in Gailleton et al.,
    2024. From an input field of topography, optional original flow depth,
    mannings friction coefficient and precipitation rates, calculates the field
    of flow depth following a steady flow assumption.
 
-        @param[in]     Z: surface topography
-        @param[inout]  hw: field of flow depth
-        @param[in]     BCs: codes for boundary conditions and no data
+   @param[in]     Z: surface topography
+   @param[inout]  hw: field of flow depth
+   @param[in]     BCs: codes for boundary conditions and no data
    management, see gf_utils.h or examples for the meaning
-        @param[in]     Precipitations: Precipitation rates
-        @param[in]     manning: friction coefficient
-        @param[in]     dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]     Precipitations: Precipitation rates
+   @param[in]     manning: friction coefficient
+   @param[in]     dims: [rows,columns] if row major and [columns, rows] if
    column major
-        @param[in]     dt: time step
-        @param[in]     dx: spatial step
-        @param[in]     SFD: single flow direction if True, multiple flow if
+   @param[in]     dt: time step
+   @param[in]     dx: spatial step
+   @param[in]     SFD: single flow direction if True, multiple flow if
    false
 */
 TOPOTOOLBOX_API
