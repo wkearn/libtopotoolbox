@@ -51,17 +51,17 @@ int has_topotoolbox(void);
 
    @param[out] output The filled DEM
    @parblock
-   `float` array of size `dims[0]` x `dims[1]`
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
    @param[in]  dem    The input DEM
    @parblock
-   `float` array of size `dims[0]` x `dims[1]`
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
    @param[in]  dims   The dimensions of the arrays
    @parblock
-   `ptrdiff_t` array of size 2
+   A pointer to a `ptrdiff_t` array of size 2
 
    The fastest changing dimension should be provided first. For column-major
    arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
@@ -88,12 +88,12 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
 
    @param[out] output The filled DEM
    @parblock
-   `float` array of size `dims[0]` x `dims[1]`
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
    @param queue       A pixel queue
    @parblock
-   `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+   A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
 
    This array is used internally as the backing store for the necessary FIFO
    queue. It does not need to be initialized and can be freed once
@@ -102,12 +102,12 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
 
    @param[in]  dem    The input DEM
    @parblock
-   `float` array of size `dims[0]` x `dims[1]`
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
    @param[in]  dims   The dimensions of the arrays
    @parblock
-   `ptrdiff_t` array of size 2
+   A pointer to a `ptrdiff_t` array of size 2
 
    The fastest changing dimension should be provided first. For column-major
    arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
@@ -151,17 +151,17 @@ void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem,
 
    @param[out] output The pixel labels
    @parblock
-   An `int32_t` array of size `dims[0]` x `dims[1]`
+   A pointer to an `int32_t` array of size `dims[0]` x `dims[1]`
    @endparblock
 
    @param[in]  dem    The input DEM
    @parblock
-   A `float` array of size `dims[0]` x `dims[1]`
+   A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
    @param[in]  dims   The dimensions of the arrays
    @parblock
-   `ptrdiff_t` array of size 2
+   A pointer to a `ptrdiff_t` array of size 2
 
    The fastest changing dimension should be provided first. For column-major
    arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
@@ -192,17 +192,17 @@ ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t dims[2]);
 
   @param[out] costs        The gray-weighted distance transform costs
   @parblock
-  A `float` array of size `dims[0]` x `dims[1]`
+  A pointer to a `float` array of size `dims[0]` x `dims[1]`
   @endparblock
 
   @param[out] conncomps    Labeled connected components for each flat pixel
   @parblock
-  A `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+  A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
   @endparblock
 
   @param[in]  flats        Array identifying the flat pixels
   @parblock
-  An `int32_t` array of size `dims[0]` x `dims[1]`
+  A pointer to an `int32_t` array of size `dims[0]` x `dims[1]`
 
   The flat pixels must be identified as they are by identifyflats() such that
   `flats[pixels] & 1` is nonzero for any flat pixel.
@@ -210,17 +210,17 @@ ptrdiff_t identifyflats(int32_t *output, float *dem, ptrdiff_t dims[2]);
 
   @param[in]  original_dem The DEM prior to sink filling
   @parblock
-  A `float` array of size `dims[0]` x `dims[1]`
+  A pointer to a `float` array of size `dims[0]` x `dims[1]`
   @endparblock
 
   @param[in]  filled_dem   The DEM after sink filling
   @parblock
-  A `float` array of size `dims[0]` x `dims[1]`
+  A pointer to a `float` array of size `dims[0]` x `dims[1]`
   @endparblock
 
   @param[in]  dims   The dimensions of the arrays
   @parblock
-  `ptrdiff_t` array of size 2
+  A pointer to a `ptrdiff_t` array of size 2
 
   The fastest changing dimension should be provided first. For column-major
   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
