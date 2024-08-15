@@ -73,6 +73,7 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
 /**
    @brief Fills sinks in a digital elevation model
 
+   @details
    Uses an algorithm based on grayscale morphological
    reconstruction. Uses the hybrid algorithm of Vincent (1993) for
    higher performance than fillsinks(), but requires additional memory
@@ -86,11 +87,31 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
    https://doi.org/10.1109/83.217222
 
    @param[out] output The filled DEM
-   @param[out] queue  An array of `ptrdiff_t` the same size as the DEMs used as
-                      the backing store for the queue
+   @parblock
+   `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param queue       A pixel queue
+   @parblock
+   `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+
+   This array is used internally as the backing store for the necessary FIFO
+   queue. It does not need to be initialized and can be freed once
+   fillsinks_hybrid() returns.
+   @endparblock
+
    @param[in]  dem    The input DEM
-   @param[in]  dims   The dimensions of both DEMs with the fastest changing
-                      dimension first
+   @parblock
+   `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in]  dims   The dimensions of the arrays
+   @parblock
+   `ptrdiff_t` array of size 2
+
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
  */
 TOPOTOOLBOX_API
 void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem,
