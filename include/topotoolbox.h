@@ -46,12 +46,26 @@ int has_topotoolbox(void);
 /**
    @brief Fills sinks in a digital elevation model
 
+   @details
    Uses an algorithm based on grayscale morphological reconstruction.
 
    @param[out] output The filled DEM
+   @parblock
+   `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
    @param[in]  dem    The input DEM
-   @param[in]  dims   The dimensions of both DEMs with the fastest changing
-                      dimension first
+   @parblock
+   `float` array of size `dims[0]` x `dims[1]`
+   @endparblock
+
+   @param[in]  dims   The dimensions of the arrays
+   @parblock
+   `ptrdiff_t` array of size 2
+
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
  */
 TOPOTOOLBOX_API
 void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
