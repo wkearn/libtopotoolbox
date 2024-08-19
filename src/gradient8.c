@@ -6,11 +6,13 @@
 
 #include "topotoolbox.h"
 
+#define M_PI 3.14159265358979323846f
+#define SQRT2 1.41421356237309504880f
 /*
   Compute the gradient of each cell in a digital elevation model.
 
   The arrays pointed to by `gradient` and `dem` should represent
-  two-dimensional arrays of size (nrows, ncols). The gradient is 
+  two-dimensional arrays of size specified in dims. The gradient is 
   computed as the maximum difference in elevation between a cell 
   and its 8 neighbors.
 
@@ -21,41 +23,64 @@
     'd' --> degree
     's' --> sine
     'p' --> percent
-
  */
 
 TOPOTOOLBOX_API
-void gradient8(float *output, float *dem, ptrdiff_t nrows,
-                     ptrdiff_t ncols, char unit) {
-  ptrdiff_t col_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-  ptrdiff_t row_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+void gradient8( float *output, float *dem, float cellsize,
+                char unit, ptrdiff_t dims[2]) {
+  ptrdiff_t i_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+  ptrdiff_t j_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 
-  // Loop through each cell in the DEM
-  for (ptrdiff_t col = 0; col < ncols; col++) {
-    for (ptrdiff_t row = 0; row < nrows; row++) {
-      // Skip border pixels
-      if (col == 0 || col == ncols - 1 || row == 0 || row == nrows - 1) {
-        output[col * nrows + row] = 0;
-        continue;
-      }
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      float max_gradient;
 
-      float dem_height = dem[col * nrows + row];
-      float max_diff = 0;
+      for (int k = 0; k < 8; k++) {
+        ptrdiff_t neighbour_i = i + i_offset[k];
+        ptrdiff_t neighbour_j = j + j_offset[k];
 
-      // Compute the maximum height difference in the neighborhood around the current pixel
-      for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
-        ptrdiff_t neighbor_row = row + row_offset[neighbor];
-        ptrdiff_t neighbor_col = col + col_offset[neighbor];
+        // Check if cells in bounds
+        if (neighbour_i >= 0 && neighbour_i < dims[0] && 
+            neighbour_j >= 0 && neighbour_j < dims[1]) {
 
-        // neighbor_row and neighbor_col are valid indices because we skipped border pixels above
-        float neighbor_height = dem[neighbor_col * nrows + neighbor_row];
-        float height_diff = fabs(dem_height - neighbor_height);
-        if (height_diff > max_diff) {
-          max_diff = height_diff;
+          float horizontal_dist;
+          float vertical_dist;
+          float local_gradient;
+
+          if (neighbour_i != i && neighbour_j != j) {
+            horizontal_dist = SQRT2 * cellsize;
+          } else {
+            horizontal_dist = cellsize;
+          }
+          vertical_dist = fabs(
+                              dem[neighbour_j * dims[1] + neighbour_i] -
+                              dem[j * dims[1] + i]
+                          );
+
+          local_gradient = vertical_dist / horizontal_dist;;
+          if (local_gradient > max_gradient) {
+            max_gradient = local_gradient;
+          }
         }
       }
-
-      output[col * nrows + row] = max_diff;
+      // convert results to correct format and save them
+       switch (unit) {
+        case 'r': // radian
+          output[j * dims[1] + i] = atanf(max_gradient);
+          break;
+        case 'd': // degree
+          output[j * dims[1] + i] = atanf(max_gradient) * (180.0 / M_PI);
+          break;
+        case 's': // sine
+          output[j * dims[1] + i] = sinf(atanf(max_gradient));
+          break;
+        case 'p': // percent
+          output[j * dims[1] + i] = max_gradient * 100.0f;
+          break;
+        default: // tangent (default)
+          output[j * dims[1] + i] = max_gradient;
+          break;
+      }
     }
   }
 }
