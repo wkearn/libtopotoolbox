@@ -3,6 +3,7 @@ add_library(topotoolbox
   fillsinks.c
   identifyflats.c
   gwdt.c
+  gradient8.c
   morphology/reconstruct.c
   priority_queue.c
   excesstopography.c

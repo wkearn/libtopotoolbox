@@ -813,6 +813,20 @@ void compute_drainage_area_single_flow(GF_FLOAT *output, GF_UINT *Sreceivers,
    @param[in]  dx: spatial step
 */
 TOPOTOOLBOX_API
+void gradient8(GF_FLOAT *output, 
+               GF_FLOAT *dem, 
+               char unit, // TODO: should this be GF_CHAR?
+               GF_UINT *dims);
+//TODO: Finish documentation
+/**
+   @brief 
+
+   @param[in]
+   @param[inout]
+   @param[in]
+   @param[in]
+*/
+TOPOTOOLBOX_API
 void compute_weighted_drainage_area_single_flow(GF_FLOAT *output,
                                                 GF_FLOAT *weights,
                                                 GF_UINT *Sreceivers,
