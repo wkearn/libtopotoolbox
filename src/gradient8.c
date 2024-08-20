@@ -39,7 +39,7 @@ void gradient8( float *output, float *dem, float cellsize,
   #pragma omp parallel for if(use_mp)
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      float max_gradient;
+      float max_gradient = 0;
 
       for (int k = 0; k < 8; k++) {
         ptrdiff_t neighbour_i = i + i_offset[k];
