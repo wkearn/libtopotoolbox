@@ -817,6 +817,7 @@ void gradient8(float *output,
                float *dem, 
                float cellsize,
                char unit, 
+               int use_mp,
                ptrdiff_t dims[2]);
 // TODO: Finish documentation
 /**
@@ -824,6 +825,7 @@ void gradient8(float *output,
 
    @param[in]
    @param[inout]
+   @param[in]
    @param[in]
    @param[in]
    @param[in]

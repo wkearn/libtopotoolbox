@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <math.h>
+#include <omp.h>
 
 #include "topotoolbox.h"
 
@@ -16,6 +17,9 @@
   computed as the maximum difference in elevation between a cell 
   and its 8 neighbors.
 
+  int use_mp:
+    0   --> don't use multiprocessing
+    1   --> use multiprocessing
 
   char unit:
     't' --> tangent (default)
@@ -27,10 +31,11 @@
 
 TOPOTOOLBOX_API
 void gradient8( float *output, float *dem, float cellsize,
-                char unit, ptrdiff_t dims[2]) {
+                char unit, int use_mp, ptrdiff_t dims[2]) {
   ptrdiff_t i_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
   ptrdiff_t j_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 
+  #pragma omp parallel for if(use_mp)
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
       float max_gradient;
