@@ -32,6 +32,7 @@
 TOPOTOOLBOX_API
 void gradient8( float *output, float *dem, float cellsize,
                 char unit, int use_mp, ptrdiff_t dims[2]) {
+
   ptrdiff_t i_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
   ptrdiff_t j_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 
@@ -58,8 +59,8 @@ void gradient8( float *output, float *dem, float cellsize,
             horizontal_dist = cellsize;
           }
           vertical_dist = fabs(
-                              dem[neighbour_j * dims[1] + neighbour_i] -
-                              dem[j * dims[1] + i]
+                              dem[neighbour_j * dims[0] + neighbour_i] -
+                              dem[j * dims[0] + i]
                           );
 
           local_gradient = vertical_dist / horizontal_dist;;
@@ -71,19 +72,19 @@ void gradient8( float *output, float *dem, float cellsize,
       // convert results to correct format and save them
        switch (unit) {
         case 'r': // radian
-          output[j * dims[1] + i] = atanf(max_gradient);
+          output[j * dims[0] + i] = atanf(max_gradient);
           break;
         case 'd': // degree
-          output[j * dims[1] + i] = atanf(max_gradient) * (180.0 / M_PI);
+          output[j * dims[0] + i] = atanf(max_gradient) * (180.0 / M_PI);
           break;
         case 's': // sine
-          output[j * dims[1] + i] = sinf(atanf(max_gradient));
+          output[j * dims[0] + i] = sinf(atanf(max_gradient));
           break;
         case 'p': // percent
-          output[j * dims[1] + i] = max_gradient * 100.0f;
+          output[j * dims[0] + i] = max_gradient * 100.0f;
           break;
         default: // tangent (default)
-          output[j * dims[1] + i] = max_gradient;
+          output[j * dims[0] + i] = max_gradient;
           break;
       }
     }
