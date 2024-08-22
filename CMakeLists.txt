@@ -30,17 +30,6 @@ else()
   add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
 endif()
 
-find_package(OpenMP)
-if (OpenMP_C_FLAGS)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-endif()
-if (OpenMP_CXX_FLAGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
-if (OpenMP_C_LIBRARIES)
-  target_link_libraries(topotoolbox ${OpenMP_C_LIBRARIES})
-endif()
-
 add_subdirectory(src)
 
 if (TT_BUILD_TESTS)
