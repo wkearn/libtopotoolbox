@@ -24,7 +24,3 @@ data analysis ecosystems of those languages.
 
 If you would like to contribute to libtopotoolbox, check out the
 [Contribution Guidelines](docs/CONTRIBUTING.md).
-
-
-
-
