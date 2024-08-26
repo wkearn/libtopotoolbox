@@ -25,7 +25,12 @@ target_include_directories(
 
 find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)
-    target_link_libraries(topotoolbox PUBLIC ${MATH_LIBRARY})
+  target_link_libraries(topotoolbox PUBLIC ${MATH_LIBRARY})
+endif()
+
+find_package(OpenMP)
+if (OpenMP_C_FOUND)
+  target_link_libraries(topotoolbox PUBLIC OpenMP::OpenMP_C)
 endif()
 
 if (BUILD_SHARED_LIBS)
