@@ -1,6 +1,7 @@
 #define TOPOTOOLBOX_BUILD
 
 #include <math.h>
+#include <omp.h>
 #include <stddef.h>
 #include <stdint.h>
 
