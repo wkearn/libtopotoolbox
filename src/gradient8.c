@@ -56,8 +56,8 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
           } else {
             horizontal_dist = cellsize;
           }
-          vertical_dist = fabs(dem[neighbour_j * dims[0] + neighbour_i] -
-                               dem[j * dims[0] + i]);
+          vertical_dist = fabsf(dem[neighbour_j * dims[0] + neighbour_i] -
+                                dem[j * dims[0] + i]);
 
           local_gradient = vertical_dist / horizontal_dist;
           ;
@@ -72,7 +72,7 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
           output[j * dims[0] + i] = atanf(max_gradient);
           break;
         case 'd':  // degree
-          output[j * dims[0] + i] = atanf(max_gradient) * (180.0 / M_PI);
+          output[j * dims[0] + i] = atanf(max_gradient) * (180.0f / M_PI);
           break;
         case 's':  // sine
           output[j * dims[0] + i] = sinf(atanf(max_gradient));
