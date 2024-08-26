@@ -6,7 +6,7 @@
 
 #include "topotoolbox.h"
 
-#define M_PI 3.14159265358979323846f
+#define PI 3.14159265358979323846f
 #define SQRT2 1.41421356237309504880f
 /*
   Compute the gradient of each cell in a digital elevation model.
@@ -72,7 +72,7 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
           output[j * dims[0] + i] = atanf(max_gradient);
           break;
         case 'd':  // degree
-          output[j * dims[0] + i] = atanf(max_gradient) * (180.0f / M_PI);
+          output[j * dims[0] + i] = atanf(max_gradient) * (180.0f / PI);
           break;
         case 's':  // sine
           output[j * dims[0] + i] = sinf(atanf(max_gradient));
