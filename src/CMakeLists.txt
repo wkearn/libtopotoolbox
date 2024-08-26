@@ -28,6 +28,11 @@ if(MATH_LIBRARY)
   target_link_libraries(topotoolbox PUBLIC ${MATH_LIBRARY})
 endif()
 
+find_package(OpenMP)
+if (OpenMP_C_FOUND)
+  target_link_libraries(topotoolbox PUBLIC OpenMP::OpenMP_C)
+endif()
+
 if (BUILD_SHARED_LIBS)
 else()
   target_compile_options(topotoolbox PUBLIC -DTOPOTOOLBOX_STATICLIB)
