@@ -35,8 +35,8 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
   ptrdiff_t i_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
   ptrdiff_t j_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 #pragma omp parallel
-{
-  #pragma omp parallel for if (use_mp)
+  {
+#pragma omp parallel for if (use_mp)
     for (ptrdiff_t j = 0; j < dims[1]; j++) {
       for (ptrdiff_t i = 0; i < dims[0]; i++) {
         float max_gradient = 0;
@@ -58,7 +58,7 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
               horizontal_dist = cellsize;
             }
             vertical_dist = fabsf(dem[neighbour_j * dims[0] + neighbour_i] -
-                                dem[j * dims[0] + i]);
+                                  dem[j * dims[0] + i]);
 
             local_gradient = vertical_dist / horizontal_dist;
             ;
