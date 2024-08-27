@@ -23,7 +23,7 @@
 
   char unit:
     't' --> tangent (default)
-    'r' --> radian unnecessary
+    'r' --> radian
     'd' --> degree
     's' --> sine
     'p' --> percent
@@ -34,12 +34,10 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
                ptrdiff_t dims[2]) {
   ptrdiff_t i_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
   ptrdiff_t j_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
-  ptrdiff_t temp_dim_1 = dims[1];
-  ptrdiff_t temp_dim_0 = dims[0];
 
 #pragma omp parallel for if (use_mp)
-  for (ptrdiff_t j = 0; j < temp_dim_1; j++) {
-    for (ptrdiff_t i = 0; i < temp_dim_0; i++) {
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
       float max_gradient = 0;
 
       for (int k = 0; k < 8; k++) {
