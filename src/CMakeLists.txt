@@ -30,7 +30,7 @@ endif()
 
 find_package(OpenMP)
 if (OpenMP_C_FOUND)
-  target_link_libraries(topotoolbox PUBILC OpenMP::OpenMP_C)
+  target_link_libraries(topotoolbox PUBLIC OpenMP::OpenMP_C)
 endif()
 
 if (BUILD_SHARED_LIBS)
