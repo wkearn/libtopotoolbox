@@ -61,7 +61,6 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
                                 dem[j * dims[0] + i]);
 
           local_gradient = vertical_dist / horizontal_dist;
-          ;
           if (local_gradient > max_gradient) {
             max_gradient = local_gradient;
           }
