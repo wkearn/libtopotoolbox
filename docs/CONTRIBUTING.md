@@ -199,3 +199,6 @@ specifier. For example:
 ``` C
 TOPOTOOLBOX_API int has_topotoolbox(void);
 ```
+
+To learn more about the design and structure of libtopotoolbox, check
+out [ARCHITECTURE.md](ARCHITECTURE.md).
