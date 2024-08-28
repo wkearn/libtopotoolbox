@@ -1,5 +1,11 @@
 #undef NDEBUG
-#include <cassert>
+//#include <cassert>
+
+#define assert(c)     \
+  if (!(c)) {         \
+    __builtin_trap(); \
+  }
+
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -413,6 +419,21 @@ int32_t test_flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
   return 0;
 }
 
+int32_t test_gradient8(float *mp_gradient, float *gradient, float *dem,
+                       float cellsize, ptrdiff_t dims[2]) {
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      float g = gradient[j * dims[0] + i];
+      float mp_g = mp_gradient[j * dims[0] + i];
+      assert(mp_g == g);
+
+      assert(g >= 0);
+      assert(g <= 100.0f * cellsize);
+    }
+  }
+  return 0;
+}
+
 int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   // Allocate variables
 
@@ -463,6 +484,12 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   ptrdiff_t *target = new ptrdiff_t[dims[0] * dims[1]];
   assert(target != NULL);
 
+  float *gradient = new float[dims[0] * dims[1]]();
+  assert(gradient != NULL);
+
+  float *mp_gradient = new float[dims[0] * dims[1]]();
+  assert(mp_gradient != NULL);
+
   for (uint32_t col = 0; col < dims[1]; col++) {
     for (uint32_t row = 0; row < dims[0]; row++) {
       dem[col * dims[0] + row] = 100.0f * pcg4d(row, col, seed, 1);
@@ -506,6 +533,11 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   flow_routing_targets(target, source, direction, dims);
   test_flow_routing_targets(target, source, direction, dims);
 
+  gradient8(gradient, dem, 30.0, 't', 0, dims);
+  gradient8(mp_gradient, dem, 30.0, 't', 1, dims);
+
+  test_gradient8(mp_gradient, gradient, dem, 30.0, dims);
+
   delete[] dem;
   delete[] filled_dem;
   delete[] queue;
@@ -521,6 +553,8 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   delete[] marks;
   delete[] accum;
   delete[] target;
+  delete[] gradient;
+  delete[] mp_gradient;
 
   return 0;
 }
