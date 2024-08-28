@@ -61,29 +61,10 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
                                 dem[j * dims[0] + i]);
 
           local_gradient = vertical_dist / horizontal_dist;
-          ;
           if (local_gradient > max_gradient) {
             max_gradient = local_gradient;
           }
         }
-      }
-      // convert results to correct format and save them
-      switch (unit) {
-        case 'r':  // radian
-          output[j * dims[0] + i] = atanf(max_gradient);
-          break;
-        case 'd':  // degree
-          output[j * dims[0] + i] = atanf(max_gradient) * (180.0f / PI);
-          break;
-        case 's':  // sine
-          output[j * dims[0] + i] = sinf(atanf(max_gradient));
-          break;
-        case 'p':  // percent
-          output[j * dims[0] + i] = max_gradient * 100.0f;
-          break;
-        default:  // tangent (default)
-          output[j * dims[0] + i] = max_gradient;
-          break;
       }
     }
   }
