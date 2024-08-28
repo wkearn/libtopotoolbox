@@ -286,7 +286,7 @@ int32_t test_gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
   For each cell, the saved gradient should be the steepest gradient of all 8
   neighboring cells.
 */
-int32_t test_gradient8(float *output, float *dem, float cellsize, char unit,
+int32_t test_gradient8(float *gradient, float *dem, float cellsize, char unit,
                        ptrdiff_t dims[2]) {
   ptrdiff_t i_offset[8] = {0, 1, 1, 1, 0, -1, -1, -1};
   ptrdiff_t j_offset[8] = {1, 1, 0, -1, -1, -1, 0, 1};
@@ -320,7 +320,7 @@ int32_t test_gradient8(float *output, float *dem, float cellsize, char unit,
           }
         }
       }
-      assert(max_gradient == dem[j * dims[0] + i]);
+      assert(max_gradient == gradient[j * dims[0] + i]);
     }
   }
   return 0;
