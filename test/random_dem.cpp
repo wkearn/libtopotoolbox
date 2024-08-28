@@ -11,6 +11,7 @@ extern "C" {
 }
 
 #define SQRT2f 1.41421356237309504880f
+#define SQRT2 1.41421356237309504880f
 
 /*
   Each pixel of the filled DEM should be greater than or equal to
@@ -281,6 +282,49 @@ int32_t test_gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
 
   return 0;
 }
+/*
+  For each cell, the saved gradient should be the steepest gradient of all 8
+  neighboring cells.
+*/
+int32_t test_gradient8(float *output, float *dem, float cellsize, char unit,
+                       ptrdiff_t dims[2]) {
+  ptrdiff_t i_offset[8] = {0, 1, 1, 1, 0, -1, -1, -1};
+  ptrdiff_t j_offset[8] = {1, 1, 0, -1, -1, -1, 0, 1};
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      float max_gradient = 0;
+
+      // Iterate over all 8 neighboring cells
+      for (int k = 0; k < 8; k++) {
+        ptrdiff_t neighbor_i = i + i_offset[k];
+        ptrdiff_t neighbor_j = j + j_offset[k];
+
+        // Check if cells in bounds
+        if (neighbor_i >= 0 && neighbor_i < dims[0] && neighbor_j >= 0 &&
+            neighbor_j < dims[1]) {
+          float horizontal_dist;
+          float vertical_dist;
+          float local_gradient;
+
+          if (neighbor_i != i && neighbor_j != j) {
+            horizontal_dist = SQRT2 * cellsize;
+          } else {
+            horizontal_dist = cellsize;
+          }
+          vertical_dist = fabsf(dem[neighbor_j * dims[0] + neighbor_i] -
+                                dem[j * dims[0] + i]);
+
+          local_gradient = vertical_dist / horizontal_dist;
+          if (local_gradient > max_gradient) {
+            max_gradient = local_gradient;
+          }
+        }
+      }
+      assert(max_gradient == dem[j * dims[0] + i]);
+    }
+  }
+  return 0;
+}
 
 /*
   Flow direction should point downstream or across flats
@@ -447,6 +491,14 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   ptrdiff_t *prev = new ptrdiff_t[dims[0] * dims[1]];
   assert(prev != NULL);
 
+  // Outputs for gradient8
+  float *gradient = new float[dims[0] * dims[1]];
+  assert(flats != NULL);
+  // TODO: random value for cellsize?
+  float cellsize = 30.0;
+  // TODO: should different units get tested?
+  char unit = 't';
+
   // Outputs for routeflowd8
   ptrdiff_t *source = new ptrdiff_t[dims[0] * dims[1]];
   assert(source != NULL);
@@ -496,6 +548,9 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   gwdt(dist, prev, costs, flats, heap, back, dims);
   test_gwdt(dist, prev, costs, flats, dims);
 
+  gradient8(gradient, dem, cellsize, unit, 0, dims);
+  test_gradient8(gradient, dem, cellsize, unit, dims);
+
   flow_routing_d8_carve(source, direction, filled_dem, dist, flats, dims);
   test_routeflowd8_direction(direction, filled_dem, dist, flats, dims);
   test_routeflowd8_tsort(marks, source, direction, dims);
@@ -521,6 +576,8 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   delete[] marks;
   delete[] accum;
   delete[] target;
+  delete[] gradient;
+  // TODO: delete cellsize and unit?
 
   return 0;
 }
