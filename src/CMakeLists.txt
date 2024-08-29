@@ -1,3 +1,6 @@
+# Library declaration
+#
+# Every file that needs to be compiled should be listed here.
 add_library(topotoolbox
   topotoolbox.c
   fillsinks.c
@@ -15,6 +18,12 @@ add_library(topotoolbox
   flow_accumulation.c
 )
 
+# Define the include directory
+#
+# When we are building the library, look in include/
+#
+# When we install the library, look in the appropriate system include
+# directory
 target_include_directories(
   topotoolbox
   PUBLIC
@@ -22,14 +31,27 @@ target_include_directories(
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}>
 )
 
+# Link libm if necessary
+#
+# Not every platform has a separate libm that needs to be linked, this
+# conditional ensures that we only try to link libm if it exists separately
 find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)
     target_link_libraries(topotoolbox PUBLIC ${MATH_LIBRARY})
 endif()
 
+# Set TOPOTOOLBOX_STATICLIB if we are *not* building a shared library
+#
+# TOPOTOOLBOX_STATICLIB is a macro defined in include/topotoolbox.h
+# that determines the appropriate TOPOTOOLBOX_API qualifier when
+# libtopotoolbox is built as a static library.
 if (BUILD_SHARED_LIBS)
 else()
   target_compile_options(topotoolbox PUBLIC -DTOPOTOOLBOX_STATICLIB)
 endif()
 
+# Define include/topotoolbox.h as a PUBLIC_HEADER
+#
+# This is used in the root CMakeLists.txt to install topotoolbox.h to
+# the appropriate location.
 set_target_properties(topotoolbox PROPERTIES PUBLIC_HEADER ${topotoolbox_SOURCE_DIR}/include/topotoolbox.h)
