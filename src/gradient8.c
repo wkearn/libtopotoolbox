@@ -35,16 +35,17 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
   ptrdiff_t i_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
   ptrdiff_t j_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 
-  ptrdiff_t j, i;
-
 #ifdef _MSC_VER
+  ptrdiff_t j;
 #pragma omp parallel for if (use_mp)
+  for (j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
 #else
+  ptrdiff_t i, j;
 #pragma omp parallel for collapse(2) if (use_mp)
-#endif
-
   for (j = 0; j < dims[1]; j++) {
     for (i = 0; i < dims[0]; i++) {
+#endif
       float max_gradient = 0;
 
       for (int k = 0; k < 8; k++) {
