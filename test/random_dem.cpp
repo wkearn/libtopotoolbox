@@ -286,7 +286,7 @@ int32_t test_gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
   For each cell, the saved gradient should be the steepest gradient of all 8
   neighboring cells.
 */
-int32_t test_gradient8(float *gradient, float *dem, float cellsize, char unit,
+int32_t test_gradient8(float *gradient, float *dem, float cellsize,
                        ptrdiff_t dims[2]) {
   ptrdiff_t i_offset[8] = {0, 1, 1, 1, 0, -1, -1, -1};
   ptrdiff_t j_offset[8] = {1, 1, 0, -1, -1, -1, 0, 1};
@@ -325,7 +325,19 @@ int32_t test_gradient8(float *gradient, float *dem, float cellsize, char unit,
   }
   return 0;
 }
-
+/*
+  Computing the gradient8 using OpenMP should yield the same result as without.
+*/
+int32_t test_gradient8_mp(float *gradient, float *gradient_mp,
+                          ptrdiff_t dims[2]) {
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      ptrdiff_t position = j * dims[0] + i;
+      assert(gradient[position] == gradient_mp[position]);
+    }
+  }
+  return 0;
+}
 /*
   Flow direction should point downstream or across flats
  */
@@ -493,11 +505,10 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
 
   // Outputs for gradient8
   float *gradient = new float[dims[0] * dims[1]];
-  assert(flats != NULL);
-  // TODO: random value for cellsize?
-  float cellsize = 30.0;
-  // TODO: should different units get tested?
-  char unit = 't';
+  assert(gradient != NULL);
+  float *gradient_mp = new float[dims[0] * dims[1]];
+  assert(gradient_mp != NULL);
+  float cellsize = 10.0;
 
   // Outputs for routeflowd8
   ptrdiff_t *source = new ptrdiff_t[dims[0] * dims[1]];
@@ -548,8 +559,10 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   gwdt(dist, prev, costs, flats, heap, back, dims);
   test_gwdt(dist, prev, costs, flats, dims);
 
-  gradient8(gradient, dem, cellsize, unit, 0, dims);
-  test_gradient8(gradient, dem, cellsize, unit, dims);
+  gradient8(gradient, dem, cellsize, 't', 0, dims);
+  gradient8(gradient_mp, dem, cellsize, 't', 1, dims);
+  test_gradient8(gradient, dem, cellsize, dims);
+  test_gradient8_mp(gradient, gradient_mp, dims);
 
   flow_routing_d8_carve(source, direction, filled_dem, dist, flats, dims);
   test_routeflowd8_direction(direction, filled_dem, dist, flats, dims);
@@ -577,7 +590,7 @@ int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
   delete[] accum;
   delete[] target;
   delete[] gradient;
-  // TODO: delete cellsize and unit?
+  delete[] gradient_mp;
 
   return 0;
 }
