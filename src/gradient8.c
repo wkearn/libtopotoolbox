@@ -1,6 +1,11 @@
 #define TOPOTOOLBOX_BUILD
 
 #include <math.h>
+
+#if TOPOTOOLBOX_OPENMP_VERSION > 0
+#include <omp.h>
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -34,7 +39,7 @@ void gradient8(float *output, float *dem, float cellsize, char unit, int use_mp,
   ptrdiff_t i_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
   ptrdiff_t j_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 
-#ifdef _MSC_VER
+#if TOPOTOOLBOX_OPENMP_VERSION < 30
   ptrdiff_t j;
 #pragma omp parallel for if (use_mp)
   for (j = 0; j < dims[1]; j++) {

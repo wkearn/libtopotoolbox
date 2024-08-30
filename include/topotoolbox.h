@@ -27,6 +27,10 @@
 #define TOPOTOOLBOX_VERSION_MINOR 0
 #define TOPOTOOLBOX_VERSION_PATCH 0
 
+#ifndef TOPOTOOLBOX_OPENMP_VERSION
+#define TOPOTOOLBOX_OPENMP_VERSION 0
+#endif
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
