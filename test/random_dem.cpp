@@ -396,18 +396,29 @@ int32_t test_flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
       ptrdiff_t u_i = u % dims[0];
       ptrdiff_t u_j = u / dims[0];
 
+      assert(u_i >= 0 && u_i < dims[0]);
+      assert(u_j >= 0 && u_j < dims[1]);
+
       uint8_t flowdir = direction[u];
-      uint8_t r = 0;
-      while (flowdir >>= 1) {
-        r++;
+
+      if (flowdir == 0) {
+        assert(target[j * dims[0] + i] == -1);
+      } else {
+        uint8_t r = 0;
+        while (flowdir >>= 1) {
+          r++;
+        }
+
+        ptrdiff_t neighbor_i = u_i + i_offset[r];
+        ptrdiff_t neighbor_j = u_j + j_offset[r];
+
+        assert(neighbor_i >= 0 && neighbor_i < dims[0]);
+        assert(neighbor_j >= 0 && neighbor_j < dims[1]);
+
+        ptrdiff_t v = neighbor_j * dims[0] + neighbor_i;
+
+        assert(v == target[j * dims[0] + i]);
       }
-
-      ptrdiff_t neighbor_i = u_i + i_offset[r];
-      ptrdiff_t neighbor_j = u_j + j_offset[r];
-
-      ptrdiff_t v = neighbor_j * dims[0] + neighbor_i;
-
-      assert(v == target[j * dims[0] + i]);
     }
   }
   return 0;
