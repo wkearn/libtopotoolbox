@@ -29,4 +29,4 @@ If you would like to contribute to libtopotoolbox, check out the :doc:`CONTRIBUT
 
    tutorials/fillsinks/tutorial
    api
-   CONTRIBUTING
+   dev

@@ -31,6 +31,7 @@ jobs:
           -DTT_BUILD_TESTS=ON
           -DBUILD_SHARED_LIBS=OFF
           -DTT_SANITIZE=ON
+          -DTT_BUILD_DOCS=ON
       - name: Build library
         run: cmake --build ${{github.workspace}}/build/debug --config Debug
       - name: Test

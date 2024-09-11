@@ -57,6 +57,7 @@ add_custom_command(
   COMMAND
   ${SPHINX_EXECUTABLE} -b html
   -Dbreathe_projects.TopoToolbox="${DOXYGEN_OUTPUT_DIR}/xml"
+  -W --keep-going
   ${SPHINX_SOURCE} ${SPHINX_BUILD}
   DEPENDS ${TOPOTOOLBOX_DOCS_RST} ${DOXYGEN_INDEX_FILE}
   MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/conf.py
