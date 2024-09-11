@@ -727,7 +727,7 @@ void flow_accumulation(float *acc, ptrdiff_t *source, uint8_t *direction,
    The source pixels must be in a topological order.
    @endparblock
 
-   @param[in] direction The target pixel for each edge
+   @param[in] target The target pixel for each edge
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
    @endparblock
@@ -813,7 +813,7 @@ void gradient8(float *output, float *dem, float cellsize, int use_mp,
    baselevel to the sources
    @param[in]  BCs: codes for boundary conditions and no data management,
    see gf_utils.h or examples for the meaning
-   @param[in]  dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]  dim: [rows,columns] if row major and [columns, rows] if
    column major
    @param[in]  dx: spatial step
    @param[in]  D8: true for topology including cardinals + diagonals, false
@@ -843,7 +843,7 @@ void compute_sfgraph_priority_flood(GF_FLOAT *topo, GF_UINT *Sreceivers,
    @param[inout]  topo: array of surface elevation
    @param[in]     BCs: codes for boundary conditions and no data
    management, see gf_utils.h or examples for the meaning
-   @param[in]     dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]     dim: [rows,columns] if row major and [columns, rows] if
    column major
    @param[in]     D8: true for topology including cardinals + diagonals,
    false for cardinals only
@@ -858,16 +858,18 @@ void compute_priority_flood(float *topo, uint8_t *BCs, GF_UINT *dim, bool D8);
    priority queue for all the nodes including in depressions)
 
    @param[inout]  topo: array of surface elevation
+   @param[in]  Stack: topologically ordered list of nodes, from the
+   baselevel to the sources
    @param[in]     BCs: codes for boundary conditions and no data
    management, see gf_utils.h or examples for the meaning
-   @param[in]     dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]     dim: [rows,columns] if row major and [columns, rows] if
    column major
    @param[in]     D8: true for topology including cardinals + diagonals,
    false for cardinals only
 */
 TOPOTOOLBOX_API
 void compute_priority_flood_plus_topological_ordering(float *topo,
-                                                      GF_UINT *stack,
+                                                      GF_UINT *Stack,
                                                       uint8_t *BCs,
                                                       GF_UINT *dim, bool D8);
 
@@ -878,7 +880,7 @@ void compute_priority_flood_plus_topological_ordering(float *topo,
    @param[in]  Sreceivers: array of steepest receiver vectorised index
    @param[in]  Stack: topologically ordered list of nodes, from the
    baselevel to the sources
-   @param[in]  dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]  dim: [rows,columns] if row major and [columns, rows] if
    column major
    @param[in]  dx: spatial step
 */
@@ -896,7 +898,7 @@ void compute_drainage_area_single_flow(GF_FLOAT *output, GF_UINT *Sreceivers,
    @param[in]  Sreceivers: array of steepest receiver vectorised index
    @param[in]  Stack: topologically ordered list of nodes, from the
    baselevel to the sources
-   @param[in]  dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]  dim: [rows,columns] if row major and [columns, rows] if
    column major
    @param[in]  dx: spatial step
 */
@@ -919,12 +921,15 @@ void compute_weighted_drainage_area_single_flow(GF_FLOAT *output,
    management, see gf_utils.h or examples for the meaning
    @param[in]     Precipitations: Precipitation rates
    @param[in]     manning: friction coefficient
-   @param[in]     dims: [rows,columns] if row major and [columns, rows] if
+   @param[in]     dim: [rows,columns] if row major and [columns, rows] if
    column major
    @param[in]     dt: time step
    @param[in]     dx: spatial step
    @param[in]     SFD: single flow direction if True, multiple flow if
    false
+   @param[in]     D8: true for topology including cardinals + diagonals,
+   false for cardinals only
+   @param[in]     N_iterations: number of iterations of the flooding algorithm
 */
 TOPOTOOLBOX_API
 void graphflood_full(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
