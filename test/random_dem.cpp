@@ -1,12 +1,21 @@
 #undef NDEBUG
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <vector>
 
+// Include topotoolbox.h in its own namespace to help prevent naming
+// conflicts in the global scope.
+namespace tt {
 extern "C" {
 #include "topotoolbox.h"
+}
+}  // namespace tt
+
+extern "C" {
 #include "utils.h"
 }
 
@@ -490,135 +499,191 @@ int32_t test_flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
   return 0;
 }
 
-int32_t random_dem_test(ptrdiff_t dims[2], uint32_t seed) {
-  // Allocate variables
+struct FlowRoutingData {
+  std::array<ptrdiff_t, 2> dims;
+  float cellsize;
 
-  // Input DEM
-  float *dem = new float[dims[0] * dims[1]];
+  // input data
+  std::vector<float> dem;
+  std::vector<float> fraction;
 
-  // Output for fillsinks
-  float *filled_dem = new float[dims[0] * dims[1]];
+  // fillsinks
+  std::vector<float> filled_dem;
+  // fillsinks_hybrid
+  std::vector<ptrdiff_t> queue;
 
-  ptrdiff_t *queue = new ptrdiff_t[dims[0] * dims[1]];
+  // identifyflats
+  std::vector<int32_t> flats;
 
-  // Output for identifyflats
-  int32_t *flats = new int32_t[dims[0] * dims[1]];
+  // gwdt_compute_costs
+  std::vector<ptrdiff_t> conncomps;
+  std::vector<float> costs;
 
-  // Outputs for compute_costs
-  ptrdiff_t *conncomps = new ptrdiff_t[dims[0] * dims[1]];
-  float *costs = new float[dims[0] * dims[1]];
+  // gwdt
+  std::vector<float> dist;
+  std::vector<ptrdiff_t> heap;
+  std::vector<ptrdiff_t> back;
+  std::vector<ptrdiff_t> prev;
 
-  // Outputs and intermediate needs for gwdt
-  float *dist = new float[dims[0] * dims[1]];
-  ptrdiff_t *heap = new ptrdiff_t[dims[0] * dims[1]];
-  ptrdiff_t *back = new ptrdiff_t[dims[0] * dims[1]];
-  ptrdiff_t *prev = new ptrdiff_t[dims[0] * dims[1]];
+  // gradient8
+  std::vector<float> gradient;
+  std::vector<float> gradient_mp;
 
-  // Outputs for gradient8
-  float *gradient = new float[dims[0] * dims[1]];
-  float *gradient_mp = new float[dims[0] * dims[1]];
-  float cellsize = 10.0;
+  // flow_routing_d8_carve
+  std::vector<ptrdiff_t> source;
+  std::vector<uint8_t> direction;
+  std::vector<uint8_t> marks;
 
-  // Outputs for routeflowd8
-  ptrdiff_t *source = new ptrdiff_t[dims[0] * dims[1]];
-  uint8_t *direction = new uint8_t[dims[0] * dims[1]];
+  // flow_routing_targets
+  std::vector<ptrdiff_t> target;
 
-  // marks is only used for testing
-  uint8_t *marks =
-      new uint8_t[dims[0] * dims[1]]();  // Initialize marks to zero
+  // flow_accumulation
+  std::vector<float> accum;
+  std::vector<float> accum2;
 
-  float *accum = new float[dims[0] * dims[1]]();
+  FlowRoutingData(ptrdiff_t input_dims[2], float cs, uint32_t seed)
+      : dims({input_dims[0], input_dims[1]}),
+        cellsize(cs),
+        dem(dims[0] * dims[1]),
+        fraction(dims[0] * dims[1]),
+        filled_dem(dims[0] * dims[1]),
+        queue(dims[0] * dims[1]),
+        flats(dims[0] * dims[1]),
+        conncomps(dims[0] * dims[1]),
+        costs(dims[0] * dims[1]),
+        dist(dims[0] * dims[1]),
+        heap(dims[0] * dims[1]),
+        back(dims[0] * dims[1]),
+        prev(dims[0] * dims[1]),
+        gradient(dims[0] * dims[1]),
+        gradient_mp(dims[0] * dims[1]),
+        source(dims[0] * dims[1]),
+        direction(dims[0] * dims[1]),
+        marks(dims[0] * dims[1]),
+        target(dims[0] * dims[1]),
+        accum(dims[0] * dims[1]),
+        accum2(dims[0] * dims[1]) {
+    // Initialize DEM and fraction
+    for (uint32_t col = 0; col < dims[1]; col++) {
+      for (uint32_t row = 0; row < dims[0]; row++) {
+        dem[col * dims[0] + row] = 100.0f * pcg4d(row, col, seed, 1);
 
-  float *accum2 = new float[dims[0] * dims[1]]();
-
-  float *fraction = new float[dims[0] * dims[1]]();
-
-  ptrdiff_t *target = new ptrdiff_t[dims[0] * dims[1]];
-
-  for (uint32_t col = 0; col < dims[1]; col++) {
-    for (uint32_t row = 0; row < dims[0]; row++) {
-      dem[col * dims[0] + row] = 100.0f * pcg4d(row, col, seed, 1);
-
-      fraction[col * dims[0] + row] = 1.0f;
+        fraction[col * dims[0] + row] = 1.0f;
+      }
     }
   }
 
-  // Run flow routing algorithms
+  void route_flow() {
+    tt::fillsinks(filled_dem.data(), dem.data(), dims.data());
 
-  // Alternate between the hybrid and the sequential fillsinks
-  // algorithms.
-  if (seed & 1) {
-    fillsinks_hybrid(filled_dem, queue, dem, dims);
-  } else {
-    fillsinks(filled_dem, dem, dims);
+    tt::identifyflats(flats.data(), filled_dem.data(), dims.data());
+
+    tt::gwdt_computecosts(costs.data(), conncomps.data(), flats.data(),
+                          dem.data(), filled_dem.data(), dims.data());
+
+    tt::gwdt(dist.data(), prev.data(), costs.data(), flats.data(), heap.data(),
+             back.data(), dims.data());
+
+    tt::flow_routing_d8_carve(source.data(), direction.data(),
+                              filled_dem.data(), dist.data(), flats.data(),
+                              dims.data());
+
+    tt::flow_routing_targets(target.data(), source.data(), direction.data(),
+                             dims.data());
+
+    tt::flow_accumulation_edgelist(accum2.data(), source.data(), target.data(),
+                                   fraction.data(), NULL, dims[0] * dims[1],
+                                   dims.data());
   }
 
-  test_fillsinks_ge(dem, filled_dem, dims);
-  test_fillsinks_filled(filled_dem, dims);
+  void route_flow_hybrid() {
+    tt::fillsinks_hybrid(filled_dem.data(), queue.data(), dem.data(),
+                         dims.data());
 
-  identifyflats(flats, filled_dem, dims);
+    tt::identifyflats(flats.data(), filled_dem.data(), dims.data());
 
-  test_identifyflats_flats(flats, filled_dem, dims);
-  test_identifyflats_sills(flats, filled_dem, dims);
-  test_identifyflats_presills(flats, filled_dem, dims);
+    tt::gwdt_computecosts(costs.data(), conncomps.data(), flats.data(),
+                          dem.data(), filled_dem.data(), dims.data());
 
-  gwdt_computecosts(costs, conncomps, flats, dem, filled_dem, dims);
+    tt::gwdt(dist.data(), prev.data(), costs.data(), flats.data(), heap.data(),
+             back.data(), dims.data());
 
-  test_gwdt_costs(costs, flats, dims);
-  test_gwdt_conncomps(conncomps, flats, dims);
+    tt::flow_routing_d8_carve(source.data(), direction.data(),
+                              filled_dem.data(), dist.data(), flats.data(),
+                              dims.data());
 
-  gwdt(dist, prev, costs, flats, heap, back, dims);
-  test_gwdt(dist, prev, costs, flats, dims);
+    tt::flow_routing_targets(target.data(), source.data(), direction.data(),
+                             dims.data());
 
-  gradient8(gradient, dem, cellsize, 0, dims);
-  gradient8(gradient_mp, dem, cellsize, 1, dims);
-  test_gradient8(gradient, dem, cellsize, dims);
-  test_gradient8_mp(gradient, gradient_mp, dims);
+    tt::flow_accumulation_edgelist(accum2.data(), source.data(), target.data(),
+                                   fraction.data(), NULL, dims[0] * dims[1],
+                                   dims.data());
+  }
 
-  flow_routing_d8_carve(source, direction, filled_dem, dist, flats, dims);
-  test_routeflowd8_direction(direction, filled_dem, dist, flats, dims);
-  test_routeflowd8_tsort(marks, source, direction, dims);
+  void gradient8() {
+    tt::gradient8(gradient.data(), dem.data(), cellsize, 0, dims.data());
+  }
 
-  flow_routing_targets(target, source, direction, dims);
-  test_flow_routing_targets(target, source, direction, dims);
+  void gradient8_mp() {
+    tt::gradient8(gradient_mp.data(), dem.data(), cellsize, 1, dims.data());
+  }
 
-  flow_accumulation(accum, source, direction, NULL, dims);
-  test_flow_accumulation_max(accum, dims);
+  void runtests(bool hybrid) {
+    if (hybrid) {
+      route_flow_hybrid();
+    } else {
+      route_flow();
+    }
 
-  flow_accumulation_edgelist(accum2, source, target, fraction, NULL,
-                             dims[0] * dims[1], dims);
-  test_flow_accumulation_multimethod(accum, accum2, dims);
+    test_fillsinks_ge(dem.data(), filled_dem.data(), dims.data());
+    test_fillsinks_filled(filled_dem.data(), dims.data());
 
-  delete[] dem;
-  delete[] filled_dem;
-  delete[] queue;
-  delete[] flats;
-  delete[] conncomps;
-  delete[] costs;
-  delete[] dist;
-  delete[] heap;
-  delete[] back;
-  delete[] prev;
-  delete[] source;
-  delete[] direction;
-  delete[] marks;
-  delete[] accum;
-  delete[] accum2;
-  delete[] fraction;
-  delete[] target;
-  delete[] gradient;
-  delete[] gradient_mp;
+    test_identifyflats_flats(flats.data(), filled_dem.data(), dims.data());
+    test_identifyflats_sills(flats.data(), filled_dem.data(), dims.data());
+    test_identifyflats_presills(flats.data(), filled_dem.data(), dims.data());
 
-  return 0;
-}
+    test_gwdt_costs(costs.data(), flats.data(), dims.data());
+    test_gwdt_conncomps(conncomps.data(), flats.data(), dims.data());
+
+    // route_flow and route_flow_hybrid do not compute gradients
+    gradient8();
+    gradient8_mp();
+
+    test_gradient8(gradient.data(), dem.data(), cellsize, dims.data());
+    test_gradient8_mp(gradient.data(), gradient_mp.data(), dims.data());
+
+    test_routeflowd8_direction(direction.data(), filled_dem.data(), dist.data(),
+                               flats.data(), dims.data());
+    test_routeflowd8_tsort(marks.data(), source.data(), direction.data(),
+                           dims.data());
+
+    test_flow_routing_targets(target.data(), source.data(), direction.data(),
+                              dims.data());
+
+    // route_flow and route_flow_hybrid only run the edgelist variant
+    // of flow_accumulation, so we must run it explicitly.
+    tt::flow_accumulation(accum.data(), source.data(), direction.data(), NULL,
+                          dims.data());
+
+    test_flow_accumulation_max(accum.data(), dims.data());
+
+    test_flow_accumulation_multimethod(accum.data(), accum2.data(),
+                                       dims.data());
+  }
+};
 
 int main(int argc, char *argv[]) {
   ptrdiff_t dims[2] = {100, 200};
 
   for (uint32_t test = 0; test < 100; test++) {
-    int32_t result = random_dem_test(dims, test);
-    if (result < 0) {
-      return result;
+    FlowRoutingData frd(dims, 10.0, test);
+
+    if (test & 1) {
+      // Run hybrid fillsinks
+      frd.runtests(true);
+    } else {
+      // Run sequential fillsinks
+      frd.runtests(false);
     }
   }
 }
