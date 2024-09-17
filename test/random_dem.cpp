@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <ctime>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -19,6 +20,9 @@ extern "C" {
 extern "C" {
 #include "utils.h"
 }
+
+#include "profiler.h"
+Profiler prof;  // Global Profiler that our test functions can access
 
 #define SQRT2f 1.41421356237309504880f
 #define SQRT2 1.41421356237309504880f
@@ -575,6 +579,8 @@ struct FlowRoutingData {
   }
 
   void route_flow() {
+    ProfileFunction(prof);
+
     tt::fillsinks(filled_dem.data(), dem.data(), dims.data());
 
     tt::identifyflats(flats.data(), filled_dem.data(), dims.data());
@@ -595,9 +601,13 @@ struct FlowRoutingData {
     tt::flow_accumulation_edgelist(accum2.data(), source.data(), target.data(),
                                    fraction.data(), NULL, dims[0] * dims[1],
                                    dims.data());
+
+    // Close timer
   }
 
   void route_flow_hybrid() {
+    ProfileFunction(prof);
+
     tt::fillsinks_hybrid(filled_dem.data(), queue.data(), dem.data(),
                          dims.data());
 
@@ -622,10 +632,14 @@ struct FlowRoutingData {
   }
 
   void gradient8() {
+    ProfileFunction(prof);
+
     tt::gradient8(gradient.data(), dem.data(), cellsize, 0, dims.data());
   }
 
   void gradient8_mp() {
+    ProfileFunction(prof);
+
     tt::gradient8(gradient_mp.data(), dem.data(), cellsize, 1, dims.data());
   }
 
@@ -698,4 +712,5 @@ int main(int argc, char *argv[]) {
       frd.runtests(false);
     }
   }
+  prof.report();
 }
