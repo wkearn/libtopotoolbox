@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <string>
 #include <vector>
 
 // Include topotoolbox.h in its own namespace to help prevent naming
@@ -673,7 +674,18 @@ struct FlowRoutingData {
 };
 
 int main(int argc, char *argv[]) {
+  // Default size of the DEM
   ptrdiff_t dims[2] = {100, 200};
+
+  if (argc == 3) {
+    // If two integers are passed on the command line, use those for
+    // the size.
+
+    // This will throw an exception if the inputs cannot be
+    // parsed as integers.
+    dims[0] = std::stoll(argv[1]);
+    dims[1] = std::stoll(argv[2]);
+  }
 
   for (uint32_t test = 0; test < 100; test++) {
     FlowRoutingData frd(dims, 10.0, test);
