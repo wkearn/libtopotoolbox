@@ -834,7 +834,7 @@ void compute_sfgraph_priority_flood(GF_FLOAT *topo, GF_UINT *Sreceivers,
                                     GF_FLOAT *distToReceivers, GF_UINT *Sdonors,
                                     uint8_t *NSdonors, GF_UINT *Stack,
                                     uint8_t *BCs, GF_UINT *dim, GF_FLOAT dx,
-                                    bool D8);
+                                    bool D8, GF_FLOAT step);
 
 /**
    @brief Fills the depressions in place in the topography using Priority
@@ -846,10 +846,12 @@ void compute_sfgraph_priority_flood(GF_FLOAT *topo, GF_UINT *Sreceivers,
    @param[in]     dim: [rows,columns] if row major and [columns, rows] if
    column major
    @param[in]     D8: true for topology including cardinals + diagonals,
-   false for cardinals only
+   @param[in]     step: delta_Z to apply minimum elevation increase and avoid
+   flats, false for cardinals only
 */
 TOPOTOOLBOX_API
-void compute_priority_flood(float *topo, uint8_t *BCs, GF_UINT *dim, bool D8);
+void compute_priority_flood(GF_FLOAT *topo, uint8_t *BCs, GF_UINT *dim, bool D8,
+                            GF_FLOAT step);
 
 /**
    @brief Fills the depressions in place in the topography using Priority
@@ -865,13 +867,15 @@ void compute_priority_flood(float *topo, uint8_t *BCs, GF_UINT *dim, bool D8);
    @param[in]     dim: [rows,columns] if row major and [columns, rows] if
    column major
    @param[in]     D8: true for topology including cardinals + diagonals,
-   false for cardinals only
+   @param[in]     step: delta_Z to apply minimum elevation increase and avoid
+   flats, false for cardinals only
 */
 TOPOTOOLBOX_API
-void compute_priority_flood_plus_topological_ordering(float *topo,
+void compute_priority_flood_plus_topological_ordering(GF_FLOAT *topo,
                                                       GF_UINT *Stack,
                                                       uint8_t *BCs,
-                                                      GF_UINT *dim, bool D8);
+                                                      GF_UINT *dim, bool D8,
+                                                      GF_FLOAT step);
 
 /**
    @brief Accumulate single flow drainage area downstream from a calculated
@@ -930,10 +934,12 @@ void compute_weighted_drainage_area_single_flow(GF_FLOAT *output,
    @param[in]     D8: true for topology including cardinals + diagonals,
    false for cardinals only
    @param[in]     N_iterations: number of iterations of the flooding algorithm
+   @param[in]     step: delta_Z to apply minimum elevation increase and avoid
+   flats, false for cardinals only
 */
 TOPOTOOLBOX_API
 void graphflood_full(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
                      GF_FLOAT *Precipitations, GF_FLOAT *manning, GF_UINT *dim,
                      GF_FLOAT dt, GF_FLOAT dx, bool SFD, bool D8,
-                     GF_UINT N_iterations);
+                     GF_UINT N_iterations, GF_FLOAT step);
 #endif  // TOPOTOOLBOX_H
