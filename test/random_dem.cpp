@@ -510,6 +510,7 @@ struct FlowRoutingData {
 
   // input data
   std::vector<float> dem;
+  std::vector<uint8_t> bc;
   std::vector<float> fraction;
 
   // fillsinks
@@ -550,6 +551,7 @@ struct FlowRoutingData {
       : dims({input_dims[0], input_dims[1]}),
         cellsize(cs),
         dem(dims[0] * dims[1]),
+        bc(dims[0] * dims[1]),
         fraction(dims[0] * dims[1]),
         filled_dem(dims[0] * dims[1]),
         queue(dims[0] * dims[1]),
@@ -568,10 +570,16 @@ struct FlowRoutingData {
         target(dims[0] * dims[1]),
         accum(dims[0] * dims[1]),
         accum2(dims[0] * dims[1]) {
-    // Initialize DEM and fraction
+    // Initialize DEM, boundary conditions for fillsinks and fraction
     for (uint32_t col = 0; col < dims[1]; col++) {
       for (uint32_t row = 0; row < dims[0]; row++) {
         dem[col * dims[0] + row] = 100.0f * pcg4d(row, col, seed, 1);
+
+        if (row == 0 || row == dims[0] - 1 || col == 0 || col == dims[1] - 1) {
+          bc[col * dims[0] + row] = 1;
+        } else {
+          bc[col * dims[0] + row] = 0;
+        }
 
         fraction[col * dims[0] + row] = 1.0f;
       }
@@ -581,7 +589,7 @@ struct FlowRoutingData {
   void route_flow() {
     ProfileFunction(prof);
 
-    tt::fillsinks(filled_dem.data(), dem.data(), dims.data());
+    tt::fillsinks(filled_dem.data(), dem.data(), bc.data(), dims.data());
 
     tt::identifyflats(flats.data(), filled_dem.data(), dims.data());
 
@@ -608,7 +616,7 @@ struct FlowRoutingData {
   void route_flow_hybrid() {
     ProfileFunction(prof);
 
-    tt::fillsinks_hybrid(filled_dem.data(), queue.data(), dem.data(),
+    tt::fillsinks_hybrid(filled_dem.data(), queue.data(), dem.data(), bc.data(),
                          dims.data());
 
     tt::identifyflats(flats.data(), filled_dem.data(), dims.data());
