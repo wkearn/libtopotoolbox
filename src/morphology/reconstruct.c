@@ -97,7 +97,7 @@ ptrdiff_t forward_scan(float *marker, float *mask, ptrdiff_t dims[2]) {
       // pixel.
       float z = fminf(max_height, mask[p]);
 
-      if (z != marker[p]) {
+      if (z > marker[p]) {
         // Increment count only if we change the current pixel
         count++;
         marker[p] = z;
@@ -162,7 +162,7 @@ ptrdiff_t backward_scan(float *marker, PixelQueue *queue, float *mask,
       // pixel.
       float z = fminf(max_height, mask[p]);
 
-      if (z != marker[p]) {
+      if (z > marker[p]) {
         // Increment count only if we change the current pixel
         count++;
         marker[p] = z;
