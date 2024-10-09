@@ -75,7 +75,7 @@ ptrdiff_t forward_scan(float *marker, float *mask, ptrdiff_t dims[2]) {
       ptrdiff_t p = j * dims[0] + i;
 
       // Compute the maximum of the marker at the current pixel and all
-      // of its previously visisted neighbors
+      // of its previously visited neighbors
       float max_height = marker[p];
       for (ptrdiff_t neighbor = 0; neighbor < 4; neighbor++) {
         ptrdiff_t neighbor_i = i + i_offset[neighbor];
