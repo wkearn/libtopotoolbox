@@ -226,7 +226,7 @@ int32_t propagate(float *marker, PixelQueue *queue, float *mask,
         continue;
       }
 
-      if ((marker[q] < pz) && (mask[q] != marker[q])) {
+      if ((marker[q] < pz) && (marker[q] < mask[q])) {
         // Update the neighbor only if it meets the above criteria
         marker[q] = fminf(pz, mask[q]);
 
