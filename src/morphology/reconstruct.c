@@ -89,14 +89,13 @@ ptrdiff_t forward_scan(float *marker, float *mask, ptrdiff_t dims[2]) {
           continue;
         }
 
-        max_height = max_height > marker[q] ? max_height : marker[q];
+        max_height = fmaxf(max_height, marker[q]);
       }
 
       // Set the marker at the current pixel to the minimum of the
       // maximum height of the neighborhood and the mask at the current
       // pixel.
-
-      float z = max_height < mask[p] ? max_height : mask[p];
+      float z = fminf(max_height, mask[p]);
 
       if (z != marker[p]) {
         // Increment count only if we change the current pixel
@@ -155,14 +154,14 @@ ptrdiff_t backward_scan(float *marker, PixelQueue *queue, float *mask,
             neighbor_j >= dims[1]) {
           continue;
         }
-        max_height = max_height > marker[q] ? max_height : marker[q];
+        max_height = fmaxf(max_height, marker[q]);
       }
 
       // Set the marker at the current pixel to the minimum of the
       // maximum height of the neighborhood and the mask at the current
       // pixel.
+      float z = fminf(max_height, mask[p]);
 
-      float z = max_height < mask[p] ? max_height : mask[p];
       if (z != marker[p]) {
         // Increment count only if we change the current pixel
         count++;
