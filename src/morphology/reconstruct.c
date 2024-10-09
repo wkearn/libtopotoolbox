@@ -95,9 +95,11 @@ ptrdiff_t forward_scan(float *marker, float *mask, ptrdiff_t dims[2]) {
       // Set the marker at the current pixel to the minimum of the
       // maximum height of the neighborhood and the mask at the current
       // pixel.
-      float z = fminf(max_height, mask[p]);
 
-      if (z > marker[p]) {
+      // If mask[p] is NaN, this will set z = NaN
+      float z = max_height < mask[p] ? max_height : mask[p];
+
+      if (z != marker[p]) {
         // Increment count only if we change the current pixel
         count++;
         marker[p] = z;
@@ -160,9 +162,9 @@ ptrdiff_t backward_scan(float *marker, PixelQueue *queue, float *mask,
       // Set the marker at the current pixel to the minimum of the
       // maximum height of the neighborhood and the mask at the current
       // pixel.
-      float z = fminf(max_height, mask[p]);
+      float z = max_height < mask[p] ? max_height : mask[p];
 
-      if (z > marker[p]) {
+      if (z != marker[p]) {
         // Increment count only if we change the current pixel
         count++;
         marker[p] = z;
