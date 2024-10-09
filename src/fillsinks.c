@@ -35,8 +35,8 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]) {
         // If the DEM is INFINITY here, it was originally -INFINITY
         // and thus flagged as a NaN. Set the marker to INFINITY so
         // that it does not attempt to fill from this pixel.
-        output[j * dims[0] + i] =
-            dem[j * dims[0] + i] == INFINITY ? INFINITY : -INFINITY;
+        output[j * dims[0] + i] = -INFINITY;
+        // dem[j * dims[0] + i] == INFINITY ? INFINITY : -INFINITY;
       }
     }
   }
@@ -68,8 +68,8 @@ void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem,
         // If the DEM is INFINITY here, it was originally -INFINITY
         // and thus flagged as a NaN. Set the marker to INFINITY so
         // that it does not attempt to fill from this pixel.
-        output[j * dims[0] + i] =
-            dem[j * dims[0] + i] == INFINITY ? INFINITY : -INFINITY;
+        output[j * dims[0] + i] = -INFINITY;
+        // dem[j * dims[0] + i] == INFINITY ? INFINITY : -INFINITY;
       }
     }
   }
