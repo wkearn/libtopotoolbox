@@ -63,6 +63,18 @@ int has_topotoolbox(void);
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
+   @param[in] bc Array used to set boundary conditions
+   @parblock
+   A pointer to a `uint8_t` array of size `dims[0]` x `dims[1]`
+
+   `bc` is used to control which pixels get filled. Pixels that are
+   set equal to 1 are fixed to their value in the input DEM while
+   pixels equal to 0 are filled. For the standard fillsinks operation,
+   bc equals 1 on the boundaries of the DEM and 0 on the interior. Set
+   bc equal to 1 for NaN pixels to ensure that they are treated as
+   sinks.
+   @endparblock
+
    @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
@@ -72,7 +84,7 @@ int has_topotoolbox(void);
    @endparblock
  */
 TOPOTOOLBOX_API
-void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
+void fillsinks(float *output, float *dem, uint8_t *bc, ptrdiff_t dims[2]);
 
 /**
    @brief Fills sinks in a digital elevation model
@@ -109,6 +121,18 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
    A pointer to a `float` array of size `dims[0]` x `dims[1]`
    @endparblock
 
+   @param[in] bc Array used to set boundary conditions
+   @parblock
+   A pointer to a `uint8_t` array of size `dims[0]` x `dims[1]`
+
+   `bc` is used to control which pixels get filled. Pixels that are
+   set equal to 1 are fixed to their value in the input DEM while
+   pixels equal to 0 are filled. For the standard fillsinks operation,
+   bc equals 1 on the boundaries of the DEM and 0 on the interior. Set
+   bc equal to 1 for NaN pixels to ensure that they are treated as
+   sinks.
+   @endparblock
+
    @param[in] dims The dimensions of the arrays
    @parblock
    A pointer to a `ptrdiff_t` array of size 2
@@ -118,7 +142,7 @@ void fillsinks(float *output, float *dem, ptrdiff_t dims[2]);
    @endparblock
  */
 TOPOTOOLBOX_API
-void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem,
+void fillsinks_hybrid(float *output, ptrdiff_t *queue, float *dem, uint8_t *bc,
                       ptrdiff_t dims[2]);
 
 /**

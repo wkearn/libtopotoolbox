@@ -75,7 +75,7 @@ ptrdiff_t forward_scan(float *marker, float *mask, ptrdiff_t dims[2]) {
       ptrdiff_t p = j * dims[0] + i;
 
       // Compute the maximum of the marker at the current pixel and all
-      // of its previously visisted neighbors
+      // of its previously visited neighbors
       float max_height = marker[p];
       for (ptrdiff_t neighbor = 0; neighbor < 4; neighbor++) {
         ptrdiff_t neighbor_i = i + i_offset[neighbor];
@@ -89,20 +89,21 @@ ptrdiff_t forward_scan(float *marker, float *mask, ptrdiff_t dims[2]) {
           continue;
         }
 
-        max_height = max_height > marker[q] ? max_height : marker[q];
+        max_height = fmaxf(max_height, marker[q]);
       }
 
       // Set the marker at the current pixel to the minimum of the
       // maximum height of the neighborhood and the mask at the current
       // pixel.
 
+      // If mask[p] is NaN, this will set z = NaN
       float z = max_height < mask[p] ? max_height : mask[p];
 
-      if (z != marker[p]) {
+      if (z > marker[p]) {
         // Increment count only if we change the current pixel
         count++;
-        marker[p] = z;
       }
+      marker[p] = z;
     }
   }
   return count;
@@ -155,19 +156,19 @@ ptrdiff_t backward_scan(float *marker, PixelQueue *queue, float *mask,
             neighbor_j >= dims[1]) {
           continue;
         }
-        max_height = max_height > marker[q] ? max_height : marker[q];
+        max_height = fmaxf(max_height, marker[q]);
       }
 
       // Set the marker at the current pixel to the minimum of the
       // maximum height of the neighborhood and the mask at the current
       // pixel.
-
       float z = max_height < mask[p] ? max_height : mask[p];
-      if (z != marker[p]) {
+
+      if (z > marker[p]) {
         // Increment count only if we change the current pixel
         count++;
-        marker[p] = z;
       }
+      marker[p] = z;
 
       if (queue) {
         // Scan the neighborhood again to check if the pixel should be
@@ -225,7 +226,7 @@ int32_t propagate(float *marker, PixelQueue *queue, float *mask,
         continue;
       }
 
-      if ((marker[q] < pz) && (mask[q] != marker[q])) {
+      if ((marker[q] < pz) && (marker[q] < mask[q])) {
         // Update the neighbor only if it meets the above criteria
         marker[q] = fminf(pz, mask[q]);
 
