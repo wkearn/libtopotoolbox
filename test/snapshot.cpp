@@ -1,3 +1,4 @@
+#include <gdal.h>
 #undef NDEBUG
 
 #include <gdal_priv.h>
@@ -45,10 +46,14 @@ struct SnapshotData {
 
   std::vector<float> dem;
   std::vector<float> filled_dem;
+  std::vector<int32_t> flats;
+  std::vector<int32_t> sills;
 
   // Output arrays
   std::vector<float> test_dem;
   std::vector<float> test_filled_dem;
+  std::vector<int32_t> test_flats;
+  std::vector<int32_t> test_sills;
 
   // Intermediate arrays
   std::vector<uint8_t> bc;
@@ -70,12 +75,27 @@ struct SnapshotData {
       assert(dims[0] == dims_check[0] && dims[1] == dims_check[1]);
     }
 
+    if (exists(snapshot_path / "identifyflats_flats.tif")) {
+      load_data_from_file<int32_t, GDT_Int32>(
+          snapshot_path / "identifyflats_flats.tif", flats, dims_check);
+      assert(dims[0] == dims_check[0] && dims[1] == dims_check[1]);
+    }
+
+    if (exists(snapshot_path / "identifyflats_sills.tif")) {
+      load_data_from_file<int32_t, GDT_Int32>(
+          snapshot_path / "identifyflats_sills.tif", sills, dims_check);
+      assert(dims[0] == dims_check[0] && dims[1] == dims_check[1]);
+    }
+
     // Allocate and resize output and intermediate arrays
     if (dem.size() > 0) {
       if (filled_dem.size() > 0) {
         // Boundary conditions
         bc.resize(dims[0] * dims[1]);
         test_filled_dem.resize(dims[0] * dims[1]);
+      }
+      if (flats.size() > 0 && sills.size() > 0) {
+        test_flats.resize(dims[0] * dims[1]);
       }
     }
   }
@@ -110,6 +130,23 @@ struct SnapshotData {
             assert(test_filled_dem[j * dims[0] + i] ==
                    filled_dem[j * dims[0] + i]);
           }
+        }
+      }
+    }
+    if (flats.size() > 0 && sills.size() > 0) {
+      // identifyflats
+      //
+      // Use the snapshot filled DEM rather than the generated one in
+      // case fillsinks fails.
+      tt::identifyflats(test_flats.data(), filled_dem.data(), dims.data());
+
+      for (ptrdiff_t j = 0; j < dims[1]; j++) {
+        for (ptrdiff_t i = 0; i < dims[0]; i++) {
+          if (test_flats[j * dims[0] + i] & 1)
+            assert(flats[j * dims[0] + i] == 1);
+
+          if (test_flats[j * dims[0] + i] & 2)
+            assert(sills[j * dims[0] + i] == 1);
         }
       }
     }
