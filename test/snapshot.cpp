@@ -142,11 +142,11 @@ struct SnapshotData {
 
       for (ptrdiff_t j = 0; j < dims[1]; j++) {
         for (ptrdiff_t i = 0; i < dims[0]; i++) {
-          if (test_flats[j * dims[0] + i] & 1)
-            assert(flats[j * dims[0] + i] == 1);
+          if (flats[j * dims[0] + i] == 1)
+            assert(test_flats[j * dims[0] + i] & 1);
 
-          if (test_flats[j * dims[0] + i] & 2)
-            assert(sills[j * dims[0] + i] == 1);
+          if (sills[j * dims[0] + i] == 1)
+            assert(test_flats[j * dims[0] + i] & 2);
         }
       }
     }
