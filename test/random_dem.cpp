@@ -516,7 +516,7 @@ int32_t test_stream_distance(float *node_distance, ptrdiff_t *stream_grid,
     ptrdiff_t u = source[edge];
     ptrdiff_t v = target[edge];
     if (v >= 0) {
-      float w = labs(u - v) == 1 || labs(u - v) == dims[0] ? 1.0f : SQRT2f;
+      float w = llabs(u - v) == 1 || llabs(u - v) == dims[0] ? 1.0f : SQRT2f;
       w *= cellsize;
 
       distance[u] = distance[v] + w;
@@ -711,7 +711,7 @@ struct FlowRoutingData {
           // Compute distance between source and target pixels.
           // If the difference between u is 1 or dims[0], then they
           // are 4 neighbors, otherwise they are 8 neighbors.
-          float w = labs(u - v) == 1 || labs(u - v) == dims[0]
+          float w = llabs(u - v) == 1 || llabs(u - v) == dims[0]
                         ? 1.0f * cellsize
                         : SQRT2f * cellsize;
 
