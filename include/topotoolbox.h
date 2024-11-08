@@ -867,12 +867,14 @@ void gradient8(float *output, float *dem, float cellsize, int use_mp,
    @param[in] edge_count The number of edges in the stream network
  */
 TOPOTOOLBOX_API
-void cumtrapz_f32(float *integral, float *integrand, ptrdiff_t *source,
-                  ptrdiff_t *target, float *weight, ptrdiff_t edge_count);
+void streamquad_trapz_f32(float *integral, float *integrand, ptrdiff_t *source,
+                          ptrdiff_t *target, float *weight,
+                          ptrdiff_t edge_count);
 
 TOPOTOOLBOX_API
-void cumtrapz_f64(double *integral, double *integrand, ptrdiff_t *source,
-                  ptrdiff_t *target, float *weight, ptrdiff_t edge_count);
+void streamquad_trapz_f64(double *integral, double *integrand,
+                          ptrdiff_t *source, ptrdiff_t *target, float *weight,
+                          ptrdiff_t edge_count);
 
 /*
   Graphflood

@@ -6,8 +6,9 @@
 #include "topotoolbox.h"
 
 TOPOTOOLBOX_API
-void cumtrapz_f32(float *integral, float *integrand, ptrdiff_t *source,
-                  ptrdiff_t *target, float *weight, ptrdiff_t edge_count) {
+void streamquad_trapz_f32(float *integral, float *integrand, ptrdiff_t *source,
+                          ptrdiff_t *target, float *weight,
+                          ptrdiff_t edge_count) {
   // Iterate over the edges in reverse topological order (upstream)
   for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
     // NOTE: source and target are 1-based indices into the node attribute
@@ -19,8 +20,9 @@ void cumtrapz_f32(float *integral, float *integrand, ptrdiff_t *source,
 }
 
 TOPOTOOLBOX_API
-void cumtrapz_f64(double *integral, double *integrand, ptrdiff_t *source,
-                  ptrdiff_t *target, float *weight, ptrdiff_t edge_count) {
+void streamquad_trapz_f64(double *integral, double *integrand,
+                          ptrdiff_t *source, ptrdiff_t *target, float *weight,
+                          ptrdiff_t edge_count) {
   // Iterate over the edges in reverse topological order (upstream)
   for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
     // NOTE: source and target are 1-based indices into the node attribute

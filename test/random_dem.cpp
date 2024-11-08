@@ -505,7 +505,7 @@ int32_t test_flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
 
 /*
   Compute the upstream distance by computing shortest paths in the
-  flow network and compare them to the distances computed by cumtrapz
+  flow network and compare them to the distances computed by streamquad_trapz
   and recorded in node_distance.
  */
 int32_t test_stream_distance(float *node_distance, ptrdiff_t *stream_grid,
@@ -781,9 +781,9 @@ struct FlowRoutingData {
     std::vector<float> integrand(stream_node_count, 1.0f);
     std::vector<float> integral(stream_node_count, 0.0f);
     std::vector<float> distance(dims[0] * dims[1], 0.0f);
-    tt::cumtrapz_f32(integral.data(), integrand.data(), stream_source.data(),
-                     stream_target.data(), stream_weight.data(),
-                     stream_source.size());
+    tt::streamquad_trapz_f32(integral.data(), integrand.data(),
+                             stream_source.data(), stream_target.data(),
+                             stream_weight.data(), stream_source.size());
     test_stream_distance(integral.data(), stream_grid.data(), distance.data(),
                          source.data(), target.data(), cellsize, dims.data());
   }
