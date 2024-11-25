@@ -124,56 +124,94 @@ struct SnapshotData {
     }
   }
 
-  void runtests() {
+  int test_fillsinks() {
+    // Initialize bcs
+    for (ptrdiff_t j = 0; j < dims[1]; j++) {
+      for (ptrdiff_t i = 0; i < dims[0]; i++) {
+        if (isnan(dem[j * dims[0] + i])) {
+          bc[j * dims[0] + i] = 1;
+          test_dem[j * dims[0] + i] = -INFINITY;
+        } else {
+          if (i == 0 || i == dims[0] - 1 || j == 0 || j == dims[1] - 1) {
+            // 1 on the boundaries
+            bc[j * dims[0] + i] = 1;
+          } else {
+            // 0 on the interior
+            bc[j * dims[0] + i] = 0;
+          }
+        }
+      }
+    }
+
+    tt::fillsinks(test_filled_dem.data(), test_dem.data(), bc.data(),
+                  dims.data());
+
+    for (ptrdiff_t j = 0; j < dims[1]; j++) {
+      for (ptrdiff_t i = 0; i < dims[0]; i++) {
+        if (!isnan(filled_dem[j * dims[0] + i])) {
+          if (test_filled_dem[j * dims[0] + i] != filled_dem[j * dims[0] + i]) {
+            write_data_to_file<float, GDT_Float32>(path / "test_fillsinks.tif",
+                                                   path / "fillsinks.tif",
+                                                   test_filled_dem, dims);
+            return -1;
+          }
+        }
+      }
+    }
+    return 0;
+  }
+
+  int test_identifyflats() {
+    // identifyflats
+    //
+    // Use the snapshot filled DEM rather than the generated one in
+    // case fillsinks fails.
+    tt::identifyflats(test_flats.data(), filled_dem.data(), dims.data());
+
+    for (ptrdiff_t j = 0; j < dims[1]; j++) {
+      for (ptrdiff_t i = 0; i < dims[0]; i++) {
+        if (flats[j * dims[0] + i] == 1 && !(test_flats[j * dims[0] + i] & 1)) {
+          write_data_to_file<int32_t, GDT_Int32>(
+              path / "test_identifyflats.tif", path / "identifyflats_flats.tif",
+              test_flats, dims);
+          return -1;
+        }
+
+        if (sills[j * dims[0] + i] == 1 && !(test_flats[j * dims[0] + i] & 2)) {
+          write_data_to_file<int32_t, GDT_Int32>(
+              path / "test_identifyflats.tif", path / "identifyflats_sills.tif",
+              test_flats, dims);
+          return -1;
+        }
+      }
+    }
+    return 0;
+  }
+
+  int runtests() {
+    int result = 0;
     // fillsinks
     if (test_filled_dem.size() > 0) {
-      // Initialize bcs
-      for (ptrdiff_t j = 0; j < dims[1]; j++) {
-        for (ptrdiff_t i = 0; i < dims[0]; i++) {
-          if (isnan(dem[j * dims[0] + i])) {
-            bc[j * dims[0] + i] = 1;
-            test_dem[j * dims[0] + i] = -INFINITY;
-          } else {
-            if (i == 0 || i == dims[0] - 1 || j == 0 || j == dims[1] - 1) {
-              // 1 on the boundaries
-              bc[j * dims[0] + i] = 1;
-            } else {
-              // 0 on the interior
-              bc[j * dims[0] + i] = 0;
-            }
-          }
-        }
-      }
+      if (test_fillsinks() < 0) {
+        result = -1;
 
-      tt::fillsinks(test_filled_dem.data(), test_dem.data(), bc.data(),
-                    dims.data());
-
-      for (ptrdiff_t j = 0; j < dims[1]; j++) {
-        for (ptrdiff_t i = 0; i < dims[0]; i++) {
-          if (!isnan(filled_dem[j * dims[0] + i])) {
-            assert(test_filled_dem[j * dims[0] + i] ==
-                   filled_dem[j * dims[0] + i]);
-          }
-        }
+        std::cout << "[FAILURE] (fillsinks)     " << path << std::endl;
+      } else {
+        std::cout << "[SUCCESS] (fillsinks)     " << path << std::endl;
       }
     }
+
     if (flats.size() > 0 && sills.size() > 0) {
-      // identifyflats
-      //
-      // Use the snapshot filled DEM rather than the generated one in
-      // case fillsinks fails.
-      tt::identifyflats(test_flats.data(), filled_dem.data(), dims.data());
+      if (test_identifyflats() < 0) {
+        result = -1;
 
-      for (ptrdiff_t j = 0; j < dims[1]; j++) {
-        for (ptrdiff_t i = 0; i < dims[0]; i++) {
-          if (flats[j * dims[0] + i] == 1)
-            assert(test_flats[j * dims[0] + i] & 1);
-
-          if (sills[j * dims[0] + i] == 1)
-            assert(test_flats[j * dims[0] + i] & 2);
-        }
+        std::cout << "[FAILURE] (identifyflats) " << path << std::endl;
+      } else {
+        std::cout << "[SUCCESS] (identifyflats) " << path << std::endl;
       }
     }
+
+    return result;
   }
 };
 
@@ -195,11 +233,13 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
+  int result = 0;
   for (const auto& entry :
        std::filesystem::directory_iterator(snapshot_dirpath)) {
-    std::cout << entry.path().filename() << std::endl;
     SnapshotData data(entry.path());
 
-    data.runtests();
+    result |= data.runtests();
   }
+
+  return result;
 }
