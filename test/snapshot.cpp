@@ -40,7 +40,29 @@ void load_data_from_file(const std::string& filename, std::vector<T>& output,
   GDALClose(dataset);
 }
 
+template <typename T, GDALDataType S>
+void write_data_to_file(const std::string& dst_filename,
+                        const std::string& src_filename, std::vector<T>& output,
+                        std::array<ptrdiff_t, 2>& dims) {
+  GDALDataset* src_ds = GDALDataset::Open(src_filename.data(), GA_ReadOnly);
+  assert(src_ds);
+
+  GDALDriver* driver = src_ds->GetDriver();
+  GDALDataset* dst_ds =
+      driver->CreateCopy(dst_filename.data(), src_ds, FALSE, NULL, NULL, NULL);
+  assert(dst_ds);
+
+  GDALRasterBand* poBand = dst_ds->GetRasterBand(1);
+  assert(poBand->RasterIO(GF_Write, 0, 0, dims[0], dims[1], output.data(),
+                          dims[0], dims[1], S, 0, 0) == CE_None);
+
+  GDALClose(dst_ds);
+  GDALClose(src_ds);
+}
+
 struct SnapshotData {
+  std::filesystem::path path;
+
   std::array<ptrdiff_t, 2> dims;
   float cellsize;
 
@@ -59,6 +81,8 @@ struct SnapshotData {
   std::vector<uint8_t> bc;
 
   SnapshotData(const std::filesystem::path& snapshot_path) {
+    path = snapshot_path;
+
     GDALAllRegister();
 
     if (exists(snapshot_path / "dem.tif")) {
