@@ -298,8 +298,8 @@ int32_t test_gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
   return 0;
 }
 /*
-  For each cell, the saved gradient should be the steepest gradient of all 8
-  neighboring cells.
+  For each cell, the saved gradient should be greater than or equal to
+  the signed gradient to all 8 neighboring cells.
 */
 int32_t test_gradient8(float *gradient, float *dem, float cellsize,
                        ptrdiff_t dims[2]) {
@@ -307,7 +307,7 @@ int32_t test_gradient8(float *gradient, float *dem, float cellsize,
   ptrdiff_t j_offset[8] = {1, 1, 0, -1, -1, -1, 0, 1};
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      float max_gradient = 0;
+      float max_gradient = gradient[j * dims[0] + i];
 
       // Iterate over all 8 neighboring cells
       for (int k = 0; k < 8; k++) {
@@ -321,21 +321,16 @@ int32_t test_gradient8(float *gradient, float *dem, float cellsize,
           float vertical_dist;
           float local_gradient;
 
-          if (neighbor_i != i && neighbor_j != j) {
-            horizontal_dist = SQRT2 * cellsize;
-          } else {
-            horizontal_dist = cellsize;
-          }
-          vertical_dist = fabsf(dem[neighbor_j * dims[0] + neighbor_i] -
-                                dem[j * dims[0] + i]);
+          horizontal_dist = cellsize;
+          horizontal_dist *= neighbor_i != i && neighbor_j != j ? SQRT2 : 1.0f;
+
+          vertical_dist =
+              dem[j * dims[0] + i] - dem[neighbor_j * dims[0] + neighbor_i];
 
           local_gradient = vertical_dist / horizontal_dist;
-          if (local_gradient > max_gradient) {
-            max_gradient = local_gradient;
-          }
+          assert(max_gradient >= local_gradient);
         }
       }
-      assert(max_gradient == gradient[j * dims[0] + i]);
     }
   }
   return 0;

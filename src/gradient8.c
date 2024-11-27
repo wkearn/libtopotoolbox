@@ -60,8 +60,8 @@ void gradient8(float *output, float *dem, float cellsize, int use_mp,
           } else {
             horizontal_dist = cellsize;
           }
-          vertical_dist = fabsf(dem[neighbour_j * dims[0] + neighbour_i] -
-                                dem[j * dims[0] + i]);
+          vertical_dist =
+              dem[j * dims[0] + i] - dem[neighbour_j * dims[0] + neighbour_i];
 
           // compute gradient and check if it's the max gradient
           local_gradient = vertical_dist / horizontal_dist;
