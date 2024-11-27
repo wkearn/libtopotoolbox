@@ -64,6 +64,12 @@ jobs:
         run: cmake --build ${{github.workspace}}/build/debug --config Debug
       - name: Test
         run: ctest --test-dir ${{github.workspace}}/build/debug -C Debug --output-on-failure
+      - name: Upload test snapshot artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshot_test_output
+          path: ${{github.workspace}}/build/debug/test/snapshots/
   release-build:
     runs-on: ${{ matrix.os }}
     env:
