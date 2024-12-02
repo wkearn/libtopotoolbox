@@ -262,7 +262,8 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
       // MATLAB implementation.
       double CarveMinVal = 0.1;
 
-      costs[current_pixel] = costs[current_pixel] - current_depth + CarveMinVal;
+      costs[current_pixel] =
+          (float)(costs[current_pixel] - current_depth + CarveMinVal);
     }
   }
 }
