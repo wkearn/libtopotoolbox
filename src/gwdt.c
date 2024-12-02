@@ -257,7 +257,7 @@ void gwdt_computecosts(float *costs, ptrdiff_t *conncomps, int32_t *flats,
       // If tweight is fixed to one, we do not need to apply the power.
       // costs[current_pixel] - current_depth should always be positive
       // float tweight = 1.0f;
-      float CarveMinVal = 0.125f;
+      double CarveMinVal = 0.125;
 
       costs[current_pixel] = costs[current_pixel] - current_depth + CarveMinVal;
     }
