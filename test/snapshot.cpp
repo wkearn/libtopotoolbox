@@ -49,8 +49,15 @@ void write_data_to_file(const std::string& dst_filename,
 
   GDALDriver* driver = src_ds->GetDriver();
   GDALDataset* dst_ds =
-      driver->CreateCopy(dst_filename.data(), src_ds, FALSE, NULL, NULL, NULL);
+      driver->Create(dst_filename.data(), dims[0], dims[1], 1, S, NULL);
   assert(dst_ds);
+
+  const OGRSpatialReference* ref = src_ds->GetSpatialRef();
+  assert(dst_ds->SetSpatialRef(ref) == CE_None);
+
+  double gt[6];
+  assert(src_ds->GetGeoTransform(gt) == CE_None);
+  assert(dst_ds->SetGeoTransform(gt) == CE_None);
 
   GDALRasterBand* poBand = dst_ds->GetRasterBand(1);
   assert(poBand->RasterIO(GF_Write, 0, 0, dims[0], dims[1], output.data(),
