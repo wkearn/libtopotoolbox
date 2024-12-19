@@ -28,16 +28,18 @@
   - Recursive and nested function calls can lead to misleading results.
  */
 
+#include <chrono>
 #include <cstdint>
-#include <ctime>
 #include <iostream>
 #include <string>
 #include <unordered_map>
 
+#define CONCATENATE_XY(x, y) x##y
+#define CONCATENATE(x, y) CONCATENATE_XY(x, y)
 #define ProfileBlock(Profiler, Label) \
-  ProfileZone block##__LINE__(Profiler, Label);
+  ProfileZone CONCATENATE(block, __LINE__)(Profiler, Label)
 #define ProfileFunction(Profiler) \
-  ProfileZone block##__LINE__(Profiler, __func__);
+  ProfileZone CONCATENATE(block, __LINE__)(Profiler, __func__)
 
 struct ProfileStats {
   uint64_t elapsed;
@@ -53,8 +55,7 @@ struct Profiler {
         if (count != 0) {
           std::cout << "," << std::endl;
         }
-        double anchor_ms = 1000.0 * iter->second.elapsed /
-                           (double)CLOCKS_PER_SEC / iter->second.count;
+        double anchor_ms = iter->second.elapsed / 1e6;
 
         std::cout << "{\"label\": \"" << iter->first << "\"," << std::endl;
         std::cout << "\"calls\": " << iter->second.count << "," << std::endl;
@@ -74,20 +75,21 @@ struct Profiler {
 struct ProfileZone {
   ProfileZone(Profiler &prof_, const char *label_)
       : label(label_), prof(prof_) {
-    start = std::clock();
+    start = std::chrono::high_resolution_clock::now();
   }
 
   ~ProfileZone(void) {
-    uint64_t elapsed = std::clock() - start;
+    auto timediff = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::high_resolution_clock::now() - start);
 
     ProfileStats &anchor = prof[label];
-    anchor.elapsed += elapsed;
+    anchor.elapsed += timediff.count();
     anchor.count++;
   }
 
  private:
   const char *label;
-  uint64_t start;
+  std::chrono::time_point<std::chrono::high_resolution_clock> start;
   Profiler &prof;
 };
 
