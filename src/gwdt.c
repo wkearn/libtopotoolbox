@@ -8,6 +8,7 @@
 #include "topotoolbox.h"
 
 #define SQRT2f 1.41421356237309504880f
+#define SQRT2 1.41421356237309504880
 
 // Gray-weighted distance transforms for auxiliary topography
 
@@ -317,7 +318,7 @@ void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
 
   ptrdiff_t i_offset[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
   ptrdiff_t j_offset[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
-  float chamfer[8] = {SQRT2f, 1.0, SQRT2f, 1.0, 1.0, SQRT2f, 1.0, SQRT2f};
+  double chamfer[8] = {SQRT2, 1.0, SQRT2, 1.0, 1.0, SQRT2, 1.0, SQRT2};
 
   while (!pq_isempty(&q)) {
     ptrdiff_t trial = pq_deletemin(&q);
