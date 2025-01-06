@@ -336,12 +336,14 @@ void gwdt(float *dist, ptrdiff_t *prev, float *costs, int32_t *flats,
           neighbor_j >= dims[1] || !(flats[neighbor_idx] & 1)) {
         continue;
       }
-
-      float proposal =
-          trial_distance +
-          chamfer[neighbor] * (costs[neighbor_idx] + costs[trial]) / 2;
-      if (proposal < pq_get_priority(&q, neighbor_idx)) {
-        pq_decrease_key(&q, neighbor_idx, proposal);
+      double trial_costs = costs[trial];
+      double neighbor_costs = costs[neighbor_idx];
+      double chamfer_weight = chamfer[neighbor];
+      double proposal =
+          trial_distance + chamfer_weight * (trial_costs + neighbor_costs) / 2;
+      float proposal32 = proposal;
+      if (proposal32 < pq_get_priority(&q, neighbor_idx)) {
+        pq_decrease_key(&q, neighbor_idx, proposal32);
         if (prev != NULL) {
           prev[neighbor_idx] = trial;
         }
