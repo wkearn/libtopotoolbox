@@ -1,4 +1,3 @@
-#include <gdal.h>
 #undef NDEBUG
 
 #include <gdal_priv.h>
@@ -196,15 +195,17 @@ struct SnapshotData {
   }
 
   int runtests() {
+    std::cout << "    1..2" << std::endl;
+
     int result = 0;
     // fillsinks
     if (test_filled_dem.size() > 0) {
       if (test_fillsinks() < 0) {
         result = -1;
 
-        std::cout << "[FAILURE] (fillsinks)     " << path << std::endl;
+        std::cout << "    not ok 1 - fillsinks" << std::endl;
       } else {
-        std::cout << "[SUCCESS] (fillsinks)     " << path << std::endl;
+        std::cout << "    ok 1 - fillsinks" << std::endl;
       }
     }
 
@@ -212,9 +213,9 @@ struct SnapshotData {
       if (test_identifyflats() < 0) {
         result = -1;
 
-        std::cout << "[FAILURE] (identifyflats) " << path << std::endl;
+        std::cout << "    not ok 2 - identifyflats" << std::endl;
       } else {
-        std::cout << "[SUCCESS] (identifyflats) " << path << std::endl;
+        std::cout << "    ok 2 - identifyflats" << std::endl;
       }
     }
 
@@ -240,12 +241,28 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
+  std::ptrdiff_t test_count =
+      std::distance(std::filesystem::directory_iterator{snapshot_dirpath},
+                    std::filesystem::directory_iterator{});
+
+  std::cout << "TAP version 14" << std::endl;
+  std::cout << "1.." << test_count << std::endl;
+
   int result = 0;
+  int test_id = 0;
   for (const auto& entry :
        std::filesystem::directory_iterator(snapshot_dirpath)) {
     SnapshotData data(entry.path());
 
-    result |= data.runtests();
+    test_id++;
+    int res = data.runtests();
+    if (res < 0) {
+      std::cout << "not ";
+    }
+    std::cout << "ok " << test_id;
+    std::cout << " - " << entry.path().filename() << std::endl;
+
+    result |= res;
   }
 
   return result;
