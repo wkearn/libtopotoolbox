@@ -535,19 +535,18 @@ int32_t test_stream_distance(float *node_distance, ptrdiff_t *stream_grid,
  */
 int32_t test_drainagebasins(ptrdiff_t *basins, ptrdiff_t *source,
                             ptrdiff_t *target, ptrdiff_t dims[2]) {
-  for (ptrdiff_t j = 0; j < dims[1]; j++) {
-    for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      ptrdiff_t src = source[j * dims[0] + i];
-      ptrdiff_t tgt = target[j * dims[0] + i];
+  ptrdiff_t edge_count = dims[0] * dims[1];
+  for (ptrdiff_t e = 0; e < edge_count; e++) {
+    ptrdiff_t src = source[e];
+    ptrdiff_t tgt = target[e];
 
-      assert(src < dims[0] * dims[1]);
-      assert(src >= 0);
-      assert(tgt < dims[0] * dims[1]);
-      if (tgt >= 0) {
-        // Only check connectivity if source has a downstream neighbor
-        assert(basins[src] == basins[tgt]);
-        assert(basins[src] > 0);
-      }
+    assert(src < dims[0] * dims[1]);
+    assert(src >= 0);
+    assert(tgt < dims[0] * dims[1]);
+    if (tgt >= 0) {
+      // Only check connectivity if source has a downstream neighbor
+      assert(basins[src] == basins[tgt]);
+      assert(basins[src] > 0);
     }
   }
   return 0;
