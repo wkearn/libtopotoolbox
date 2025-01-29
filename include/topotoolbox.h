@@ -876,6 +876,113 @@ void streamquad_trapz_f64(double *integral, double *integrand,
                           ptrdiff_t *source, ptrdiff_t *target, float *weight,
                           ptrdiff_t edge_count);
 
+/**
+   @brief Upstream traversal with bitwise and
+
+   Integrates the input node attribute list upstream using bitwise
+   and:
+
+   for (u=>v) in edges:
+     output[u] = output[v] & input[u];
+
+   @param[out] output The integrated output
+   @parblock
+   A pointer to a `uint32_t` array representing a node attribute list
+
+   If the stream network has N nodes, this array should have a length
+   N. This value must not be less than the largest value in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[in] input The quantity to be integrated
+   @parblock
+   A pointer to a `uint32_t` array representing a node attribute list
+
+   If the stream network has N nodes, this array should have a length
+   N. This value must not be less than the largest value in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 1-based indices of the nodes in the
+   node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 1-based indices of the nodes in
+   the node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
+TOPOTOOLBOX_API
+void traverse_up_u32_and(uint32_t *output, uint32_t *input, ptrdiff_t *source,
+                         ptrdiff_t *target, ptrdiff_t edge_count);
+
+/**
+   @brief Downstream traversal with max-plus
+
+   Accumulates the edge weights in the `input` edge attribute list
+   using a max-plus update:
+
+   for (e = (u,v)) in edges:
+     output[v] = max(output[v], output[u] + input[e]);
+
+   With input giving the length of each edge and output initialized to
+   zero, this will compute the longest path from the outlet to a
+   source node.
+
+   @param[out] output The accumulated output
+   @parblock
+   A pointer to a `float` array representing a node attribute list
+
+   If the stream network has N nodes, this array should have a length
+   N. This value must not be less than the largest value in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[in] input The edge weights
+   @parblock
+   A pointer to a `float` array representing a edge attribute list
+
+   If the stream network has edge_count edges, this array should have a length
+   edge_count.
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 1-based indices of the nodes in the
+   node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 1-based indices of the nodes in
+   the node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
+TOPOTOOLBOX_API
+void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
+                               ptrdiff_t *target, ptrdiff_t edge_count);
+
 /*
   Graphflood
 */
@@ -1058,4 +1165,5 @@ void graphflood_full(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
 TOPOTOOLBOX_API
 void drainagebasins(ptrdiff_t *basins, ptrdiff_t *source, ptrdiff_t *target,
                     ptrdiff_t dims[2]);
+
 #endif  // TOPOTOOLBOX_H
