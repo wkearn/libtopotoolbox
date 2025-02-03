@@ -842,7 +842,7 @@ void gradient8(float *output, float *dem, float cellsize, int use_mp,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 1-based indices of the nodes in the
+   correspond to the 0-based indices of the nodes in the
    node-attribute lists `integral` and `integrand`.
    @endparblock
 
@@ -851,7 +851,7 @@ void gradient8(float *output, float *dem, float cellsize, int use_mp,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 1-based indices of the nodes in
+   The labels must correspond to the 0-based indices of the nodes in
    the node-attribute lists `integral` and `integrand`.
    @endparblock
 
@@ -909,7 +909,7 @@ void streamquad_trapz_f64(double *integral, double *integrand,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 1-based indices of the nodes in the
+   correspond to the 0-based indices of the nodes in the
    node-attribute lists `integral` and `integrand`.
    @endparblock
 
@@ -918,7 +918,7 @@ void streamquad_trapz_f64(double *integral, double *integrand,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 1-based indices of the nodes in
+   The labels must correspond to the 0-based indices of the nodes in
    the node-attribute lists `integral` and `integrand`.
    @endparblock
 
@@ -964,7 +964,7 @@ void traverse_up_u32_and(uint32_t *output, uint32_t *input, ptrdiff_t *source,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 1-based indices of the nodes in the
+   correspond to the 0-based indices of the nodes in the
    node-attribute lists `integral` and `integrand`.
    @endparblock
 
@@ -973,7 +973,7 @@ void traverse_up_u32_and(uint32_t *output, uint32_t *input, ptrdiff_t *source,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 1-based indices of the nodes in
+   The labels must correspond to the 0-based indices of the nodes in
    the node-attribute lists `integral` and `integrand`.
    @endparblock
 

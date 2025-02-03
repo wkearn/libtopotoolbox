@@ -522,7 +522,7 @@ int32_t test_stream_distance(float *node_distance, ptrdiff_t *stream_grid,
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
       ptrdiff_t node = stream_grid[j * dims[0] + i];
       if (node > 0) {
-        assert(node_distance[node - 1] == distance[j * dims[0] + i]);
+        assert(node_distance[node] == distance[j * dims[0] + i]);
       }
     }
   }
@@ -712,7 +712,7 @@ struct FlowRoutingData {
   void streamnetwork(float threshold) {
     // Process the flow direction and accumulation data to create a
     // stream network
-    ptrdiff_t node_index = 1;
+    ptrdiff_t node_index = 0;
 
     for (ptrdiff_t e = (dims[0] * dims[1] - 1); e >= 0; e--) {
       ptrdiff_t u = source[e];
@@ -749,7 +749,7 @@ struct FlowRoutingData {
       stream_weight.push_back(std::get<2>(*e));
     }
 
-    stream_node_count = node_index - 1;
+    stream_node_count = node_index;
   }
 
   void drainagebasins() {
