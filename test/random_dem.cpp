@@ -439,7 +439,7 @@ int32_t test_routeflowd8_tsort(uint8_t *marks, ptrdiff_t *source,
 int32_t test_flow_accumulation_max(float *acc, ptrdiff_t dims[2]) {
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      assert(acc[j * dims[0] + i] < (dims[0] * dims[1]));
+      assert(acc[j * dims[0] + i] <= (dims[0] * dims[1]));
     }
   }
   return 0;
@@ -555,6 +555,35 @@ int32_t test_propagatevalues(float *pvF32, double *pvF64, uint8_t *pvU8,
            pvU64[v] == pvU32[v] && (uint64_t)pvI8[v] == pvU64[v] &&
            pvI32[v] == pvI8[v] && pvI64[v] == pvI32[v]);
   }
+  return 0;
+}
+
+// drainagebasins should return the same drainage basins computed
+// using an appropriately initialized traverse_up_u32_or_and.
+int32_t test_db_traverse(ptrdiff_t *basins, ptrdiff_t *source,
+                         ptrdiff_t *target, ptrdiff_t dims[2]) {
+  std::vector<uint32_t> ones(dims[0] * dims[1], 0xffffffff);
+  std::vector<uint32_t> traverse_basins(dims[0] * dims[1], 0);
+
+  ptrdiff_t edge_count = dims[0] * dims[1];
+  for (ptrdiff_t e = 0; e < edge_count; e++) {
+    ptrdiff_t src = source[e];
+    ptrdiff_t tgt = target[e];
+    if (tgt < 0) {
+      // src is an outlet
+      // initialize it with the same value as basins
+      traverse_basins[src] = basins[src];
+    }
+  }
+  tt::traverse_up_u32_or_and(traverse_basins.data(), ones.data(), source,
+                             target, edge_count);
+
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      assert(basins[j * dims[0] + i] == traverse_basins[j * dims[0] + i]);
+    }
+  }
+
   return 0;
 }
 
@@ -804,6 +833,7 @@ struct FlowRoutingData {
     drainagebasins();
     test_drainagebasins(basins.data(), source.data(), target.data(), edge_count,
                         dims.data());
+    test_db_traverse(basins.data(), source.data(), target.data(), dims.data());
 
     // route_flow and route_flow_hybrid only run the edgelist variant
     // of flow_accumulation, so we must run it explicitly.
