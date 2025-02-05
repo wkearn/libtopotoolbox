@@ -460,39 +460,36 @@ int32_t test_flow_accumulation_multimethod(float *acc1, float *acc2,
   plus the correct offset in the flow direction.
  */
 int32_t test_flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
-                                  uint8_t *direction, ptrdiff_t dims[2]) {
+                                  uint8_t *direction, ptrdiff_t edge_count,
+                                  ptrdiff_t dims[2]) {
   ptrdiff_t i_offset[8] = {0, 1, 1, 1, 0, -1, -1, -1};
   ptrdiff_t j_offset[8] = {1, 1, 0, -1, -1, -1, 0, 1};
 
-  for (ptrdiff_t j = 0; j < dims[1]; j++) {
-    for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      ptrdiff_t u = source[j * dims[0] + i];
-      ptrdiff_t u_i = u % dims[0];
-      ptrdiff_t u_j = u / dims[0];
+  for (ptrdiff_t e = 0; e < edge_count; e++) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t u_i = u % dims[0];
+    ptrdiff_t u_j = u / dims[0];
 
-      assert(u_i >= 0 && u_i < dims[0]);
-      assert(u_j >= 0 && u_j < dims[1]);
+    assert(u_i >= 0 && u_i < dims[0]);
+    assert(u_j >= 0 && u_j < dims[1]);
 
-      uint8_t flowdir = direction[u];
+    uint8_t flowdir = direction[u];
 
-      if (flowdir == 0) {
-        assert(target[j * dims[0] + i] == -1);
-      } else {
-        uint8_t r = 0;
-        while (flowdir >>= 1) {
-          r++;
-        }
-
-        ptrdiff_t neighbor_i = u_i + i_offset[r];
-        ptrdiff_t neighbor_j = u_j + j_offset[r];
-
-        assert(neighbor_i >= 0 && neighbor_i < dims[0]);
-        assert(neighbor_j >= 0 && neighbor_j < dims[1]);
-
-        ptrdiff_t v = neighbor_j * dims[0] + neighbor_i;
-
-        assert(v == target[j * dims[0] + i]);
+    if (flowdir != 0) {
+      uint8_t r = 0;
+      while (flowdir >>= 1) {
+        r++;
       }
+
+      ptrdiff_t neighbor_i = u_i + i_offset[r];
+      ptrdiff_t neighbor_j = u_j + j_offset[r];
+
+      assert(neighbor_i >= 0 && neighbor_i < dims[0]);
+      assert(neighbor_j >= 0 && neighbor_j < dims[1]);
+
+      ptrdiff_t v = neighbor_j * dims[0] + neighbor_i;
+
+      assert(v == target[e]);
     }
   }
   return 0;
@@ -506,16 +503,15 @@ int32_t test_flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
 int32_t test_stream_distance(float *node_distance, ptrdiff_t *stream_grid,
                              float *distance, ptrdiff_t *source,
                              ptrdiff_t *target, float cellsize,
-                             ptrdiff_t dims[2]) {
-  for (ptrdiff_t edge = dims[0] * dims[1] - 1; edge >= 0; edge--) {
+                             ptrdiff_t edge_count, ptrdiff_t dims[2]) {
+  // Compute the upstream distance manually for all edges
+  for (ptrdiff_t edge = edge_count - 1; edge >= 0; edge--) {
     ptrdiff_t u = source[edge];
     ptrdiff_t v = target[edge];
-    if (v >= 0) {
-      float w = llabs(u - v) == 1 || llabs(u - v) == dims[0] ? 1.0f : SQRT2f;
-      w *= cellsize;
 
-      distance[u] = distance[v] + w;
-    }
+    float w = llabs(u - v) == 1 || llabs(u - v) == dims[0] ? 1.0f * cellsize
+                                                           : SQRT2f * cellsize;
+    distance[u] = distance[v] + w;
   }
 
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
@@ -534,8 +530,8 @@ int32_t test_stream_distance(float *node_distance, ptrdiff_t *stream_grid,
   same basin, which should have an index greater than 0.
  */
 int32_t test_drainagebasins(ptrdiff_t *basins, ptrdiff_t *source,
-                            ptrdiff_t *target, ptrdiff_t dims[2]) {
-  ptrdiff_t edge_count = dims[0] * dims[1];
+                            ptrdiff_t *target, ptrdiff_t edge_count,
+                            ptrdiff_t dims[2]) {
   for (ptrdiff_t e = 0; e < edge_count; e++) {
     ptrdiff_t src = source[e];
     ptrdiff_t tgt = target[e];
@@ -543,11 +539,9 @@ int32_t test_drainagebasins(ptrdiff_t *basins, ptrdiff_t *source,
     assert(src < dims[0] * dims[1]);
     assert(src >= 0);
     assert(tgt < dims[0] * dims[1]);
-    if (tgt >= 0) {
-      // Only check connectivity if source has a downstream neighbor
-      assert(basins[src] == basins[tgt]);
-      assert(basins[src] > 0);
-    }
+    assert(tgt >= 0);
+    assert(basins[src] == basins[tgt]);
+    assert(basins[src] > 0);
   }
   return 0;
 }
@@ -584,19 +578,20 @@ struct FlowRoutingData {
   std::vector<float> gradient_mp;
 
   // flow_routing_d8_carve
-  std::vector<ptrdiff_t> source;
+  std::vector<ptrdiff_t> nodes;
   std::vector<uint8_t> direction;
   std::vector<uint8_t> marks;
 
   // flow_routing_targets
+  std::vector<ptrdiff_t> source;
   std::vector<ptrdiff_t> target;
+  ptrdiff_t edge_count;
 
   // flow_accumulation
   std::vector<float> accum;
   std::vector<float> accum2;
 
   // stream network
-  std::vector<std::tuple<ptrdiff_t, ptrdiff_t, float>> stream_edges;
   std::vector<ptrdiff_t> stream_source;
   std::vector<ptrdiff_t> stream_target;
   std::vector<float> stream_weight;
@@ -621,9 +616,10 @@ struct FlowRoutingData {
         prev(dims[0] * dims[1]),
         gradient(dims[0] * dims[1]),
         gradient_mp(dims[0] * dims[1]),
-        source(dims[0] * dims[1]),
+        nodes(dims[0] * dims[1]),
         direction(dims[0] * dims[1]),
         marks(dims[0] * dims[1]),
+        source(dims[0] * dims[1]),
         target(dims[0] * dims[1]),
         accum(dims[0] * dims[1]),
         accum2(dims[0] * dims[1]),
@@ -658,15 +654,15 @@ struct FlowRoutingData {
     tt::gwdt(dist.data(), prev.data(), costs.data(), flats.data(), heap.data(),
              back.data(), dims.data());
 
-    tt::flow_routing_d8_carve(source.data(), direction.data(),
-                              filled_dem.data(), dist.data(), flats.data(),
-                              dims.data());
+    tt::flow_routing_d8_carve(nodes.data(), direction.data(), filled_dem.data(),
+                              dist.data(), flats.data(), dims.data());
 
-    tt::flow_routing_targets(target.data(), source.data(), direction.data(),
-                             dims.data());
+    edge_count =
+        tt::flow_routing_d8_edgelist(source.data(), target.data(), nodes.data(),
+                                     direction.data(), dims.data());
 
     tt::flow_accumulation_edgelist(accum2.data(), source.data(), target.data(),
-                                   fraction.data(), NULL, dims[0] * dims[1],
+                                   fraction.data(), NULL, edge_count,
                                    dims.data());
 
     // Close timer
@@ -686,15 +682,15 @@ struct FlowRoutingData {
     tt::gwdt(dist.data(), prev.data(), costs.data(), flats.data(), heap.data(),
              back.data(), dims.data());
 
-    tt::flow_routing_d8_carve(source.data(), direction.data(),
-                              filled_dem.data(), dist.data(), flats.data(),
-                              dims.data());
+    tt::flow_routing_d8_carve(nodes.data(), direction.data(), filled_dem.data(),
+                              dist.data(), flats.data(), dims.data());
 
-    tt::flow_routing_targets(target.data(), source.data(), direction.data(),
-                             dims.data());
+    edge_count =
+        tt::flow_routing_d8_edgelist(source.data(), target.data(), nodes.data(),
+                                     direction.data(), dims.data());
 
     tt::flow_accumulation_edgelist(accum2.data(), source.data(), target.data(),
-                                   fraction.data(), NULL, dims[0] * dims[1],
+                                   fraction.data(), NULL, edge_count,
                                    dims.data());
   }
 
@@ -714,41 +710,42 @@ struct FlowRoutingData {
     // stream network
     ptrdiff_t node_index = 0;
 
-    for (ptrdiff_t e = (dims[0] * dims[1] - 1); e >= 0; e--) {
-      ptrdiff_t u = source[e];
-      ptrdiff_t v = target[e];
-
-      if (accum2[u] >= threshold) {
-        // Pixel u is in the stream network
-
-        // Map pixel u to the node index
-        stream_grid[u] = node_index++;
-
-        if (v >= 0) {
-          // u is not a sink/outlet
-
-          // Compute distance between source and target pixels.
-          // If the difference between u is 1 or dims[0], then they
-          // are 4 neighbors, otherwise they are 8 neighbors.
-          float w = llabs(u - v) == 1 || llabs(u - v) == dims[0]
-                        ? 1.0f * cellsize
-                        : SQRT2f * cellsize;
-
-          // Add (u,v) to the edge list
-          stream_edges.push_back(std::tuple(stream_grid[u], stream_grid[v], w));
+    // Label all of the nodes in the stream network with indices into
+    // the node attribute list.
+    for (ptrdiff_t j = 0; j < dims[1]; j++) {
+      for (ptrdiff_t i = 0; i < dims[0]; i++) {
+        ptrdiff_t u = nodes[j * dims[0] + i];
+        if (accum2[u] >= threshold) {
+          // Pixel u is in the stream network
+          stream_grid[u] = node_index++;
+        } else {
+          stream_grid[u] = -1;
         }
       }
     }
 
-    // Fill the source and target vector by reversing stream_edges
-    stream_source.reserve(stream_edges.size());
-    stream_target.reserve(stream_edges.size());
-    for (auto e = stream_edges.rbegin(); e != stream_edges.rend(); e++) {
-      stream_source.push_back(std::get<0>(*e));
-      stream_target.push_back(std::get<1>(*e));
-      stream_weight.push_back(std::get<2>(*e));
-    }
+    // Find edges that are part of the stream network
+    for (ptrdiff_t e = 0; e < edge_count; e++) {
+      ptrdiff_t u = source[e];
+      ptrdiff_t v = target[e];
 
+      // Compute distance between source and target pixels. If the
+      // difference between u and v is 1 or dims[0], then they are
+      // cardinal neighbors, otherwise they are diagonal neighbors.
+      float w = llabs(u - v) == 1 || llabs(u - v) == dims[0]
+                    ? 1.0f * cellsize
+                    : SQRT2f * cellsize;
+
+      if (accum2[u] >= threshold) {
+        // Pixel u is in the stream network
+
+        // Add this edge to the stream network, but map u and v to
+        // their node attribute indices.
+        stream_source.push_back(stream_grid[u]);
+        stream_target.push_back(stream_grid[v]);
+        stream_weight.push_back(w);
+      }
+    }
     stream_node_count = node_index;
   }
 
@@ -785,20 +782,20 @@ struct FlowRoutingData {
 
     test_routeflowd8_direction(direction.data(), filled_dem.data(), dist.data(),
                                flats.data(), dims.data());
-    test_routeflowd8_tsort(marks.data(), source.data(), direction.data(),
+    test_routeflowd8_tsort(marks.data(), nodes.data(), direction.data(),
                            dims.data());
 
     test_flow_routing_targets(target.data(), source.data(), direction.data(),
-                              dims.data());
+                              edge_count, dims.data());
 
     // Compute and test drainage basins
     drainagebasins();
-    test_drainagebasins(basins.data(), source.data(), target.data(),
+    test_drainagebasins(basins.data(), source.data(), target.data(), edge_count,
                         dims.data());
 
     // route_flow and route_flow_hybrid only run the edgelist variant
     // of flow_accumulation, so we must run it explicitly.
-    tt::flow_accumulation(accum.data(), source.data(), direction.data(), NULL,
+    tt::flow_accumulation(accum.data(), nodes.data(), direction.data(), NULL,
                           dims.data());
 
     test_flow_accumulation_max(accum.data(), dims.data());
@@ -816,7 +813,8 @@ struct FlowRoutingData {
                              stream_source.data(), stream_target.data(),
                              stream_weight.data(), stream_source.size());
     test_stream_distance(integral.data(), stream_grid.data(), distance.data(),
-                         source.data(), target.data(), cellsize, dims.data());
+                         source.data(), target.data(), cellsize, source.size(),
+                         dims.data());
   }
 };
 

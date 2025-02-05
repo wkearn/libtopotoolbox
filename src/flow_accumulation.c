@@ -24,11 +24,7 @@ void flow_accumulation_edgelist(float *acc, ptrdiff_t *source,
     ptrdiff_t tgt = target[edge];
     float w = fraction[edge];
 
-    // Ensure that src and tgt are valid pixels before accumulating.
-    if (src >= 0 && src < dims[0] * dims[1] && tgt >= 0 &&
-        tgt < dims[0] * dims[1]) {
-      acc[tgt] += w * acc[src];
-    }
+    acc[tgt] += w * acc[src];
   }
 }
 
