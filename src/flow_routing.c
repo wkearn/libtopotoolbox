@@ -110,25 +110,35 @@ uint8_t compute_flowdirection_TT2(ptrdiff_t i, ptrdiff_t j, float *dem,
 }
 
 TOPOTOOLBOX_API
-void flow_routing_d8_carve(ptrdiff_t *source, uint8_t *direction, float *dem,
+void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
                            float *dist, int32_t *flats, ptrdiff_t dims[2]) {
-  // source[i] is the linear index of the i-th source in the
-  // topologically sorted graph.
+  // node contains an array of dims[0] * dims[1] linear pixel indices
+  // into dem. These indices are sorted topologically, so that if
+  // there is an edge from node u to node v, u comes before v in the
+  // array.
   //
-  // direction[idx] is the bitfield-encoded flow direction for the
-  // pixel at idx
+  // direction[i] is the bitfield-encoded flow direction for the
+  // pixel at i
   //
   // 1<<5 1<<6  1<<7
   // 1<<4    0  1<<0
   // 1<<3 1<<2  1<<1
   //
-  // Strategy: we need to conduct a depth-first search of the graph
-  // The topological sort is a reversed postordering: when we finish
-  // visiting a node, we prepend it to the source array
-
-  // Use source[--next] = idx to push the index onto the source array.
+  // To construct a topological ordering of the flow graph, we conduct
+  // a depth first traversal of the flow graph. The topological order
+  // is given by a reversed postorder of the nodes encountered during
+  // the traversal. As a result, the node array fills up from the
+  // bottom.
+  //
+  // Use node[--next] = u to append vertex u onto the node list.
   ptrdiff_t next = dims[0] * dims[1];
-  // Use source[stack_top++] = idx to push the stack
+
+  // To implement the depth first traversal, we need a stack. The
+  // stack can only hold up to as many vertices as have not yet been
+  // assigned to the node list.  We can therefore using the top of the
+  // node array to hold our stack.
+  //
+  // Use source[stack_top++] = u to push vertex u onto the stack
   // Use idx = source[--stack_top] top pop the stack
   ptrdiff_t stack_top = 0;
 
@@ -150,61 +160,62 @@ void flow_routing_d8_carve(ptrdiff_t *source, uint8_t *direction, float *dem,
         // depth-first search.
         // The stack should always be empty by the time we get here
         assert(stack_top == 0);
-        source[stack_top++] = j * dims[0] + i;
+        node[stack_top++] = j * dims[0] + i;
 
         while (stack_top > 0) {
           // Pop a node from the stack
-          ptrdiff_t node = source[--stack_top];
+          ptrdiff_t u = node[--stack_top];
 
-          if (direction[node] == 0xff) {
+          if (direction[u] == 0xff) {
             // node has not been discovered yet
 
             // Compute its Cartesian indices
-            ptrdiff_t node_i = node % dims[0];
-            ptrdiff_t node_j = node / dims[0];
+            ptrdiff_t u_i = u % dims[0];
+            ptrdiff_t u_j = u / dims[0];
 
             uint8_t flowdir =
-                compute_flowdirection(node_i, node_j, dem, dist, flats, dims);
+                compute_flowdirection(u_i, u_j, dem, dist, flats, dims);
 
             if (flowdir == 0) {
               // This node is a sink/outlet
-              direction[node] = flowdir;
+              direction[u] = flowdir;
               // Prepend the node to the edge list.
               assert(next > 0);
               assert(next > stack_top);
-              source[--next] = node;
+              node[--next] = u;
               continue;
             }
             // flowdir is not an index, but 1<<index
             // Compute the index
-            uint8_t v = flowdir;
+            uint8_t d = flowdir;
             uint8_t r = 0;
-            while (v >>= 1) {
+            while (d >>= 1) {
               r++;
             }
-            ptrdiff_t neighbor_i = node_i + i_offset[r];
-            ptrdiff_t neighbor_j = node_j + j_offset[r];
+            ptrdiff_t v_i = u_i + i_offset[r];
+            ptrdiff_t v_j = u_j + j_offset[r];
 
-            if (neighbor_i < 0 || neighbor_i >= dims[0] || neighbor_j < 0 ||
-                neighbor_j >= dims[1]) {
+            if (v_i < 0 || v_i >= dims[0] || v_j < 0 || v_j >= dims[1]) {
               continue;
             }
 
-            if (direction[neighbor_j * dims[0] + neighbor_i] == 0xff) {
+            ptrdiff_t v = v_j * dims[0] + v_i;
+
+            if (direction[v] == 0xff) {
               // The neighbor has not been visited yet
               // Push the node back on the stack, then push the neighbor
-              assert(stack_top < dims[0] * dims[1]);
-              source[stack_top++] = node;
+              assert(stack_top < next);
+              node[stack_top++] = u;
 
-              assert(stack_top < dims[0] * dims[1]);
-              source[stack_top++] = neighbor_j * dims[0] + neighbor_i;
+              assert(stack_top < next);
+              node[stack_top++] = v;
             } else {
               // The downstream neighbor has been visited, visit the node
-              direction[node] = flowdir;
+              direction[u] = flowdir;
               // Prepend the node to the edge list.
               assert(next > 0);
               assert(next > stack_top);
-              source[--next] = node;
+              node[--next] = u;
             }
           } else {
             // This is a cycle
@@ -217,28 +228,30 @@ void flow_routing_d8_carve(ptrdiff_t *source, uint8_t *direction, float *dem,
 }
 
 TOPOTOOLBOX_API
-void flow_routing_targets(ptrdiff_t *target, ptrdiff_t *source,
-                          uint8_t *direction, ptrdiff_t dims[2]) {
+ptrdiff_t flow_routing_d8_edgelist(ptrdiff_t *source, ptrdiff_t *target,
+                                   ptrdiff_t *node, uint8_t *direction,
+                                   ptrdiff_t dims[2]) {
   ptrdiff_t offsets[8] = {dims[0],  dims[0] + 1,  1,  -dims[0] + 1,
                           -dims[0], -dims[0] - 1, -1, dims[0] - 1};
 
+  ptrdiff_t edge_count = 0;
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      ptrdiff_t node = source[j * dims[0] + i];
+      ptrdiff_t u = node[j * dims[0] + i];
 
-      uint8_t flowdir = direction[node];
+      uint8_t flowdir = direction[u];
 
-      if (flowdir == 0) {
-        target[j * dims[0] + i] = -1;
-      } else {
+      if (flowdir != 0) {
         uint8_t v = flowdir;
         uint8_t r = 0;
         while (v >>= 1) {
           r++;
         }
 
-        target[j * dims[0] + i] = node + offsets[r];
+        source[edge_count] = u;
+        target[edge_count++] = u + offsets[r];
       }
     }
   }
+  return edge_count;
 }

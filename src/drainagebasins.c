@@ -20,13 +20,6 @@ void drainagebasins(ptrdiff_t *basins, ptrdiff_t *source, ptrdiff_t *target,
     ptrdiff_t src = source[e];
     ptrdiff_t tgt = target[e];
 
-    if (tgt < 0) {
-      // src is an outlet
-      //
-      // Don't initialize the basin here: we are refactoring to get
-      // rid of these placeholder edges
-      continue;
-    }
     if (basins[tgt] == 0) {
       // If tgt does not yet belong to a drainage basin, create a new one
       basins[tgt] = basin_count++;
