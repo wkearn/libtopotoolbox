@@ -685,10 +685,13 @@ void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
    The fastest changing dimension should be provided first. For column-major
    arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
    @endparblock
+
+   @return The number of valid edges contained in the `source` and `target`
+   arrays
  */
 TOPOTOOLBOX_API
 ptrdiff_t flow_routing_d8_edgelist(ptrdiff_t *source, ptrdiff_t *target,
-                                   ptrdiff_t *nodes, uint8_t *direction,
+                                   ptrdiff_t *node, uint8_t *direction,
                                    ptrdiff_t dims[2]);
 
 /**
