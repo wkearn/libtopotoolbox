@@ -752,7 +752,7 @@ struct FlowRoutingData {
   void drainagebasins() {
     ProfileFunction(prof);
 
-    tt::drainagebasins(basins.data(), source.data(), target.data(),
+    tt::drainagebasins(basins.data(), source.data(), target.data(), edge_count,
                        dims.data());
   }
 

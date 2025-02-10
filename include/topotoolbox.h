@@ -1155,12 +1155,17 @@ void graphflood_full(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
 
    @param[out] source The source pixel for each edge
    @parblock
-   A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+   A pointer to a `ptrdiff_t` array of size `edge_count`
    @endparblock
 
    @param[in] target The target pixel for each edge
    @parblock
-   A pointer to a `ptrdiff_t` array of size `dims[0]` x `dims[1]`
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+   @endparblock
+
+   @param[in] edge_count The number of edges in the flow network
+   @parblock
+   A ptrdiff_t representing the length of the `source` and `target` arrays
    @endparblock
 
    @param[in] dims The dimensions of the arrays
@@ -1173,6 +1178,6 @@ void graphflood_full(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
  */
 TOPOTOOLBOX_API
 void drainagebasins(ptrdiff_t *basins, ptrdiff_t *source, ptrdiff_t *target,
-                    ptrdiff_t dims[2]);
+                    ptrdiff_t edge_count, ptrdiff_t dims[2]);
 
 #endif  // TOPOTOOLBOX_H

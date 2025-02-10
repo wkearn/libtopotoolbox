@@ -4,7 +4,7 @@
 
 TOPOTOOLBOX_API
 void drainagebasins(ptrdiff_t *basins, ptrdiff_t *source, ptrdiff_t *target,
-                    ptrdiff_t dims[2]) {
+                    ptrdiff_t edge_count, ptrdiff_t dims[2]) {
   // Initialize the basins array
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
@@ -13,8 +13,6 @@ void drainagebasins(ptrdiff_t *basins, ptrdiff_t *source, ptrdiff_t *target,
   }
 
   ptrdiff_t basin_count = 1;  // Start the basin labels at one.
-
-  ptrdiff_t edge_count = dims[0] * dims[1];
 
   for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
     ptrdiff_t src = source[e];
