@@ -1032,6 +1032,7 @@ void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
    the node-attribute lists `integral` and `integrand`.
    @endparblock
 
+   @param[in] node_count The number of nodes in the stream network
    @param[in] edge_count The number of edges in the stream network
  */
 TOPOTOOLBOX_API
