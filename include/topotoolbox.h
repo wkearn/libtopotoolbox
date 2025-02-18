@@ -992,6 +992,53 @@ TOPOTOOLBOX_API
 void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
                                ptrdiff_t *target, ptrdiff_t edge_count);
 
+/**
+   @brief Compute the in- and outdegrees of each node in a graph
+
+   @param[out] indegree The indegree of each node in the stream network
+   @parblock
+   A pointer to a `uint8_t` array representing a node attribute list
+
+   If the stream network has N nodes, this array should have a length
+   N. This value must not be less than the largest value in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[out] outdegree The outdegree of each node in the stream network
+   @parblock
+   A pointer to a `uint8_t` array representing a node attribute list
+
+   If the stream network has N nodes, this array should have a length
+   N. This value must not be less than the largest value in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 0-based indices of the nodes in the
+   node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 0-based indices of the nodes in
+   the node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
+TOPOTOOLBOX_API
+void edgelist_degree(uint8_t *indegree, uint8_t *outdegree, ptrdiff_t *source,
+                     ptrdiff_t *target, ptrdiff_t node_count,
+                     ptrdiff_t edge_count);
+
 /*
   Graphflood
 */
