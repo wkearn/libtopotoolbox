@@ -84,3 +84,109 @@ void edgelist_degree(uint8_t *indegree, uint8_t *outdegree, ptrdiff_t *source,
     outdegree[u]++;
   }
 }
+
+/*
+  propagatevaluesupstream is implemented identically for several
+  different input data types. While it is possible to reduce this
+  duplication using a macro, the various interfaces still need to be
+  exposed to downstream users of the library.
+
+  The following input data types are implemented
+
+  float:    propagatevaluesupstream_f32
+  double:   propagatevaluesupstream_f64
+  uint8_t:  propagatevaluesupstream_u8
+  uint32_t: propagatevaluesupstream_u32
+  uint64_t: propagatevaluesupstream_u64
+  int8_t:   propagatevaluesupstream_u8
+  int32_t:  propagatevaluesupstream_u32
+  int64_t:  propagatevaluesupstream_u64
+
+  Others can be added as needed.
+ */
+
+TOPOTOOLBOX_API void propagatevaluesupstream_f32(float *data, ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+    data[u] = data[v];
+  }
+}
+
+TOPOTOOLBOX_API void propagatevaluesupstream_f64(double *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+    data[u] = data[v];
+  }
+}
+
+TOPOTOOLBOX_API void propagatevaluesupstream_u8(uint8_t *data,
+                                                ptrdiff_t *source,
+                                                ptrdiff_t *target,
+                                                ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+    data[u] = data[v];
+  }
+}
+
+TOPOTOOLBOX_API void propagatevaluesupstream_u32(uint32_t *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+    data[u] = data[v];
+  }
+}
+
+TOPOTOOLBOX_API void propagatevaluesupstream_u64(uint64_t *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+    data[u] = data[v];
+  }
+}
+
+TOPOTOOLBOX_API void propagatevaluesupstream_i8(int8_t *data, ptrdiff_t *source,
+                                                ptrdiff_t *target,
+                                                ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+    data[u] = data[v];
+  }
+}
+
+TOPOTOOLBOX_API void propagatevaluesupstream_i32(int32_t *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+    data[u] = data[v];
+  }
+}
+
+TOPOTOOLBOX_API void propagatevaluesupstream_i64(int64_t *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+    data[u] = data[v];
+  }
+}
