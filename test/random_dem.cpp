@@ -837,15 +837,16 @@ struct FlowRoutingData {
     std::vector<int32_t> pvI32(stream_node_count, 0);
     std::vector<int64_t> pvI64(stream_node_count, 0);
 
-    for (uint64_t i = 0; i < (uint64_t)stream_node_count; i++) {
-      pvF32[i] = i & 0x7f;
-      pvF64[i] = i & 0x7f;
-      pvU8[i] = i & 0x7f;
-      pvU32[i] = i & 0x7f;
-      pvU64[i] = i & 0x7f;
-      pvI8[i] = i & 0x7f;
-      pvI32[i] = i & 0x7f;
-      pvI64[i] = i & 0x7f;
+    for (ptrdiff_t i = 0; i < stream_node_count; i++) {
+      uint8_t v = (uint64_t)i & 0x7f;
+      pvF32[i] = v;
+      pvF64[i] = v;
+      pvU8[i] = v;
+      pvU32[i] = v;
+      pvU64[i] = v;
+      pvI8[i] = v;
+      pvI32[i] = v;
+      pvI64[i] = v;
     }
 
     tt::propagatevaluesupstream_f32(pvF32.data(), stream_source.data(),
