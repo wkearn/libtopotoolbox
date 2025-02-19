@@ -1094,6 +1094,118 @@ void edgelist_degree(uint8_t *indegree, uint8_t *outdegree, ptrdiff_t *source,
                      ptrdiff_t *target, ptrdiff_t node_count,
                      ptrdiff_t edge_count);
 
+/**
+   @brief Propagate `float` values upstream
+
+   The values in the `data` node attribute list are copied to their
+   upstream neighbors according to the edges contained in the `source`
+   and `target` arrays.
+
+   Nodes with no downstream neighbors should be initialized in the
+   `data` array with the values to be propagated upstream. The
+   upstream values will be overwritten.
+
+   @param[in, out] data The data array
+   @parblock
+   A pointer to an array of the desired type representing a node attribute list.
+
+   This must be at least as large as the largest index in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 0-based indices of the nodes in the
+   node-attribute list `data`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 0-based indices of the nodes in
+   the node-attribute list `data`
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
+TOPOTOOLBOX_API void propagatevaluesupstream_f32(float *data, ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count);
+
+/**
+   @brief Propagate `double` values upstream
+
+   @copydetails propagatevaluesupstream_f32()
+ */
+TOPOTOOLBOX_API void propagatevaluesupstream_f64(double *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count);
+
+/**
+   @brief Propagate `uint8_t` values upstream
+
+   @copydetails propagatevaluesupstream_f32()
+ */
+TOPOTOOLBOX_API void propagatevaluesupstream_u8(uint8_t *data,
+                                                ptrdiff_t *source,
+                                                ptrdiff_t *target,
+                                                ptrdiff_t edge_count);
+
+/**
+   @brief Propagate `uint32_t` values upstream
+
+   @copydetails propagatevaluesupstream_f32()
+ */
+TOPOTOOLBOX_API void propagatevaluesupstream_u32(uint32_t *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count);
+
+/**
+   @brief Propagate `uint64_t` values upstream
+
+   @copydetails propagatevaluesupstream_f32()
+ */
+TOPOTOOLBOX_API void propagatevaluesupstream_u64(uint64_t *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count);
+
+/**
+   @brief Propagate `int8_t` values upstream
+
+   @copydetails propagatevaluesupstream_f32()
+ */
+TOPOTOOLBOX_API void propagatevaluesupstream_i8(int8_t *data, ptrdiff_t *source,
+                                                ptrdiff_t *target,
+                                                ptrdiff_t edge_count);
+
+/**
+   @brief Propagate `int32_t` values upstream
+
+   @copydetails propagatevaluesupstream_f32()
+ */
+TOPOTOOLBOX_API void propagatevaluesupstream_i32(int32_t *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count);
+
+/**
+   @brief Propagate `int64_t` values upstream
+
+   @copydetails propagatevaluesupstream_f32()
+ */
+TOPOTOOLBOX_API void propagatevaluesupstream_i64(int64_t *data,
+                                                 ptrdiff_t *source,
+                                                 ptrdiff_t *target,
+                                                 ptrdiff_t edge_count);
 /*
   Graphflood
 */

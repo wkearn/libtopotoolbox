@@ -546,6 +546,18 @@ int32_t test_drainagebasins(ptrdiff_t *basins, ptrdiff_t *source,
   return 0;
 }
 
+int32_t test_propagatevalues(float *pvF32, double *pvF64, uint8_t *pvU8,
+                             uint32_t *pvU32, uint64_t *pvU64, int8_t *pvI8,
+                             int32_t *pvI32, int64_t *pvI64,
+                             ptrdiff_t node_count) {
+  for (ptrdiff_t v = 0; v < node_count; v++) {
+    assert(pvF32[v] == pvF64[v] && pvF64[v] == pvU8[v] && pvU32[v] == pvU8[v] &&
+           pvU64[v] == pvU32[v] && (uint64_t)pvI8[v] == pvU64[v] &&
+           pvI32[v] == pvI8[v] && pvI64[v] == pvI32[v]);
+  }
+  return 0;
+}
+
 struct FlowRoutingData {
   std::array<ptrdiff_t, 2> dims;
   float cellsize;
@@ -815,6 +827,47 @@ struct FlowRoutingData {
     test_stream_distance(integral.data(), stream_grid.data(), distance.data(),
                          source.data(), target.data(), cellsize, source.size(),
                          dims.data());
+
+    std::vector<float> pvF32(stream_node_count, 0.0f);
+    std::vector<double> pvF64(stream_node_count, 0.0);
+    std::vector<uint8_t> pvU8(stream_node_count, 0);
+    std::vector<uint32_t> pvU32(stream_node_count, 0);
+    std::vector<uint64_t> pvU64(stream_node_count, 0);
+    std::vector<int8_t> pvI8(stream_node_count, 0);
+    std::vector<int32_t> pvI32(stream_node_count, 0);
+    std::vector<int64_t> pvI64(stream_node_count, 0);
+
+    for (ptrdiff_t i = 0; i < stream_node_count; i++) {
+      uint8_t v = (uint64_t)i & 0x7f;
+      pvF32[i] = v;
+      pvF64[i] = v;
+      pvU8[i] = v;
+      pvU32[i] = v;
+      pvU64[i] = v;
+      pvI8[i] = v;
+      pvI32[i] = v;
+      pvI64[i] = v;
+    }
+
+    tt::propagatevaluesupstream_f32(pvF32.data(), stream_source.data(),
+                                    stream_target.data(), stream_source.size());
+    tt::propagatevaluesupstream_f64(pvF64.data(), stream_source.data(),
+                                    stream_target.data(), stream_source.size());
+    tt::propagatevaluesupstream_u8(pvU8.data(), stream_source.data(),
+                                   stream_target.data(), stream_source.size());
+    tt::propagatevaluesupstream_u32(pvU32.data(), stream_source.data(),
+                                    stream_target.data(), stream_source.size());
+    tt::propagatevaluesupstream_u64(pvU64.data(), stream_source.data(),
+                                    stream_target.data(), stream_source.size());
+    tt::propagatevaluesupstream_i8(pvI8.data(), stream_source.data(),
+                                   stream_target.data(), stream_source.size());
+    tt::propagatevaluesupstream_i32(pvI32.data(), stream_source.data(),
+                                    stream_target.data(), stream_source.size());
+    tt::propagatevaluesupstream_i64(pvI64.data(), stream_source.data(),
+                                    stream_target.data(), stream_source.size());
+    test_propagatevalues(pvF32.data(), pvF64.data(), pvU8.data(), pvU32.data(),
+                         pvU64.data(), pvI8.data(), pvI32.data(), pvI64.data(),
+                         stream_node_count);
   }
 };
 
