@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  snapshot_version: v1.5.0
+
 on:
   pull_request:
     branches: ["main"]
@@ -18,8 +21,6 @@ jobs:
           clang-format-version: '14'
   debug-build:
     runs-on: ubuntu-latest
-    env:
-      snapshot_version: v1.5.0
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,21 +36,12 @@ jobs:
       - name: Install Python build dependencies
         run: |
           pip install -r ${{github.workspace}}/docs/requirements.txt
-      - name: Cache snapshot data
-        id: cache-snapshots-debug
-        uses: actions/cache@v4
+      - name: Restore snapshot data cache
+        id: restore-cache-snapshots-debug
+        uses: actions/cache/restore@v4
         with:
           path: test/snapshots
           key: snapshots-${{ env.snapshot_version }}
-      - name: Download and extract snapshot data
-        if: steps.cache-snapshots-debug.outputs.cache-hit != 'true'
-        working-directory: test/snapshots
-        shell: bash
-        run: |
-          curl -L -o snapshot_data.tar.gz \
-          "https://github.com/TopoToolbox/snapshot_data/releases/download/$snapshot_version/snapshot_data.tar.gz"
-          tar -xzf snapshot_data.tar.gz
-          shasum -c --status sha256sum.txt
       - name: Configure
         run: >
           cmake -B ${{github.workspace}}/build/debug
@@ -60,6 +52,14 @@ jobs:
           -DBUILD_SHARED_LIBS=OFF
           -DTT_SANITIZE=ON
           -DTT_BUILD_DOCS=ON
+          -DTT_DOWNLOAD_SNAPSHOTS=1
+      - name: Save snapshot data cache
+        if: steps.restore-cache-snapshots-debug.outputs.cache-hit != 'true'
+        id: save-cache-snapshots-debug
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/build/debug/test/snapshots/
+          key: snapshots-${{ env.snapshot_version }}
       - name: Build library
         run: cmake --build ${{github.workspace}}/build/debug --config Debug
       - name: Test
@@ -72,8 +72,6 @@ jobs:
           path: ${{github.workspace}}/build/debug/test/snapshots/
   release-build:
     runs-on: ${{ matrix.os }}
-    env:
-      snapshot_version: v1.5.0
     strategy:
       fail-fast: false
       matrix:
@@ -125,22 +123,13 @@ jobs:
         run: |
           echo "CMAKE_GENERATOR=Ninja" >> "$env:GITHUB_ENV" &&
           echo "CMAKE_CONFIGURATION_TYPES=Release" >> "$env:GITHUB_ENV"
-      - name: Cache snapshot data
+      - name: Restore snapshot data cache
         if: matrix.os == 'ubuntu-latest'
-        id: cache-snapshots-release
-        uses: actions/cache@v4
+        id: restore-cache-snapshots-release
+        uses: actions/cache/restore@v4
         with:
           path: test/snapshots
           key: snapshots-${{ env.snapshot_version }}
-      - name: Download and extract snapshot data
-        if: matrix.os == 'ubuntu-latest' && steps.cache-snapshots-release.outputs.cache-hit != 'true'
-        working-directory: test/snapshots
-        shell: bash
-        run: |
-          curl -L -o snapshot_data.tar.gz \
-          "https://github.com/TopoToolbox/snapshot_data/releases/download/$snapshot_version/snapshot_data.tar.gz"
-          tar -xzf snapshot_data.tar.gz
-          shasum -c --status sha256sum.txt
       - name: Configure static library
         run: >
           cmake -B ${{github.workspace}}/build/static
@@ -151,6 +140,14 @@ jobs:
           -DBUILD_SHARED_LIBS=OFF
           --profiling-format=google-trace
           --profiling-output ${{matrix.os}}_${{matrix.c_compiler}}_config_profile.json
+          -DTT_DOWNLOAD_SNAPSHOTS=1
+      - name: Save snapshot data cache
+        if: matrix.os == 'ubuntu-latest' && steps.restore-cache-snapshots-release.outputs.cache-hit != 'true'
+        id: save-cache-snapshots-release
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/build/static/test/snapshots/
+          key: snapshots-${{ env.snapshot_version }}
       - name: Build static library
         run: cmake --build ${{github.workspace}}/build/static --config Release
       - name: Test static library
