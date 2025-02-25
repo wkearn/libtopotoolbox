@@ -59,9 +59,52 @@ set_tests_properties(excesstopography PROPERTIES ENVIRONMENT_MODIFICATION
 # TEST: snapshots
 #
 # Runs the snapshot tests from available snapshot data
-include(FindGDAL)
+OPTION(TT_DOWNLOAD_SNAPSHOTS "Download snapshot test data if it is not already present in test/snapshots/data" OFF)
 
-if (GDAL_FOUND)
+set(TT_SNAPSHOT_VERSION v1.5.0)
+
+# This is the SHA256 hash of the above version's snapshot_data.tar.gz archive
+set(TT_SNAPSHOT_HASH 20ae12f69e63f2c2fbcd27507bbbf7d1c67b57e41db56075c014ebee7fd873e4)
+
+set(TT_SNAPSHOT_DATA_PATH ${CMAKE_CURRENT_SOURCE_DIR}/snapshots/data)
+
+include(FetchContent)
+
+if (EXISTS ${TT_SNAPSHOT_DATA_PATH})
+  message(STATUS "Found existing snapshot data, copying it into the build directory")
+  
+  file(COPY ${TT_SNAPSHOT_DATA_PATH}
+       DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/snapshots/)
+  set(TT_SNAPSHOT_DIR ${CMAKE_CURRENT_BINARY_DIR}/snapshots/data)
+
+  message(STATUS "Snapshot data directory: ${TT_SNAPSHOT_DIR}")
+elseif(TT_DOWNLOAD_SNAPSHOTS)
+  # If the snapshot data does not yet exist at test/snapshot/data, but
+  # we still want to download the snapshots, we do it with
+  # FetchContent
+  message(STATUS "Downloading snapshot data")
+
+  FetchContent_Declare(
+    snapshot_data
+    URL https://github.com/TopoToolbox/snapshot_data/releases/download/${TT_SNAPSHOT_VERSION}/snapshot_data.tar.gz
+    URL_HASH SHA256=${TT_SNAPSHOT_HASH}
+    SOURCE_DIR snapshots/data/
+    DOWNLOAD_EXTRACT_TIMESTAMP false
+  )
+  FetchContent_MakeAvailable(snapshot_data)
+
+  set(TT_SNAPSHOT_DIR ${snapshot_data_SOURCE_DIR})
+  message(STATUS "Snapshot data directory: ${TT_SNAPSHOT_DIR}")
+else()
+  # If we did not download the snapshot data, and the snapshot data
+  # was not provided, we unset TT_SNAPSHOT_DIR so that we do not build
+  # the snapshot test
+  unset(TT_SNAPSHOT_DIR)
+  message(STATUS "Could not find snapshot data. Snapshot tests will not be run")
+endif()
+
+find_package(GDAL CONFIG)
+if (GDAL_FOUND AND TT_SNAPSHOT_DIR)
   add_executable(snapshot snapshot.cpp utils.c)
   if (TT_SANITIZE AND NOT MSVC)
     # Set up the AddressSanitizer flags
@@ -70,11 +113,7 @@ if (GDAL_FOUND)
   endif()
   target_link_libraries(snapshot PRIVATE topotoolbox GDAL::GDAL)
 
-  # Copy test snapshots to output
-  add_custom_target(copy-test-files ALL
-    ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/snapshots ${CMAKE_CURRENT_BINARY_DIR}/snapshots)
-
-  add_test(NAME snapshot COMMAND snapshot snapshots/data)
+  add_test(NAME snapshot COMMAND snapshot ${TT_SNAPSHOT_DIR})
   set_tests_properties(snapshot PROPERTIES ENVIRONMENT_MODIFICATION
     "PATH=path_list_prepend:$<$<BOOL:${WIN32}>:$<TARGET_FILE_DIR:topotoolbox>>")
 endif()
