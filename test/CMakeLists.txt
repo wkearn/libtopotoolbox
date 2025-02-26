@@ -103,7 +103,7 @@ else()
   message(STATUS "Could not find snapshot data. Snapshot tests will not be run")
 endif()
 
-find_package(GDAL CONFIG)
+include(FindGDAL)
 if (GDAL_FOUND AND TT_SNAPSHOT_DIR)
   add_executable(snapshot snapshot.cpp utils.c)
   if (TT_SANITIZE AND NOT MSVC)
