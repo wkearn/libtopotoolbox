@@ -66,7 +66,7 @@ void normal_vectors(float *restrict nx, float *restrict ny, float *restrict nz,
       float dx = nx[j * dims[0] + i];
       float dy = ny[j * dims[0] + i];
 
-      float inorm = 1.0 / sqrtf(dx * dx + dy * dy + 1.0);
+      float inorm = 1.0f / sqrtf(dx * dx + dy * dy + 1.0);
 
       nx[j * dims[0] + i] *= -inorm;
       ny[j * dims[0] + i] *= -inorm;
