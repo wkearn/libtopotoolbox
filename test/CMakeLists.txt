@@ -61,10 +61,10 @@ set_tests_properties(excesstopography PROPERTIES ENVIRONMENT_MODIFICATION
 # Runs the snapshot tests from available snapshot data
 OPTION(TT_DOWNLOAD_SNAPSHOTS "Download snapshot test data if it is not already present in test/snapshots/data" OFF)
 
-set(TT_SNAPSHOT_VERSION v1.5.0)
+set(TT_SNAPSHOT_VERSION v1.6.0)
 
 # This is the SHA256 hash of the above version's snapshot_data.tar.gz archive
-set(TT_SNAPSHOT_HASH 20ae12f69e63f2c2fbcd27507bbbf7d1c67b57e41db56075c014ebee7fd873e4)
+set(TT_SNAPSHOT_HASH 0034ff2843bdbd3ca26ae2a5749baf813e4ff82d0d1fef5b9ba1ef9a4c43784b)
 
 set(TT_SNAPSHOT_DATA_PATH ${CMAKE_CURRENT_SOURCE_DIR}/snapshots/data)
 
