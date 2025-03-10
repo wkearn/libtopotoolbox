@@ -1,3 +1,5 @@
+#define TOPOTOOLBOX_BUILD
+
 #include <math.h>
 
 #include "topotoolbox.h"
@@ -75,6 +77,7 @@ void normal_vectors(float *restrict nx, float *restrict ny, float *restrict nz,
   }
 }
 
+TOPOTOOLBOX_API
 void hillshade(float *output, float *nx, float *ny, float *nz, float *dem,
                float azimuth, float altitude, float cellsize,
                ptrdiff_t dims[2]) {
