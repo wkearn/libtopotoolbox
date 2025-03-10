@@ -1422,4 +1422,93 @@ TOPOTOOLBOX_API
 void drainagebasins(ptrdiff_t *basins, ptrdiff_t *source, ptrdiff_t *target,
                     ptrdiff_t edge_count, ptrdiff_t dims[2]);
 
+/**
+   @brief Compute the gradient of a DEM using a second-order finite difference
+approximation
+
+   @param[out] p0 The gradient in the first dimension
+   @parblock
+   A pointer to a float array of size `dims[0] * dims[1]`
+
+   `p0` will contain the gradient in the first dimension of the array
+   as specified by `dims`. Whether this corresponds to the positive or
+   negative x or y direction depends on the memory layout and
+   coordinate system of the array.
+   @endparblock
+
+   @param[out] p1 The gradient in the second dimension
+   @parblock
+   A pointer to a float array of size `dims[0] * dims[1]`
+
+   `p1` will contain the gradient in the second dimension of the array
+   as specified by `dims`. Whether this corresponds to the positive or
+   negative x or y direction depends on the memory layout and
+   coordinate system of the array.
+   @endparblock
+
+   @param[in] dem The input digital elevation model
+   @parblock
+   A pointer to a float array of size `dims[0] * dims[1]`
+   @endparblock
+
+   @param[in] cellsize The horizontal resolution of the digital elevation model
+
+   @param[in] dims The dimensions of the arrays
+   @parblock
+   A pointer to a `ptrdiff_t` array of size 2
+
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
+ */
+TOPOTOOLBOX_API
+void gradient_secondorder(float *p0, float *p1, float *dem, float cellsize,
+                          ptrdiff_t dims[2]);
+
+/**
+   @brief Compute a hillshade of the supplied digital elevation model
+
+   @param[out] output The output hillshade
+   @parblock
+   A pointer to a float array of size `dims[0] * dims[1]`.
+   @endparblock
+
+   @param[out] nx The component of the surface normal in the x direction
+   @parblock
+   A pointer to a float array of size `dims[0] * dims[1]`.
+   @endparblock
+
+   @param[out] ny The component of the surface normal in the y direction
+   @parblock
+   A pointer to a float array of size `dims[0] * dims[1]`.
+   @endparblock
+
+   @param[out] nz The component of the surface normal in the z direction
+   @parblock
+   A pointer to a float array of size `dims[0] * dims[1]`.
+   @endparblock
+
+   @param[in] dem The input digital elevation model
+   @parblock
+   A pointer to a float array of size `dims[0] * dims[1]`.
+   @endparblock
+
+   @param[in] azimuth The azimuth angle of the light source (radians clockwise
+from north)
+   @param[in] altitude The altitude angle of the light source (radians above the
+horizon)
+   @param[in] cellsize The spatial resolution of the DEM
+
+   @param[in] dims The dimensions of the arrays
+   @parblock
+   A pointer to a `ptrdiff_t` array of size 2
+
+   The fastest changing dimension should be provided first. For column-major
+   arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
+   @endparblock
+ */
+TOPOTOOLBOX_API
+void hillshade(float *output, float *nx, float *ny, float *nz, float *dem,
+               float azimuth, float altitude, float cellsize,
+               ptrdiff_t dims[2]);
 #endif  // TOPOTOOLBOX_H

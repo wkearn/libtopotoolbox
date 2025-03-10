@@ -1,3 +1,4 @@
+#include <gdal.h>
 #undef NDEBUG
 
 #include <gdal_priv.h>
@@ -24,7 +25,7 @@ Profiler prof;
 
 template <typename T, GDALDataType S>
 void load_data_from_file(const std::string& filename, std::vector<T>& output,
-                         std::array<ptrdiff_t, 2>& dims) {
+                         float& cellsize, std::array<ptrdiff_t, 2>& dims) {
   GDALDataset* dataset = GDALDataset::Open(filename.data(), GA_ReadOnly);
 
   GDALRasterBand* poBand = dataset->GetRasterBand(1);
@@ -35,6 +36,10 @@ void load_data_from_file(const std::string& filename, std::vector<T>& output,
 
   assert(poBand->RasterIO(GF_Read, 0, 0, dims[0], dims[1], output.data(),
                           dims[0], dims[1], S, 0, 0) == CE_None);
+
+  double adfTransform[6];
+  dataset->GetGeoTransform(adfTransform);
+  cellsize = adfTransform[1];
 
   GDALClose(dataset);
 }
@@ -76,12 +81,17 @@ struct SnapshotData {
   std::vector<float> filled_dem;
   std::vector<int32_t> flats;
   std::vector<int32_t> sills;
+  std::vector<float> hs;
 
   // Output arrays
   std::vector<float> test_dem;
   std::vector<float> test_filled_dem;
   std::vector<int32_t> test_flats;
   std::vector<int32_t> test_sills;
+  std::vector<float> test_hs;
+  std::vector<float> test_nx;
+  std::vector<float> test_ny;
+  std::vector<float> test_nz;
 
   // Intermediate arrays
   std::vector<uint8_t> bc;
@@ -93,27 +103,36 @@ struct SnapshotData {
 
     if (exists(snapshot_path / "dem.tif")) {
       load_data_from_file<float, GDT_Float32>(snapshot_path / "dem.tif", dem,
-                                              dims);
+                                              cellsize, dims);
       test_dem = dem;  // Create a copy of the DEM to modify in fillsinks
       assert(test_dem.size() == dem.size());
     }
 
     std::array<ptrdiff_t, 2> dims_check;
+    float cellcheck;
     if (exists(snapshot_path / "fillsinks.tif")) {
-      load_data_from_file<float, GDT_Float32>(snapshot_path / "fillsinks.tif",
-                                              filled_dem, dims_check);
+      load_data_from_file<float, GDT_Float32>(
+          snapshot_path / "fillsinks.tif", filled_dem, cellcheck, dims_check);
       assert(dims[0] == dims_check[0] && dims[1] == dims_check[1]);
     }
 
     if (exists(snapshot_path / "identifyflats_flats.tif")) {
       load_data_from_file<int32_t, GDT_Int32>(
-          snapshot_path / "identifyflats_flats.tif", flats, dims_check);
+          snapshot_path / "identifyflats_flats.tif", flats, cellcheck,
+          dims_check);
       assert(dims[0] == dims_check[0] && dims[1] == dims_check[1]);
     }
 
     if (exists(snapshot_path / "identifyflats_sills.tif")) {
       load_data_from_file<int32_t, GDT_Int32>(
-          snapshot_path / "identifyflats_sills.tif", sills, dims_check);
+          snapshot_path / "identifyflats_sills.tif", sills, cellcheck,
+          dims_check);
+      assert(dims[0] == dims_check[0] && dims[1] == dims_check[1]);
+    }
+
+    if (exists(snapshot_path / "hillshade.tif")) {
+      load_data_from_file<float, GDT_Float32>(snapshot_path / "hillshade.tif",
+                                              hs, cellcheck, dims_check);
       assert(dims[0] == dims_check[0] && dims[1] == dims_check[1]);
     }
 
@@ -126,6 +145,13 @@ struct SnapshotData {
       }
       if (flats.size() > 0 && sills.size() > 0) {
         test_flats.resize(dims[0] * dims[1]);
+      }
+
+      if (hs.size() > 0) {
+        test_nx.resize(dims[0] * dims[1]);
+        test_ny.resize(dims[0] * dims[1]);
+        test_nz.resize(dims[0] * dims[1]);
+        test_hs.resize(dims[0] * dims[1]);
       }
     }
   }
@@ -194,8 +220,30 @@ struct SnapshotData {
     return 0;
   }
 
+  int test_hillshade() {
+    // Azimuth and altitude are 315 and 60 degrees in radians
+    tt::hillshade(test_hs.data(), test_nx.data(), test_ny.data(),
+                  test_nz.data(), dem.data(), 3.926990816987241,
+                  1.047197551196598, cellsize, dims.data());
+
+    for (ptrdiff_t j = 0; j < dims[1]; j++) {
+      for (ptrdiff_t i = 0; i < dims[0]; i++) {
+        float H = test_hs[j * dims[0] + i];
+
+        if (fabsf(H - hs[j * dims[0] + i]) > 1e-4) {
+          write_data_to_file<float, GDT_Float32>(path / "test_hillshade.tif",
+                                                 path / "hillshade.tif",
+                                                 test_hs, dims);
+          return -1;
+        }
+      }
+    }
+
+    return 0;
+  }
+
   int runtests() {
-    std::cout << "    1..2" << std::endl;
+    std::cout << "    1..3" << std::endl;
 
     int result = 0;
     // fillsinks
@@ -216,6 +264,15 @@ struct SnapshotData {
         std::cout << "    not ok 2 - identifyflats" << std::endl;
       } else {
         std::cout << "    ok 2 - identifyflats" << std::endl;
+      }
+    }
+
+    if (hs.size() > 0) {
+      if (test_hillshade() < 0) {
+        result = -1;
+        std::cout << "    not ok 3 - hillshade" << std::endl;
+      } else {
+        std::cout << "    ok 3 - hillshade" << std::endl;
       }
     }
 
@@ -264,6 +321,5 @@ int main(int argc, char* argv[]) {
 
     result |= res;
   }
-
   return result;
 }
