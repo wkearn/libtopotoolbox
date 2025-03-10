@@ -223,7 +223,7 @@ struct SnapshotData {
   int test_hillshade() {
     // Azimuth and altitude are 315 and 60 degrees in radians
     tt::hillshade(test_hs.data(), test_nx.data(), test_ny.data(),
-                  test_nz.data(), dem.data(), 3.926990816987241,
+                  test_nz.data(), dem.data(), 5.497787143782138,
                   1.047197551196598, cellsize, dims.data());
 
     for (ptrdiff_t j = 0; j < dims[1]; j++) {
