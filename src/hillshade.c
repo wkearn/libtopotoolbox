@@ -83,8 +83,8 @@ void hillshade(float *output, float *nx, float *ny, float *nz, float *dem,
                ptrdiff_t dims[2]) {
   normal_vectors(nx, ny, nz, dem, cellsize, dims);
 
-  float sx = sinf(PI_2 - altitude) * cosf(azimuth - PI_2);
-  float sy = sinf(PI_2 - altitude) * sinf(azimuth - PI_2);
+  float sx = sinf(PI_2 - altitude) * cosf(azimuth);
+  float sy = sinf(PI_2 - altitude) * sinf(azimuth);
   float sz = cosf(PI_2 - altitude);
 
   for (ptrdiff_t j = 0; j < dims[1]; j++) {

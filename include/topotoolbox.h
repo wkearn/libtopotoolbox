@@ -1493,10 +1493,22 @@ void gradient_secondorder(float *p0, float *p1, float *dem, float cellsize,
    A pointer to a float array of size `dims[0] * dims[1]`.
    @endparblock
 
-   @param[in] azimuth The azimuth angle of the light source (radians clockwise
-from north)
-   @param[in] altitude The altitude angle of the light source (radians above the
-horizon)
+   @param[in] azimuth The azimuth angle of the light source
+   @parblock
+   `hillshade` expects the azimuth angle to be provided in radians
+   from the first dimension of the grid towards the second dimension
+   of the grid. This is most likely not identical to the geographic
+   azimuth traditionally measured clockwise from north. Callers should
+   take care to rotate their desired azimuth angle into the grid
+   coordinate system depending on the georeferencing of the grid and
+   the memory layout of the array.
+   @endparblock
+
+   @param[in] altitude The altitude angle of the light source
+   @parblock
+   The altitude angle must be provided in radians above the horizon.
+   @endparblock
+
    @param[in] cellsize The spatial resolution of the DEM
 
    @param[in] dims The dimensions of the arrays
