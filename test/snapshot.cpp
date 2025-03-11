@@ -222,8 +222,15 @@ struct SnapshotData {
 
   int test_hillshade() {
     // Azimuth and altitude are 315 and 60 degrees in radians
+    // tt::hillshade requires azimuth to be in radians from the first
+    // dimension towards the second dimension (a right-handed
+    // coordinate system). The DEM data is loaded with the east
+    // coordinates increasing in the first dimensions, and the north
+    // coordinates decreasing in the second dimension. A bearing of
+    // 315 degrees corresponds to 225 degrees (3.927 radians) in the
+    // grid coordinate system.
     tt::hillshade(test_hs.data(), test_nx.data(), test_ny.data(),
-                  test_nz.data(), dem.data(), 5.497787143782138,
+                  test_nz.data(), dem.data(), 3.9269908169872414,
                   1.047197551196598, cellsize, dims.data());
 
     for (ptrdiff_t j = 0; j < dims[1]; j++) {
