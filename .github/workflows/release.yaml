@@ -6,6 +6,7 @@ on:
 
 jobs:
   release:
+    if: github.repository == 'TopoToolbox/libtopotoolbox'
     name: Tag and create a new release
     runs-on: ubuntu-latest
     permissions:
