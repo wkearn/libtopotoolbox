@@ -1014,7 +1014,7 @@ void traverse_up_u32_and(uint32_t *output, uint32_t *input, ptrdiff_t *source,
    @param[in] edge_count The number of edges in the stream network
  */
 TOPOTOOLBOX_API
-void traverse_down_u32_and_or(uint32_t *output, uint32_t *input,
+void traverse_down_u32_or_and(uint32_t *output, uint32_t *input,
                               ptrdiff_t *source, ptrdiff_t *target,
                               ptrdiff_t edge_count);
 /**
