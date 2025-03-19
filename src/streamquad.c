@@ -46,7 +46,7 @@ void traverse_up_u32_and(uint32_t *output, uint32_t *input, ptrdiff_t *source,
 }
 
 TOPOTOOLBOX_API
-void traverse_down_u32_and_or(uint32_t *output, uint32_t *input,
+void traverse_down_u32_or_and(uint32_t *output, uint32_t *input,
                               ptrdiff_t *source, ptrdiff_t *target,
                               ptrdiff_t edge_count) {
   for (ptrdiff_t e = 0; e < edge_count; e++) {
