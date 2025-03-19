@@ -966,6 +966,58 @@ void traverse_up_u32_and(uint32_t *output, uint32_t *input, ptrdiff_t *source,
                          ptrdiff_t *target, ptrdiff_t edge_count);
 
 /**
+   @brief Downstream traversal in the Boolean ({0,1}, or, and) semiring
+
+   Integrates the input node attribute list downstream using bitwise or
+   with multiplication given by bitwise and:
+
+   for e = (u=>v) in edges:
+     output[v] = output[v] | output[u] & input[e];
+
+   @param[out] output The integrated output
+   @parblock
+   A pointer to a `uint32_t` array representing a node attribute list
+
+   If the stream network has N nodes, this array should have a length
+   N. This value must not be less than the largest value in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[in] input The quantity to be integrated
+   @parblock
+   A pointer to a `uint32_t` array representing a node attribute list
+
+   If the stream network has N nodes, this array should have a length
+   N. This value must not be less than the largest value in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 0-based indices of the nodes in the
+   node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 0-based indices of the nodes in
+   the node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
+TOPOTOOLBOX_API
+void traverse_down_u32_and_or(uint32_t *output, uint32_t *input,
+                              ptrdiff_t *source, ptrdiff_t *target,
+                              ptrdiff_t edge_count);
+/**
    @brief Downstream traversal with max-plus
 
    Accumulates the edge weights in the `input` edge attribute list
