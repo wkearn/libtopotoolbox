@@ -1073,6 +1073,61 @@ void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
                                ptrdiff_t *target, ptrdiff_t edge_count);
 
 /**
+   @brief Downstream traversal with min-plus
+
+   Accumulates the edge weights in the `input` edge attribute list
+   using a min-plus update:
+
+   for (e = (u,v)) in edges:
+     output[v] = min(output[v], output[u] + input[e]);
+
+   With input giving the length of each edge and output initialized to
+   zero, this will compute the shortest path from the outlet to a
+   source node.
+
+   @param[out] output The accumulated output
+   @parblock
+   A pointer to a `float` array representing a node attribute list
+
+   If the stream network has N nodes, this array should have a length
+   N. This value must not be less than the largest value in either the
+   `source` or `target` arrays.
+   @endparblock
+
+   @param[in] input The edge weights
+   @parblock
+   A pointer to a `float` array representing a edge attribute list
+
+   If the stream network has edge_count edges, this array should have a length
+   edge_count.
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 0-based indices of the nodes in the
+   node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 0-based indices of the nodes in
+   the node-attribute lists `integral` and `integrand`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
+TOPOTOOLBOX_API
+void traverse_down_f32_min_add(float *output, float *input, ptrdiff_t *source,
+                               ptrdiff_t *target, ptrdiff_t edge_count);
+
+/**
    @brief Downstream traversal with multiply-add
 
    Accumulates the edge weights in the `input` edge attribute list
