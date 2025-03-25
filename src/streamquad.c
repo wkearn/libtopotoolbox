@@ -69,6 +69,17 @@ void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
 }
 
 TOPOTOOLBOX_API
+void traverse_down_f32_min_add(float *output, float *input, ptrdiff_t *source,
+                               ptrdiff_t *target, ptrdiff_t edge_count) {
+  for (ptrdiff_t e = 0; e < edge_count; e++) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+
+    output[v] = fminf(output[v], output[u] + input[e]);
+  }
+}
+
+TOPOTOOLBOX_API
 void traverse_down_f32_add_mul(float *output, float *input, ptrdiff_t *source,
                                ptrdiff_t *target, ptrdiff_t edge_count) {
   for (ptrdiff_t e = 0; e < edge_count; e++) {
