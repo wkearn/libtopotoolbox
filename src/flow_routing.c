@@ -10,7 +10,8 @@
 // Compute the steepest descent flow direction from the DEM with flow
 // routed over flat regions by the auxiliary topography in dist.
 uint8_t compute_flowdirection(ptrdiff_t i, ptrdiff_t j, float *dem, float *dist,
-                              int32_t *flats, ptrdiff_t dims[2]) {
+                              int32_t *flats, ptrdiff_t dims[2],
+                              unsigned int order) {
   int32_t is_flat = flats[j * dims[0] + i] & 1;
   float z = is_flat > 0 ? dist[j * dims[0] + i] : dem[j * dims[0] + i];
   uint8_t direction = 0;
@@ -31,7 +32,6 @@ uint8_t compute_flowdirection(ptrdiff_t i, ptrdiff_t j, float *dem, float *dist,
       // ...
     }
    */
-  unsigned int order = 0;
 
   ptrdiff_t ij_offsets[2][8] = {{0, 1, 1, 1, 0, -1, -1, -1},
                                 {1, 1, 0, -1, -1, -1, 0, 1}};
@@ -130,7 +130,8 @@ uint8_t compute_flowdirection_TT2(ptrdiff_t i, ptrdiff_t j, float *dem,
 
 TOPOTOOLBOX_API
 void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
-                           float *dist, int32_t *flats, ptrdiff_t dims[2]) {
+                           float *dist, int32_t *flats, ptrdiff_t dims[2],
+                           unsigned int order) {
   // node contains an array of dims[0] * dims[1] linear pixel indices
   // into dem. These indices are sorted topologically, so that if
   // there is an edge from node u to node v, u comes before v in the
@@ -169,8 +170,6 @@ void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
     }
   }
 
-  unsigned int order = 0;
-
   ptrdiff_t strides[2] = {0};
   if (order & 1) {
     // row-major
@@ -207,7 +206,7 @@ void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
             ptrdiff_t u_j = u / dims[0];
 
             uint8_t flowdir =
-                compute_flowdirection(u_i, u_j, dem, dist, flats, dims);
+                compute_flowdirection(u_i, u_j, dem, dist, flats, dims, order);
 
             if (flowdir == 0) {
               // This node is a sink/outlet
@@ -256,9 +255,7 @@ void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
 TOPOTOOLBOX_API
 ptrdiff_t flow_routing_d8_edgelist(ptrdiff_t *source, ptrdiff_t *target,
                                    ptrdiff_t *node, uint8_t *direction,
-                                   ptrdiff_t dims[2]) {
-  unsigned int order = 0;  // 0 == column-major, 1 == row-major
-
+                                   ptrdiff_t dims[2], unsigned int order) {
   // For an array of size {m,n}, strides is {n,1} if row-major, {1, m} if
   // column-major Note dims = {m,n} for column-major, {n,m} for row-major
   ptrdiff_t strides[2] = {0};
