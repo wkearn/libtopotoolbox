@@ -16,20 +16,39 @@ uint8_t compute_flowdirection(ptrdiff_t i, ptrdiff_t j, float *dem, float *dist,
   uint8_t direction = 0;
   float max_gradient = 0.0;
 
+  /*
+    We need the index offsets so we can easily check the bounds of the
+    array. To index in the correct order, we need to reverse the
+    direction of indexing when working with row-major arrays. This
+    amounts to swapping the i_offsets and j_offsets when the input
+    arrays are row-major (order == 1). ijoffsets[order] is the correct
+    index offset in the first dimension and ijoffsets[order ^ 1] is
+    the corect index offset in the second dimension.
+
+    for (int neighbor = 0; neighbor < 8; neighbor++) {
+      ptrdiff_t i_offset = ijoffsets[order & 1][neighbor];
+      ptrdiff_t j_offset = ijoffsets[(order ^ 1) & 1][neighbor];
+      // ...
+    }
+   */
+  unsigned int order = 0;
+
+  ptrdiff_t ij_offsets[2][8] = {{0, 1, 1, 1, 0, -1, -1, -1},
+                                {1, 1, 0, -1, -1, -1, 0, 1}};
+
   float chamfer[8] = {1.0, sqrtf(2.0), 1.0, sqrtf(2.0),
                       1.0, sqrtf(2.0), 1.0, sqrtf(2.0)};
-
-  ptrdiff_t i_offset[8] = {0, 1, 1, 1, 0, -1, -1, -1};
-  ptrdiff_t j_offset[8] = {1, 1, 0, -1, -1, -1, 0, 1};
 
   for (int32_t neighbor = 0; neighbor < 8; neighbor++) {
     uint8_t query_direction = 1 << neighbor;
     // step_downstream(idxs, query_direction, idx, dims);
-    ptrdiff_t neighbor_i = i + i_offset[neighbor];
-    ptrdiff_t neighbor_j = j + j_offset[neighbor];
+    ptrdiff_t neighbor_i = i + ij_offsets[order & 1][neighbor];
+    ptrdiff_t neighbor_j = j + ij_offsets[(order ^ 1) & 1][neighbor];
 
     if (neighbor_i < 0 || neighbor_i >= dims[0] || neighbor_j < 0 ||
         neighbor_j >= dims[1]) {
+      // This check is important, because we are not yet sure whether
+      // it is in bounds or not.
       continue;
     }
 
@@ -150,8 +169,22 @@ void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
     }
   }
 
-  ptrdiff_t i_offset[8] = {0, 1, 1, 1, 0, -1, -1, -1};
-  ptrdiff_t j_offset[8] = {1, 1, 0, -1, -1, -1, 0, 1};
+  unsigned int order = 0;
+
+  ptrdiff_t strides[2] = {0};
+  if (order & 1) {
+    // row-major
+    strides[0] = dims[0];
+    strides[1] = 1;
+  } else {
+    strides[0] = 1;
+    strides[1] = dims[0];
+  }
+
+  ptrdiff_t offsets[8] = {strides[1],  strides[0] + strides[1],
+                          strides[0],  strides[0] - strides[1],
+                          -strides[1], -strides[0] - strides[1],
+                          -strides[0], -strides[0] + strides[1]};
 
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
@@ -192,14 +225,7 @@ void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
             while (d >>= 1) {
               r++;
             }
-            ptrdiff_t v_i = u_i + i_offset[r];
-            ptrdiff_t v_j = u_j + j_offset[r];
-
-            if (v_i < 0 || v_i >= dims[0] || v_j < 0 || v_j >= dims[1]) {
-              continue;
-            }
-
-            ptrdiff_t v = v_j * dims[0] + v_i;
+            ptrdiff_t v = u + offsets[r];
 
             if (direction[v] == 0xff) {
               // The neighbor has not been visited yet
@@ -231,8 +257,37 @@ TOPOTOOLBOX_API
 ptrdiff_t flow_routing_d8_edgelist(ptrdiff_t *source, ptrdiff_t *target,
                                    ptrdiff_t *node, uint8_t *direction,
                                    ptrdiff_t dims[2]) {
-  ptrdiff_t offsets[8] = {dims[0],  dims[0] + 1,  1,  -dims[0] + 1,
-                          -dims[0], -dims[0] - 1, -1, dims[0] - 1};
+  unsigned int order = 0;  // 0 == column-major, 1 == row-major
+
+  // For an array of size {m,n}, strides is {n,1} if row-major, {1, m} if
+  // column-major Note dims = {m,n} for column-major, {n,m} for row-major
+  ptrdiff_t strides[2] = {0};
+  if (order & 1) {
+    // row-major
+    strides[0] = dims[0];
+    strides[1] = 1;
+  } else {
+    strides[0] = 1;
+    strides[1] = dims[0];
+  }
+
+  /*
+    These are the offsets of the linear addresses for each neighbor
+    of the central cell, regardless of the memory order,
+
+    ---------------------------------------
+    | -s[0] - s[1] | -s[0] | -s[0] + s[1] |
+    |       - s[1] |   0   |         s[1] |
+    |  s[0] - s[1] |  s[0] |  s[0] + s[1] |
+    ---------------------------------------
+
+    assuming that s[0] is the stride between rows and s[1] is the
+    stride between columns.
+   */
+  ptrdiff_t offsets[8] = {strides[1],  strides[0] + strides[1],
+                          strides[0],  strides[0] - strides[1],
+                          -strides[1], -strides[0] - strides[1],
+                          -strides[0], -strides[0] + strides[1]};
 
   ptrdiff_t edge_count = 0;
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
