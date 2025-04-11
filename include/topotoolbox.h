@@ -643,10 +643,17 @@ void excesstopography_fmm3d(float *excess, ptrdiff_t *heap, ptrdiff_t *back,
    The fastest changing dimension should be provided first. For column-major
    arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
    @endparblock
+
+   @param[in] order The memory order of the underlying array
+   @parblock
+   0 for column-major, 1 for row-major
+
+   @endparblock
  */
 TOPOTOOLBOX_API
 void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
-                           float *dist, int32_t *flats, ptrdiff_t dims[2]);
+                           float *dist, int32_t *flats, ptrdiff_t dims[2],
+                           unsigned int order);
 
 /**
    @brief Compute downstream pixel indices from flow directions
@@ -686,13 +693,19 @@ void flow_routing_d8_carve(ptrdiff_t *node, uint8_t *direction, float *dem,
    arrays, `dims = {nrows,ncols}`. For row-major arrays, `dims = {ncols,nrows}`.
    @endparblock
 
+   @param[in] order The memory order of the underlying array
+   @parblock
+   0 for column-major, 1 for row-major
+
+   @endparblock
+
    @return The number of valid edges contained in the `source` and `target`
    arrays
  */
 TOPOTOOLBOX_API
 ptrdiff_t flow_routing_d8_edgelist(ptrdiff_t *source, ptrdiff_t *target,
                                    ptrdiff_t *node, uint8_t *direction,
-                                   ptrdiff_t dims[2]);
+                                   ptrdiff_t dims[2], unsigned int order);
 
 /**
    @brief Compute flow accumulation

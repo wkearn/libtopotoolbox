@@ -667,11 +667,11 @@ struct FlowRoutingData {
              back.data(), dims.data());
 
     tt::flow_routing_d8_carve(nodes.data(), direction.data(), filled_dem.data(),
-                              dist.data(), flats.data(), dims.data());
+                              dist.data(), flats.data(), dims.data(), 0);
 
     edge_count =
         tt::flow_routing_d8_edgelist(source.data(), target.data(), nodes.data(),
-                                     direction.data(), dims.data());
+                                     direction.data(), dims.data(), 0);
 
     tt::flow_accumulation_edgelist(accum2.data(), source.data(), target.data(),
                                    fraction.data(), NULL, edge_count,
@@ -695,11 +695,11 @@ struct FlowRoutingData {
              back.data(), dims.data());
 
     tt::flow_routing_d8_carve(nodes.data(), direction.data(), filled_dem.data(),
-                              dist.data(), flats.data(), dims.data());
+                              dist.data(), flats.data(), dims.data(), 0);
 
     edge_count =
         tt::flow_routing_d8_edgelist(source.data(), target.data(), nodes.data(),
-                                     direction.data(), dims.data());
+                                     direction.data(), dims.data(), 0);
 
     tt::flow_accumulation_edgelist(accum2.data(), source.data(), target.data(),
                                    fraction.data(), NULL, edge_count,
