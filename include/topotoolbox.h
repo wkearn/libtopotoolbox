@@ -943,17 +943,14 @@ void streamquad_trapz_f64(double *integral, double *integrand,
    @parblock
    A pointer to a `uint32_t` array representing a node attribute list
 
-   If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
    @endparblock
 
    @param[in] weights The edge weights
    @parblock
-   A pointer to a `uint32_t` array representing an edge attribute list
-
-   If the stream network has N nodes, this array should have a length
-   edge_count.
+   A pointer to a `uint32_t` array of size `edge_count`
    @endparblock
 
    @param[in] source The source node of each edge in the stream
@@ -961,9 +958,11 @@ void streamquad_trapz_f64(double *integral, double *integrand,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
+   This array should have length `edge_count`.
+
    The source nodes must be in topological order. The labels must
-   correspond to the 0-based indices of the nodes in the
-   node-attribute lists `integral` and `integrand`.
+   correspond to the 0-based indices of the node-attribute list
+   `output`
    @endparblock
 
    @param[in] target The target nodes of each edge in the stream
@@ -971,8 +970,8 @@ void streamquad_trapz_f64(double *integral, double *integrand,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 0-based indices of the nodes in
-   the node-attribute lists `integral` and `integrand`.
+   The labels must correspond to the 0-based indices of the
+   node-attribute lists `output`
    @endparblock
 
    @param[in] edge_count The number of edges in the stream network
@@ -985,28 +984,24 @@ void traverse_up_u32_or_and(uint32_t *output, uint32_t *weights,
 /**
    @brief Downstream traversal in the Boolean ({0,1}, or, and) semiring
 
-   Integrates the input node attribute list downstream using bitwise or
+   Accumulates the input node attribute list downstream using bitwise or
    with multiplication given by bitwise and:
 
    for e = (u=>v) in edges:
      output[v] = output[v] | output[u] & input[e];
 
-   @param[out] output The integrated output
+   @param[out] output The accumulated output
    @parblock
    A pointer to a `uint32_t` array representing a node attribute list
 
-   If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
    @endparblock
 
-   @param[in] input The quantity to be integrated
+   @param[in] input The edge weights
    @parblock
-   A pointer to a `uint32_t` array representing a node attribute list
-
-   If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   A pointer to a `uint32_t` array of size `edge_count`
    @endparblock
 
    @param[in] source The source node of each edge in the stream
@@ -1015,8 +1010,8 @@ void traverse_up_u32_or_and(uint32_t *output, uint32_t *weights,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 0-based indices of the nodes in the
-   node-attribute lists `integral` and `integrand`.
+   correspond to the 0-based indices of the node-attribute list
+   `output`.
    @endparblock
 
    @param[in] target The target nodes of each edge in the stream
@@ -1024,8 +1019,8 @@ void traverse_up_u32_or_and(uint32_t *output, uint32_t *weights,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 0-based indices of the nodes in
-   the node-attribute lists `integral` and `integrand`.
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `output`.
    @endparblock
 
    @param[in] edge_count The number of edges in the stream network
@@ -1051,17 +1046,14 @@ void traverse_down_u32_or_and(uint32_t *output, uint32_t *input,
    @parblock
    A pointer to a `float` array representing a node attribute list
 
-   If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
    @endparblock
 
    @param[in] input The edge weights
    @parblock
-   A pointer to a `float` array representing a edge attribute list
-
-   If the stream network has edge_count edges, this array should have a length
-   edge_count.
+   A pointer to a `float` array of size `edge_count`
    @endparblock
 
    @param[in] source The source node of each edge in the stream
@@ -1070,8 +1062,8 @@ void traverse_down_u32_or_and(uint32_t *output, uint32_t *input,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 0-based indices of the nodes in the
-   node-attribute lists `integral` and `integrand`.
+   correspond to the 0-based indices of the node-attribute list
+   `output`.
    @endparblock
 
    @param[in] target The target nodes of each edge in the stream
@@ -1079,8 +1071,8 @@ void traverse_down_u32_or_and(uint32_t *output, uint32_t *input,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 0-based indices of the nodes in
-   the node-attribute lists `integral` and `integrand`.
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `output`.
    @endparblock
 
    @param[in] edge_count The number of edges in the stream network
@@ -1106,17 +1098,14 @@ void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
    @parblock
    A pointer to a `float` array representing a node attribute list
 
-   If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
    @endparblock
 
    @param[in] input The edge weights
    @parblock
-   A pointer to a `float` array representing a edge attribute list
-
-   If the stream network has edge_count edges, this array should have a length
-   edge_count.
+   A pointer to a `float` array of size `edge_count`
    @endparblock
 
    @param[in] source The source node of each edge in the stream
@@ -1125,8 +1114,8 @@ void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 0-based indices of the nodes in the
-   node-attribute lists `integral` and `integrand`.
+   correspond to the 0-based indices of the node-attribute list
+   `output`.
    @endparblock
 
    @param[in] target The target nodes of each edge in the stream
@@ -1134,8 +1123,8 @@ void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 0-based indices of the nodes in
-   the node-attribute lists `integral` and `integrand`.
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `output`.
    @endparblock
 
    @param[in] edge_count The number of edges in the stream network
@@ -1160,17 +1149,14 @@ void traverse_down_f32_min_add(float *output, float *input, ptrdiff_t *source,
    @parblock
    A pointer to a `float` array representing a node attribute list
 
-   If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
    @endparblock
 
    @param[in] input The edge weights
    @parblock
-   A pointer to a `float` array representing a edge attribute list
-
-   If the stream network has edge_count edges, this array should have a length
-   edge_count.
+   A pointer to a `float` array of size `edge_count`
    @endparblock
 
    @param[in] source The source node of each edge in the stream
@@ -1179,8 +1165,8 @@ void traverse_down_f32_min_add(float *output, float *input, ptrdiff_t *source,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 0-based indices of the nodes in the
-   node-attribute lists `integral` and `integrand`.
+   correspond to the 0-based indices of the node-attribute list
+   `output`.
    @endparblock
 
    @param[in] target The target nodes of each edge in the stream
@@ -1188,8 +1174,8 @@ void traverse_down_f32_min_add(float *output, float *input, ptrdiff_t *source,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 0-based indices of the nodes in
-   the node-attribute lists `integral` and `integrand`.
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `output`.
    @endparblock
 
    @param[in] edge_count The number of edges in the stream network
@@ -1205,18 +1191,18 @@ void traverse_down_f32_add_mul(float *output, float *input, ptrdiff_t *source,
    @parblock
    A pointer to a `uint8_t` array representing a node attribute list
 
-   If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
    @endparblock
 
    @param[out] outdegree The outdegree of each node in the stream network
    @parblock
    A pointer to a `uint8_t` array representing a node attribute list
 
-   If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
    @endparblock
 
    @param[in] source The source node of each edge in the stream
@@ -1225,8 +1211,8 @@ void traverse_down_f32_add_mul(float *output, float *input, ptrdiff_t *source,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 0-based indices of the nodes in the
-   node-attribute lists `integral` and `integrand`.
+   correspond to the 0-based indices of the node-attribute list
+   `indegree` and `outdegree`.
    @endparblock
 
    @param[in] target The target nodes of each edge in the stream
@@ -1234,8 +1220,8 @@ void traverse_down_f32_add_mul(float *output, float *input, ptrdiff_t *source,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 0-based indices of the nodes in
-   the node-attribute lists `integral` and `integrand`.
+   The labels must correspond to the 0-based indices of the
+   node-attribute lists `indegree` and `outdegree`.
    @endparblock
 
    @param[in] node_count The number of nodes in the stream network
@@ -1271,8 +1257,8 @@ void edgelist_degree(uint8_t *indegree, uint8_t *outdegree, ptrdiff_t *source,
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
    The source nodes must be in topological order. The labels must
-   correspond to the 0-based indices of the nodes in the
-   node-attribute list `data`.
+   correspond to the 0-based indices of the node-attribute list
+   `data`.
    @endparblock
 
    @param[in] target The target nodes of each edge in the stream
@@ -1280,8 +1266,8 @@ void edgelist_degree(uint8_t *indegree, uint8_t *outdegree, ptrdiff_t *source,
    @parblock
    A pointer to a `ptrdiff_t` array of size `edge_count`
 
-   The labels must correspond to the 0-based indices of the nodes in
-   the node-attribute list `data`
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `data`.
    @endparblock
 
    @param[in] edge_count The number of edges in the stream network
