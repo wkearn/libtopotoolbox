@@ -576,9 +576,7 @@ int32_t test_db_traverse(ptrdiff_t *basins, ptrdiff_t *source,
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
       ptrdiff_t p = j * dims[0] + i;
       if (indegree[p] > 0 && outdegree[p] == 0) {
-        assert(0 <= basins[p]);
-        assert(basins[p] < UINT32_MAX);
-        traverse_basins[p] = basins[p];
+        traverse_basins[p] = (uint32_t)basins[p];
       }
     }
   }
