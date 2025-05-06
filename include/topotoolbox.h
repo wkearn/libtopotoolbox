@@ -927,15 +927,19 @@ void streamquad_trapz_f64(double *integral, double *integrand,
                           ptrdiff_t edge_count);
 
 /**
-   @brief Upstream traversal with bitwise and
+   @brief Upstream traversal in the (or, and) semiring
 
-   Integrates the input node attribute list upstream using bitwise
-   and:
+   Traverses the stream network in the upstream direction,
+   accumulating the values in `output` with edge weights given by the
+   `weights` array. The weights are applied with a bitwise and and
+   accumulated with a bitwise or.
 
-   for (u=>v) in edges:
-     output[u] = output[v] & input[u];
+   ```
+   for (e = (u,v) in edges:
+     output[u] = output[u] | (output[v] & input[e]);
+   ```
 
-   @param[out] output The integrated output
+   @param[out] output The accumulated output
    @parblock
    A pointer to a `uint32_t` array representing a node attribute list
 
@@ -944,13 +948,12 @@ void streamquad_trapz_f64(double *integral, double *integrand,
    `source` or `target` arrays.
    @endparblock
 
-   @param[in] input The quantity to be integrated
+   @param[in] weights The edge weights
    @parblock
-   A pointer to a `uint32_t` array representing a node attribute list
+   A pointer to a `uint32_t` array representing an edge attribute list
 
    If the stream network has N nodes, this array should have a length
-   N. This value must not be less than the largest value in either the
-   `source` or `target` arrays.
+   edge_count.
    @endparblock
 
    @param[in] source The source node of each edge in the stream
@@ -975,8 +978,9 @@ void streamquad_trapz_f64(double *integral, double *integrand,
    @param[in] edge_count The number of edges in the stream network
  */
 TOPOTOOLBOX_API
-void traverse_up_u32_and(uint32_t *output, uint32_t *input, ptrdiff_t *source,
-                         ptrdiff_t *target, ptrdiff_t edge_count);
+void traverse_up_u32_or_and(uint32_t *output, uint32_t *weights,
+                            ptrdiff_t *source, ptrdiff_t *target,
+                            ptrdiff_t edge_count);
 
 /**
    @brief Downstream traversal in the Boolean ({0,1}, or, and) semiring

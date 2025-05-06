@@ -35,13 +35,14 @@ void streamquad_trapz_f64(double *integral, double *integrand,
 }
 
 TOPOTOOLBOX_API
-void traverse_up_u32_and(uint32_t *output, uint32_t *input, ptrdiff_t *source,
-                         ptrdiff_t *target, ptrdiff_t edge_count) {
+void traverse_up_u32_or_and(uint32_t *output, uint32_t *input,
+                            ptrdiff_t *source, ptrdiff_t *target,
+                            ptrdiff_t edge_count) {
   for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
     ptrdiff_t u = source[e];
     ptrdiff_t v = target[e];
 
-    output[u] = output[v] & input[u];
+    output[u] = output[u] | (output[v] & input[e]);
   }
 }
 

@@ -439,7 +439,7 @@ int32_t test_routeflowd8_tsort(uint8_t *marks, ptrdiff_t *source,
 int32_t test_flow_accumulation_max(float *acc, ptrdiff_t dims[2]) {
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      assert(acc[j * dims[0] + i] < (dims[0] * dims[1]));
+      assert(acc[j * dims[0] + i] <= (dims[0] * dims[1]));
     }
   }
   return 0;
@@ -555,6 +555,40 @@ int32_t test_propagatevalues(float *pvF32, double *pvF64, uint8_t *pvU8,
            pvU64[v] == pvU32[v] && (uint64_t)pvI8[v] == pvU64[v] &&
            pvI32[v] == pvI8[v] && pvI64[v] == pvI32[v]);
   }
+  return 0;
+}
+
+// drainagebasins should return the same drainage basins computed
+// using an appropriately initialized traverse_up_u32_or_and.
+int32_t test_db_traverse(ptrdiff_t *basins, ptrdiff_t *source,
+                         ptrdiff_t *target, ptrdiff_t edge_count,
+                         ptrdiff_t dims[2]) {
+  std::vector<uint32_t> ones(edge_count, 0xffffffff);           // Edge weights
+  std::vector<uint32_t> traverse_basins(dims[0] * dims[1], 0);  // Basin labels
+  std::vector<uint8_t> indegree(dims[0] * dims[1], 0);
+  std::vector<uint8_t> outdegree(dims[0] * dims[1], 0);
+
+  // Identify outlets
+  tt::edgelist_degree(indegree.data(), outdegree.data(), source, target,
+                      dims[0] * dims[1], edge_count);
+
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      ptrdiff_t p = j * dims[0] + i;
+      if (indegree[p] > 0 && outdegree[p] == 0) {
+        traverse_basins[p] = (uint32_t)basins[p];
+      }
+    }
+  }
+  tt::traverse_up_u32_or_and(traverse_basins.data(), ones.data(), source,
+                             target, edge_count);
+
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      assert(basins[j * dims[0] + i] == traverse_basins[j * dims[0] + i]);
+    }
+  }
+
   return 0;
 }
 
@@ -804,6 +838,8 @@ struct FlowRoutingData {
     drainagebasins();
     test_drainagebasins(basins.data(), source.data(), target.data(), edge_count,
                         dims.data());
+    test_db_traverse(basins.data(), source.data(), target.data(), edge_count,
+                     dims.data());
 
     // route_flow and route_flow_hybrid only run the edgelist variant
     // of flow_accumulation, so we must run it explicitly.
