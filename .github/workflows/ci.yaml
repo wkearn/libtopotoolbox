@@ -70,6 +70,9 @@ jobs:
         with:
           name: snapshot_test_output
           path: ${{github.workspace}}/build/debug/test/snapshots/
+      - name: Build library with Makefile
+        working-directory: ${{github.workspace}}/src
+        run: make
   release-build:
     runs-on: ${{ matrix.os }}
     strategy:
