@@ -60,11 +60,9 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
 
     // Perform four eikonal_solver sweeps in alternating directions
 
-    // TODO(wsk): Do we still have to skip the boundary pixels?
-
     // Sweep 1
-    for (ptrdiff_t j = 1; j < dims[1] - 1; j++) {
-      for (ptrdiff_t i = 1; i < dims[0] - 1; i++) {
+    for (ptrdiff_t j = 0; j < dims[1]; j++) {
+      for (ptrdiff_t i = 0; i < dims[0]; i++) {
         float fi = cellsize * threshold_slopes[j * dims[0] + i];
         float proposal = eikonal_solver(excess, fi, i, j, dims);
         if (proposal < excess[j * dims[0] + i]) {
@@ -75,8 +73,8 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
     }
 
     // Sweep 2
-    for (ptrdiff_t j = dims[1] - 2; j > 0; j--) {
-      for (ptrdiff_t i = 1; i < dims[0] - 1; i++) {
+    for (ptrdiff_t j = dims[1] - 1; j >= 0; j--) {
+      for (ptrdiff_t i = 0; i < dims[0]; i++) {
         float fi = cellsize * threshold_slopes[j * dims[0] + i];
         float proposal = eikonal_solver(excess, fi, i, j, dims);
         if (proposal < excess[j * dims[0] + i]) {
@@ -87,8 +85,8 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
     }
 
     // Sweep 3
-    for (ptrdiff_t j = dims[1] - 2; j > 0; j--) {
-      for (ptrdiff_t i = dims[0] - 2; i > 0; i--) {
+    for (ptrdiff_t j = dims[1] - 1; j >= 0; j--) {
+      for (ptrdiff_t i = dims[0] - 1; i >= 0; i--) {
         float fi = cellsize * threshold_slopes[j * dims[0] + i];
         float proposal = eikonal_solver(excess, fi, i, j, dims);
         if (proposal < excess[j * dims[0] + i]) {
@@ -99,8 +97,8 @@ void excesstopography_fsm2d(float *excess, float *dem, float *threshold_slopes,
     }
 
     // Sweep 4
-    for (ptrdiff_t j = 1; j < dims[1] - 1; j++) {
-      for (ptrdiff_t i = dims[0] - 2; i > 0; i--) {
+    for (ptrdiff_t j = 0; j < dims[1]; j++) {
+      for (ptrdiff_t i = dims[0] - 1; i >= 0; i--) {
         float fi = cellsize * threshold_slopes[j * dims[0] + i];
         float proposal = eikonal_solver(excess, fi, i, j, dims);
         if (proposal < excess[j * dims[0] + i]) {
