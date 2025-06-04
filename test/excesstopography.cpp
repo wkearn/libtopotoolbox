@@ -64,6 +64,21 @@ int32_t test_excess_isfinite(float *excess, ptrdiff_t dims[2]) {
   return 0;
 }
 
+int32_t test_method_equivalence(float *z1, float *z2, ptrdiff_t dims[2]) {
+  for (ptrdiff_t j = 0; j < dims[1]; j++) {
+    for (ptrdiff_t i = 0; i < dims[0]; i++) {
+      float zz1 = z1[j * dims[0] + i];
+      float zz2 = z2[j * dims[0] + i];
+      if (fabsf(zz1 - zz2) > 1e-4) {
+        std::cout << "(" << i << " ," << j << "): " << zz1 << " != " << zz2
+                  << std::endl;
+        assert(0);
+      }
+    }
+  }
+  return 0;
+}
+
 int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t nlayers, uint32_t seed) {
   float *dem = new float[dims[0] * dims[1]];
   float *fmm_excess = new float[dims[0] * dims[1]];
@@ -110,6 +125,8 @@ int32_t random_dem_test(ptrdiff_t dims[2], ptrdiff_t nlayers, uint32_t seed) {
 
   test_excess_constraint(fmm_excess, dem, dims);
   test_upwind_gradient(fmm_excess, threshold, cellsize, dims);
+
+  test_method_equivalence(fmm_excess, fsm_excess, dims);
 
   excesstopography_fmm3d(fmm_excess3d, heap3d, back3d, dem, lithstack,
                          threshold_slopes3d, cellsize, dims, nlayers);
