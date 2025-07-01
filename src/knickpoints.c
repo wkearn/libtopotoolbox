@@ -75,8 +75,8 @@ void lowerenv(float *elevation, uint8_t *knickpoints, float *distance,
 
       // ix[u] is the index in the edge lists of the unique edge that
       // starts at u.
-      for (ptrdiff_t e = 0; e < edge_count; e++) {
-        ix[source[e]] = e;
+      for (ptrdiff_t e1 = 0; e1 < edge_count; e1++) {
+        ix[source[e1]] = e1;
       }
 
       // Visit node v
