@@ -558,6 +558,25 @@ int32_t test_propagatevalues(float *pvF32, double *pvF64, uint8_t *pvU8,
   return 0;
 }
 
+int32_t test_lowerenv_convex(float *g, float *z, float *d, uint8_t *knickpoints,
+                             ptrdiff_t *source, ptrdiff_t *target,
+                             ptrdiff_t edge_count, ptrdiff_t node_count) {
+  for (ptrdiff_t e = 0; e < edge_count; e++) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+
+    g[u] = (z[u] - z[v]) / (d[u] - d[v]);
+  }
+
+  for (ptrdiff_t e = 0; e < edge_count; e++) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+
+    assert(((g[u] - g[v]) >= -1e-6) || knickpoints[v]);
+  }
+  return 0;
+}
+
 // drainagebasins should return the same drainage basins computed
 // using an appropriately initialized traverse_up_u32_or_and.
 int32_t test_db_traverse(ptrdiff_t *basins, ptrdiff_t *source,
@@ -904,6 +923,40 @@ struct FlowRoutingData {
     test_propagatevalues(pvF32.data(), pvF64.data(), pvU8.data(), pvU32.data(),
                          pvU64.data(), pvI8.data(), pvI32.data(), pvI64.data(),
                          stream_node_count);
+
+    std::vector<uint8_t> kn(stream_node_count, 0);
+    std::vector<uint8_t> onenvelope(stream_node_count, 0);
+    std::vector<ptrdiff_t> ix(stream_node_count, 0);
+    std::vector<float> z(stream_node_count, 1.0f);
+    std::vector<float> d(stream_node_count, 0.0f);
+    std::vector<float> w(stream_source.size(), 0.0f);
+
+    for (ptrdiff_t j = 0; j < dims[1]; j++) {
+      for (ptrdiff_t i = 0; i < dims[0]; i++) {
+        ptrdiff_t node = j * dims[0] + i;
+        if (stream_grid[node] >= 0) {
+          z[stream_grid[node]] = dem[node];
+          d[stream_grid[node]] = distance[node];
+        }
+      }
+    }
+
+    for (ptrdiff_t i = 0; i < stream_node_count; i++) {
+      kn[i] = (i % 10) == 0;
+    }
+
+    // imposemin
+    tt::traverse_down_f32_min_add(z.data(), w.data(), stream_source.data(),
+                                  stream_target.data(), stream_source.size());
+
+    tt::lowerenv(z.data(), kn.data(), d.data(), ix.data(), onenvelope.data(),
+                 stream_source.data(), stream_target.data(),
+                 stream_source.size(), stream_node_count);
+
+    std::vector<float> g(stream_node_count, 0.0f);
+    test_lowerenv_convex(g.data(), z.data(), d.data(), kn.data(),
+                         stream_source.data(), stream_target.data(),
+                         stream_source.size(), stream_node_count);
   }
 };
 

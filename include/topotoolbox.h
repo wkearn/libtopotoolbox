@@ -1676,4 +1676,73 @@ void hillshade(float *output, float *dx, float *dy, float *dem, float azimuth,
 TOPOTOOLBOX_API
 void hillshade_fused(float *output, float *dem, float azimuth, float altitude,
                      float cellsize, ptrdiff_t dims[2]);
+
+/**
+   @brief Compute the lower convex envelope of a stream profile
+
+   @param[inout] elevation A node attribute list of elevations
+   @parblock
+   A pointer to a float array representing a node attribute list.
+
+   `elevation` should be initialized with the elevation of the stream
+   profile whose lower convex envelope will be computed. It will be
+   modified in place.
+   @endparblock
+
+   @param[in] knickpoints A logical node attribute list specifying knickpoints
+   @parblock
+
+   A pointer to a uint8_t array representing a node attribute list.
+
+   The resulting elevation profile will be nonconvex only at nodes
+   whose value in this array is nonzero.
+   @endparblock
+
+   @param[in] distance A node attribute list containing upstream distances
+   @parblock
+
+   A pointer to a float array representing a node attribute list. Each
+   entry should contain the distance upstream from an outlet of the
+   corresponding node.
+   @endparblock
+
+   @param[inout] ix A node attribute list used as an intermediate array
+   @parblock
+
+   A pointer to a ptrdiff_t array representing a node attribute
+   list. It is used as an intermediate array and is initialized as
+   needed within `lowerenv`.
+
+   @endparblock
+
+   @param[inout] onenvelope A node attribute list used as an intermediate array
+   @parblock
+
+   A pointer to a uint8_t array representing a node attribute list. It
+   is used an an intermediate array and is initialized as needed
+   within `lowerenv`.
+
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream network
+   @parblock
+
+   A pointer to a ptrdiff_t array representing an edge attribute list.
+
+   @endparblock
+
+   @param[in] target The target node of each edge in the stream network
+   @parblock
+
+   A pointer to a ptrdiff_t array representing an edge attribute list.
+
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+   @param[in] node_count The number of nodes in the stream network
+ */
+TOPOTOOLBOX_API
+void lowerenv(float *elevation, uint8_t *knickpoints, float *distance,
+              ptrdiff_t *ix, uint8_t *onenvelope, ptrdiff_t *source,
+              ptrdiff_t *target, ptrdiff_t edge_count, ptrdiff_t node_count);
 #endif  // TOPOTOOLBOX_H

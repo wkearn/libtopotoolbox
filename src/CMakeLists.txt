@@ -20,6 +20,7 @@ add_library(topotoolbox
   streamquad.c
   drainagebasins.c
   hillshade.c
+  knickpoints.c
 )
 
 # Define the include directory
