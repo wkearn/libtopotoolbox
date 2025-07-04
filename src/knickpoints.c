@@ -47,16 +47,19 @@ void lowerenv(float *elevation, uint8_t *knickpoints, float *distance,
 
       // Compute the minimum gradient between v and a point upstream
       // of v but below any knickpoints.
-      float g = INFINITY;
+      float dz_min = INFINITY;
+      float dx_min = 1.0;
       ptrdiff_t idx = -1;
       for (ptrdiff_t e1 = 0; e1 < edge_count; e1++) {
         ptrdiff_t u1 = source[e1];
 
         if (ix[u1]) {
-          float gu =
-              (elevation[u1] - elevation[v]) / (distance[u1] - distance[v]);
-          if (gu < g) {
-            g = gu;
+          float dz = elevation[u1] - elevation[v];
+          float dx = distance[u1] - distance[v];
+
+          if (dz * dx_min < dz_min * dx) {
+            dz_min = dz;
+            dx_min = dx;
             idx = u1;
           }
         }
@@ -89,7 +92,7 @@ void lowerenv(float *elevation, uint8_t *knickpoints, float *distance,
         ptrdiff_t idx2 = target[ix[idx]];
 
         // Adjust the distance downward by the minimum gradient we found earlier
-        elevation[idx2] = z0 - g * (d0 - distance[idx2]);
+        elevation[idx2] = z0 - dz_min * (d0 - distance[idx2]) / dx_min;
 
         // Take idx2 off the envelope, because its elevation has been
         // updated. It will not be searched in later iterations of the
