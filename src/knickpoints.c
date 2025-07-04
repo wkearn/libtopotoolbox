@@ -82,12 +82,14 @@ void lowerenv(float *elevation, uint8_t *knickpoints, float *distance,
       // Visit node v
       ix[v] = -1;
 
+      float z0 = elevation[idx];
+      float d0 = distance[idx];
       // Loop until we hit a node that has been visited.
       while (ix[idx] >= 0) {
         ptrdiff_t idx2 = target[ix[idx]];
 
         // Adjust the distance downward by the minimum gradient we found earlier
-        elevation[idx2] = elevation[idx] - g * (distance[idx] - distance[idx2]);
+        elevation[idx2] = z0 - g * (d0 - distance[idx2]);
 
         // Take idx2 off the envelope, because its elevation has been
         // updated. It will not be searched in later iterations of the
