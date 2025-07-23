@@ -81,6 +81,60 @@ void traverse_up_f32_max_add(float *output, float *input, ptrdiff_t *source,
 }
 
 TOPOTOOLBOX_API
+void traverse_down_f32_max_mul(float *output, float *input, ptrdiff_t *source,
+                               ptrdiff_t *target, ptrdiff_t edge_count) {
+  for (ptrdiff_t e = 0; e < edge_count; e++) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+
+    output[v] = fmaxf(output[v], output[u] * input[e]);
+  }
+}
+
+TOPOTOOLBOX_API
+void traverse_down_f32_max_mul_arg(float *output, int64_t *idx, float *input,
+                                   ptrdiff_t *source, ptrdiff_t *target,
+                                   ptrdiff_t edge_count) {
+  for (ptrdiff_t e = 0; e < edge_count; e++) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+
+    float q = output[u] * input[e];
+    if (output[v] < q) {
+      output[v] = q;
+      idx[v] = idx[u];
+    }
+  }
+}
+
+TOPOTOOLBOX_API
+void traverse_up_f32_max_mul(float *output, float *input, ptrdiff_t *source,
+                             ptrdiff_t *target, ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+
+    output[u] = fmaxf(output[u], output[v] * input[e]);
+  }
+}
+
+TOPOTOOLBOX_API
+void traverse_up_f32_max_mul_arg(float *output, int64_t *idx, float *input,
+                                 ptrdiff_t *source, ptrdiff_t *target,
+                                 ptrdiff_t edge_count) {
+  for (ptrdiff_t e = edge_count - 1; e >= 0; e--) {
+    ptrdiff_t u = source[e];
+    ptrdiff_t v = target[e];
+
+    float q = output[v] * input[e];
+    if (output[u] < q) {
+      output[u] = q;
+      idx[u] = idx[v];
+    }
+  }
+}
+
+TOPOTOOLBOX_API
 void traverse_down_f32_min_add(float *output, float *input, ptrdiff_t *source,
                                ptrdiff_t *target, ptrdiff_t edge_count) {
   for (ptrdiff_t e = 0; e < edge_count; e++) {

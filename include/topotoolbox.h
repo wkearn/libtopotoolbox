@@ -1130,6 +1130,24 @@ TOPOTOOLBOX_API
 void traverse_up_f32_max_add(float *output, float *input, ptrdiff_t *source,
                              ptrdiff_t *target, ptrdiff_t edge_count);
 
+TOPOTOOLBOX_API
+void traverse_down_f32_max_mul(float *output, float *input, ptrdiff_t *source,
+                               ptrdiff_t *target, ptrdiff_t edge_count);
+
+TOPOTOOLBOX_API
+void traverse_down_f32_max_mul_arg(float *output, int64_t *idx, float *input,
+                                   ptrdiff_t *source, ptrdiff_t *target,
+                                   ptrdiff_t edge_count);
+
+TOPOTOOLBOX_API
+void traverse_up_f32_max_mul(float *output, float *input, ptrdiff_t *source,
+                             ptrdiff_t *target, ptrdiff_t edge_count);
+
+TOPOTOOLBOX_API
+void traverse_up_f32_max_mul_arg(float *output, int64_t *idx, float *input,
+                                 ptrdiff_t *source, ptrdiff_t *target,
+                                 ptrdiff_t edge_count);
+
 /**
    @brief Downstream traversal with min-plus
 
