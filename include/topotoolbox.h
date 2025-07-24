@@ -1085,7 +1085,7 @@ void traverse_down_f32_max_add(float *output, float *input, ptrdiff_t *source,
    @brief Upstream traversal with max-plus
 
    Accumulates the edge weights in the `input` edge attribute list
-   using a max-plus updat.
+   using a max-plus update.
 
    With input giving the length of each edge and output initialized to
    zero, this will compute the longest path from the outlet to a
@@ -1130,19 +1130,213 @@ TOPOTOOLBOX_API
 void traverse_up_f32_max_add(float *output, float *input, ptrdiff_t *source,
                              ptrdiff_t *target, ptrdiff_t edge_count);
 
+/**
+   @brief Downstream traversal with max-mul
+
+   Accumulates the edge weights in the `input` edge attribute list
+   using a max-mul update.
+
+   @param[out] output The accumulated output
+   @parblock
+   A pointer to a `float` array representing a node attribute list
+
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
+   @endparblock
+
+   @param[in] input The edge weights
+   @parblock
+   A pointer to a `float` array of size `edge_count`
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 0-based indices of the node-attribute list
+   `output`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `output`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
 TOPOTOOLBOX_API
 void traverse_down_f32_max_mul(float *output, float *input, ptrdiff_t *source,
                                ptrdiff_t *target, ptrdiff_t edge_count);
 
+/**
+   @brief Downstream traversal with max-mul and maximum tracking
+
+   Accumulates the edge weights in the `input` edge attribute list
+   using a max-mul update.
+
+   The idx array can be used to track the index of the maximum
+   value. It should be initialized with the index of each node in the
+   array. If the upstream value multiplied by the input is greater
+   than the downstream value, the upstream index is copied into the
+   downstream index.
+
+   @param[out] output The accumulated output
+   @parblock
+   A pointer to a `float` array representing a node attribute list
+
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
+   @endparblock
+
+   @param[out] idx The index of the maximum value
+   @parblock
+   A pointer to an `int64_t` array representing a node attribute list
+
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
+   @endparblock
+
+   @param[in] input The edge weights
+   @parblock
+   A pointer to a `float` array of size `edge_count`
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 0-based indices of the node-attribute list
+   `output`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `output`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
 TOPOTOOLBOX_API
 void traverse_down_f32_max_mul_arg(float *output, int64_t *idx, float *input,
                                    ptrdiff_t *source, ptrdiff_t *target,
                                    ptrdiff_t edge_count);
 
+/**
+   @brief Upstream traversal with max-mul
+
+   Accumulates the edge weights in the `input` edge attribute list
+   using a max-mul update.
+
+   @param[out] output The accumulated output
+   @parblock
+   A pointer to a `float` array representing a node attribute list
+
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
+   @endparblock
+
+   @param[in] input The edge weights
+   @parblock
+   A pointer to a `float` array of size `edge_count`
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 0-based indices of the node-attribute list
+   `output`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `output`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
 TOPOTOOLBOX_API
 void traverse_up_f32_max_mul(float *output, float *input, ptrdiff_t *source,
                              ptrdiff_t *target, ptrdiff_t edge_count);
 
+/**
+   @brief Upstream traversal with max-mul and maximum tracking
+
+   Accumulates the edge weights in the `input` edge attribute list
+   using a max-mul update.
+
+   The idx array can be used to track the index of the maximum
+   value. It should be initialized with the index of each node in the
+   array. If the upstream value multiplied by the input is greater
+   than the downstream value, the upstream index is copied into the
+   downstream index.
+
+   @param[out] output The accumulated output
+   @parblock
+   A pointer to a `float` array representing a node attribute list
+
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
+   @endparblock
+
+   @param[out] idx The index of the maximum value
+   @parblock
+   A pointer to an `int64_t` array representing a node attribute list
+
+   This array should have a length equal to the number of nodes in the
+   stream network.  This value must not be less than the largest value
+   in either the `source` or `target` arrays.
+   @endparblock
+
+   @param[in] input The edge weights
+   @parblock
+   A pointer to a `float` array of size `edge_count`
+   @endparblock
+
+   @param[in] source The source node of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The source nodes must be in topological order. The labels must
+   correspond to the 0-based indices of the node-attribute list
+   `output`.
+   @endparblock
+
+   @param[in] target The target nodes of each edge in the stream
+                     network
+   @parblock
+   A pointer to a `ptrdiff_t` array of size `edge_count`
+
+   The labels must correspond to the 0-based indices of the
+   node-attribute list `output`.
+   @endparblock
+
+   @param[in] edge_count The number of edges in the stream network
+ */
 TOPOTOOLBOX_API
 void traverse_up_f32_max_mul_arg(float *output, int64_t *idx, float *input,
                                  ptrdiff_t *source, ptrdiff_t *target,
