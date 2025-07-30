@@ -236,7 +236,8 @@ struct SnapshotData {
       for (ptrdiff_t i = 0; i < dims[0]; i++) {
         float H = test_hs[j * dims[0] + i];
 
-        if (fabsf(H - hs[j * dims[0] + i]) > 1e-4) {
+        if (fabsf(H - hs[j * dims[0] + i]) > 1e-4 ||
+            (isnan(hs[j * dims[0] + i]) && !isnan(H))) {
           write_data_to_file<float, GDT_Float32>(path / "test_hillshade.tif",
                                                  path / "hillshade.tif",
                                                  test_hs, dims);
