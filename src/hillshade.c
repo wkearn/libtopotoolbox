@@ -171,7 +171,10 @@ void hillshade_fused(float *output, float *dem, float azimuth, float altitude,
       float dx =
           (dem[j * m + i - 2] - 4 * dem[j * m + i - 1] + 3 * dem[j * m + i]) /
           (2 * cellsize);
-      float dy = isnan(dem[j * m + i]) ? NAN : (dem[(j + 1) * m + i] - dem[(j - 1) * m + i]) / (2 * cellsize);
+      float dy =
+          isnan(dem[j * m + i])
+              ? NAN
+              : (dem[(j + 1) * m + i] - dem[(j - 1) * m + i]) / (2 * cellsize);
       output[j * m + i] = compute_hillshade(dx, dy, sx, sy, sz);
     }
   }
@@ -188,7 +191,9 @@ void hillshade_fused(float *output, float *dem, float azimuth, float altitude,
     output[j * m + i] = compute_hillshade(dx, dy, sx, sy, sz);
   }
   for (i = 1; i < (m - 1); i++) {
-    float dx = isnan(dem[j * m + i]) ? NAN : (dem[j * m + i + 1] - dem[j * m + i - 1]) / (2 * cellsize);
+    float dx = isnan(dem[j * m + i])
+                   ? NAN
+                   : (dem[j * m + i + 1] - dem[j * m + i - 1]) / (2 * cellsize);
     float dy =
         (dem[(j - 2) * m + i] - 4 * dem[(j - 1) * m + i] + 3 * dem[j * m + i]) /
         (2 * cellsize);
