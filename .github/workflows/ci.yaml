@@ -173,3 +173,12 @@ jobs:
         with:
           name: ${{matrix.os}}_${{matrix.c_compiler}}_cmake_profiles
           path: ${{matrix.os}}_${{matrix.c_compiler}}_config_profile.json
+      - name: Build library with Makefile
+        if: ${{ matrix.os != 'windows-latest' }}
+        working-directory: ${{github.workspace}}/src
+        run: make
+      - name: Check that library has no compiled asserts
+        if: ${{ matrix.os != 'windows-latest' }}
+        working-directory: ${{github.workspace}}/src
+        run: |
+          if nm libtopotoolbox.a | grep "assert"; then false; else true; fi
