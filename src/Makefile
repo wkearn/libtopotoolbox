@@ -11,4 +11,4 @@ libtopotoolbox.a: $(OBJS)
 
 .SUFFIXES: .c .o
 .c.o:
-	$(CC) $(CFLAGS) -DTOPOTOOLBOX_STATICLIB -I../include -c -o $@ $<
+	$(CC) $(CFLAGS) -DTOPOTOOLBOX_STATICLIB -DNDEBUG -I../include -c -o $@ $<
