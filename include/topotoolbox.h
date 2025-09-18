@@ -1809,6 +1809,14 @@ void graphflood_full(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
                      GF_FLOAT *Precipitations, GF_FLOAT *manning, GF_UINT *dim,
                      GF_FLOAT dt, GF_FLOAT dx, bool SFD, bool D8,
                      GF_UINT N_iterations, GF_FLOAT step);
+
+TOPOTOOLBOX_API
+void graphflood_metrics(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
+                          GF_FLOAT* Precipitations, GF_FLOAT* manning,
+                          GF_UINT* dim, GF_FLOAT dx, bool D8, GF_FLOAT step, 
+                          GF_FLOAT* Qi, GF_FLOAT* Qo, GF_FLOAT* qo, GF_FLOAT* u, 
+                          GF_FLOAT* Sw);
+
 /**
    @brief Label drainage basins based on the flow directions provided
    by a topologically sorted edge list.
