@@ -198,8 +198,9 @@ void _graphflood_full_mfd(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
 
       // Calculating the Volumetric discharge based on Manning's friction
       // equation
-      GF_FLOAT tQwout =
-          (GF_FLOAT)(dxmaxdir / manning[node] *
+      GF_FLOAT tQwout = 0.;
+      if (Zw[node] > Z[node])
+          tQwout = (GF_FLOAT)(dxmaxdir / manning[node] *
                      pow(Zw[node] - Z[node], 5. / 3.) * sqrt(maxslope));
 
       // if(Qwin[node] > 0){
@@ -254,9 +255,9 @@ reached. In practice lakes and local instabilities can prevent this
 TOPOTOOLBOX_API
 void graphflood_metrics(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
                           GF_FLOAT* Precipitations, GF_FLOAT* manning,
-                          GF_UINT* dim, GF_FLOAT dx, bool SFD,
-                          bool D8, GF_FLOAT step, GF_FLOAT* Qi, GF_FLOAT* Qo,
-                          GF_FLOAT* qo, GF_FLOAT* u, GF_FLOAT* Sw) {
+                          GF_UINT* dim, GF_FLOAT dx, bool D8, GF_FLOAT step, 
+                          GF_FLOAT* Qi, GF_FLOAT* Qo, GF_FLOAT* qo, GF_FLOAT* u, 
+                          GF_FLOAT* Sw) {
   // Initialising the offset for neighbouring operations
   GF_INT offset[8];
   (D8 == false) ? generate_offset_D4_flat(offset, dim)
@@ -355,9 +356,10 @@ void graphflood_metrics(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
 
     // Calculating the Volumetric discharge based on Manning's friction
     // equation
-    GF_FLOAT tQwout =
-        (GF_FLOAT)(dxmaxdir / manning[node] *
-                   pow(Zw[node] - Z[node], 5. / 3.) * sqrt(maxslope));
+    GF_FLOAT tQwout = 0.;
+      if (Zw[node] > Z[node])
+          tQwout = (GF_FLOAT)(dxmaxdir / manning[node] *
+                     pow(Zw[node] - Z[node], 5. / 3.) * sqrt(maxslope));
 
     Qo[node]  = tQwout;
     qo[node]  = tQwout/dxmaxdir;
