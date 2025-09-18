@@ -10,8 +10,8 @@
 #include "topotoolbox.h"
 
 // Helper functions ton mimic c++ std::min and std::max
-inline float max_float(float a, float b) { return (a > b) ? a : b; }
-inline float min_float(float a, float b) { return (a < b) ? a : b; }
+inline GF_FLOAT max_float(GF_FLOAT a, GF_FLOAT b) { return (a > b) ? a : b; }
+inline GF_FLOAT min_float(GF_FLOAT a, GF_FLOAT b) { return (a < b) ? a : b; }
 
 /*
 Internal function running graphflood in its full vanilla version in single flow
