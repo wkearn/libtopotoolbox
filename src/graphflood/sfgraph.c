@@ -29,16 +29,16 @@ static void recursive_stack(GF_UINT node, GF_UINT* Sdonors, GF_UINT* Stack,
         - the topologically ordered stack (sensu Braun and Willett, 2013)
 */
 TOPOTOOLBOX_API
-void compute_sfgraph(float* topo, GF_UINT* Sreceivers,
+void compute_sfgraph(GF_FLOAT* topo, GF_UINT* Sreceivers,
                      GF_FLOAT* distToReceivers, GF_UINT* Sdonors,
                      uint8_t* NSdonors, GF_UINT* Stack, uint8_t* BCs,
-                     GF_UINT* dim, float dx, bool D8) {
+                     GF_UINT* dim, GF_FLOAT dx, bool D8) {
   // Initialising the offset for neighbouring operations
   GF_INT offset[8];
   (D8 == false) ? generate_offset_D4_flat(offset, dim)
                 : generate_offset_D8_flat(offset, dim);
   // // Initialising the offset distance for each neighbour
-  float offdx[8];
+  GF_FLOAT offdx[8];
   (D8 == false) ? generate_offsetdx_D4(offdx, dx)
                 : generate_offsetdx_D8(offdx, dx);
 
@@ -65,7 +65,7 @@ void compute_sfgraph(float* topo, GF_UINT* Sreceivers,
       GF_UINT this_receiver = node;
       GF_FLOAT this_receiverdx = 0.;
       // -> Initialising the slope to 0
-      float SD = 0.;
+      GF_FLOAT SD = 0.;
 
       // for all the neighbours ...
       for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
@@ -79,7 +79,7 @@ void compute_sfgraph(float* topo, GF_UINT* Sreceivers,
         if (can_receive(nnode, BCs) == false) continue;
 
         // I check wether their slope is the steepest
-        float tS = (topo[node] - topo[nnode]) / offdx[n];
+        GF_FLOAT tS = (topo[node] - topo[nnode]) / offdx[n];
 
         // if it is
         if (tS > SD) {
@@ -141,17 +141,17 @@ the filling but breaks the node processing in ascending order within
 depressions)
 */
 TOPOTOOLBOX_API
-void compute_sfgraph_priority_flood(float* topo, GF_UINT* Sreceivers,
+void compute_sfgraph_priority_flood(GF_FLOAT* topo, GF_UINT* Sreceivers,
                                     GF_FLOAT* distToReceivers, GF_UINT* Sdonors,
                                     uint8_t* NSdonors, GF_UINT* Stack,
-                                    uint8_t* BCs, GF_UINT* dim, float dx,
+                                    uint8_t* BCs, GF_UINT* dim, GF_FLOAT dx,
                                     bool D8, GF_FLOAT step) {
   // Initialising the offset for neighbouring operations
   GF_INT offset[8];
   (D8 == false) ? generate_offset_D4_flat(offset, dim)
                 : generate_offset_D8_flat(offset, dim);
   // // Initialising the offset distance for each neighbour
-  float offdx[8];
+  GF_FLOAT offdx[8];
   (D8 == false) ? generate_offsetdx_D4(offdx, dx)
                 : generate_offsetdx_D8(offdx, dx);
 
@@ -173,7 +173,7 @@ void compute_sfgraph_priority_flood(float* topo, GF_UINT* Sreceivers,
   pfpq_init(&open, nxy(dim));
 
   // temp variable to help with PitQueue
-  float PitTop = FLT_MIN;
+  GF_FLOAT PitTop = FLT_MIN;
 
   // Initialisation phase: initialise the queue with nodethat can drain out of
   // the model Also initialise the sfg data structure
@@ -223,7 +223,7 @@ void compute_sfgraph_priority_flood(float* topo, GF_UINT* Sreceivers,
     GF_UINT this_receiver = node;
     GF_FLOAT this_receiverdx = 0.;
     // -> Initialising the slope to 0
-    float SD = 0.;
+    GF_FLOAT SD = 0.;
 
     // for all the neighbours ...
     for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
@@ -244,7 +244,7 @@ void compute_sfgraph_priority_flood(float* topo, GF_UINT* Sreceivers,
       if (can_receive(nnode, BCs) && can_give(node, BCs) && need_update &&
           closed[nnode]) {
         // I check wether their slope is the steepest
-        float tS = (topo[node] - topo[nnode]) / offdx[n];
+        GF_FLOAT tS = (topo[node] - topo[nnode]) / offdx[n];
 
         // if it is
         if (tS > SD) {
