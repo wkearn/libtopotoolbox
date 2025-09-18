@@ -46,6 +46,7 @@ void _graphflood_full_sfd(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
     compute_weighted_drainage_area_single_flow(Qwin, Precipitations, Sreceivers,
                                                Stack, dim, dx);
 
+    int N0 = 0;
     for (GF_UINT i = 0; i < nxy(dim); ++i) {
       // Traversing the stack in reverse, super important because it allows us
       // to update the Zw on the go (it ensures receivers are never processed
@@ -73,10 +74,14 @@ void _graphflood_full_sfd(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
           (GF_FLOAT)(distToReceivers[node] / manning[node] *
                      pow(Zw[node] - Z[node], 5. / 3.) * sqrt(tSw));
 
+      if (Qwin[node] == 0.){
+        N0+=1;
+      }
       // Applying the divergence
       Zw[node] =
           max_float(Z[node], Zw[node] + dt * (Qwin[node] - tQwout) / cell_area);
     }
+    printf("Had %i Q = 0", N0)
   }
 
   // back translate Zw into hw
