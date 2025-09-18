@@ -81,7 +81,7 @@ void _graphflood_full_sfd(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
       Zw[node] =
           max_float(Z[node], Zw[node] + dt * (Qwin[node] - tQwout) / cell_area);
     }
-    printf("Had %i Q = 0", N0)
+    printf("Had %i Q = 0", N0);
   }
 
   // back translate Zw into hw
