@@ -251,7 +251,7 @@ reached. In practice lakes and local instabilities can prevent this
 - q: discharge per unit width
 */
 
-
+/*
 void _graphflood_full_mfd(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
                           GF_FLOAT* Precipitations, GF_FLOAT* manning,
                           GF_UINT* dim, GF_FLOAT dt, GF_FLOAT dx, bool SFD,
@@ -381,3 +381,4 @@ void _graphflood_full_mfd(GF_FLOAT* Z, GF_FLOAT* hw, uint8_t* BCs,
   free(Qwin);
   free(Stack);
 }
+*/
