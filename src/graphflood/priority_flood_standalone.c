@@ -46,7 +46,7 @@ void compute_priority_flood(GF_FLOAT* topo, uint8_t* BCs, GF_UINT* dim, bool D8,
   pfpq_init(&open, nxy(dim));
 
   // temp variable to help with PitQueue
-  float PitTop = FLT_MIN;
+  GF_FLOAT PitTop = (GF_FLOAT)FLT_MIN;
 
   // Initialisation phase: initialise the queue with nodethat can drain out of
   // the model Also initialise the sfg data structure
