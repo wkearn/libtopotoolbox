@@ -1809,6 +1809,44 @@ void graphflood_full(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
                      GF_FLOAT *Precipitations, GF_FLOAT *manning, GF_UINT *dim,
                      GF_FLOAT dt, GF_FLOAT dx, bool SFD, bool D8,
                      GF_UINT N_iterations, GF_FLOAT step);
+
+/**
+   @brief Calculate steady-state flow metrics from topography and water depths
+   using the GraphFlood algorithm as described in Gailleton et al., 2024.
+   From input fields of topography, water depth, Manning's friction coefficient
+   and precipitation rates, computes various flow metrics assuming steady-state
+   conditions with multiple flow direction routing.
+
+   @param[in]     Z: surface topography [m]
+   @param[in]     hw: field of water depth [m]
+   @param[in]     BCs: codes for boundary conditions and no data management,
+                  see gf_utils.h or examples for the meaning
+   @param[in]     Precipitations: precipitation rates [m/s]
+   @param[in]     manning: Manning's friction coefficient [s/m^(1/3)]
+   @param[in]     dim: [rows,columns] if row major and [columns, rows] if
+                  column major
+   @param[in]     dx: spatial step [m]
+   @param[in]     D8: true for topology including cardinals + diagonals,
+                  false for cardinals only
+   @param[in]     step: delta_Z to apply minimum elevation increase and avoid
+                  flats during priority flooding
+   @param[out]    Qi: input discharge based on drainage area accumulation [m³/s]
+   @param[out]    Qo: output discharge calculated from Manning's equation [m³/s]
+   @param[out]    qo: discharge per unit width [m²/s]
+   @param[out]    u: flow velocity [m/s]
+   @param[out]    Sw: water surface slope [-]
+
+   @note At convergence, Qi should approximately equal Qo (mass conservation).
+   Differences may indicate numerical issues, local instabilities, or physical
+   processes such as ponding in lakes or depressions.
+*/
+TOPOTOOLBOX_API
+void graphflood_metrics(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
+                        GF_FLOAT *Precipitations, GF_FLOAT *manning,
+                        GF_UINT *dim, GF_FLOAT dx, bool D8, GF_FLOAT step,
+                        GF_FLOAT *Qi, GF_FLOAT *Qo, GF_FLOAT *qo, GF_FLOAT *u,
+                        GF_FLOAT *Sw);
+
 /**
    @brief Label drainage basins based on the flow directions provided
    by a topologically sorted edge list.
