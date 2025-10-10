@@ -1848,6 +1848,33 @@ void graphflood_metrics(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
                         GF_FLOAT *Sw);
 
 /**
+   @brief Run dynamic induced graph flood simulation using wavefront propagation
+   from specified input discharge locations. Processes cells in descending
+   hydraulic elevation order, dynamically building the flow graph as it propagates
+   downstream.
+
+   @param[in]     Z: surface topography [m]
+   @param[inout]  hw: field of water depth [m]
+   @param[in]     BCs: codes for boundary conditions and no data management
+   @param[in]     Precipitations: precipitation rates [m/s]
+   @param[in]     manning: Manning's friction coefficient [s/m^(1/3)]
+   @param[in]     input_Qw: input discharge at specific cells [m³/s]
+                  (cells with value > 0 are used as starting points)
+   @param[in]     dim: [rows,columns] if row major and [columns, rows] if
+                  column major
+   @param[in]     dt: time step [s]
+   @param[in]     dx: spatial step [m]
+   @param[in]     D8: true for topology including cardinals + diagonals,
+                  false for cardinals only
+   @param[in]     N_iterations: number of iterations of the flooding algorithm
+*/
+TOPOTOOLBOX_API
+void graphflood_dynamic_graph(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
+                              GF_FLOAT *Precipitations, GF_FLOAT *manning,
+                              GF_FLOAT *input_Qw, GF_UINT *dim, GF_FLOAT dt,
+                              GF_FLOAT dx, bool D8, GF_UINT N_iterations);
+
+/**
    @brief Label drainage basins based on the flow directions provided
    by a topologically sorted edge list.
 
