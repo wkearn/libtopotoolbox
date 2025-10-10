@@ -418,6 +418,9 @@ void _graphflood_full_mfd(
         tQwout = (GF_FLOAT)(dxmaxdir / manning[node] * pow(depth, 5.0 / 3.0) *
                             sqrt(maxslope));
       }
+    }
+
+    for (GF_UINT node = 0; node < nxy(dim); ++node) {
 
       // ----------------------------------------------------------------------
       // CONTINUITY EQUATION: Update hydraulic surface
