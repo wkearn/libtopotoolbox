@@ -949,6 +949,8 @@ void graphflood_dynamic_graph(
       inPQ[node] = false;
       visited[node] = true;
 
+      printf(node);
+
       // Skip invalid cells
       if (is_nodata(node, BCs)) continue;
 
