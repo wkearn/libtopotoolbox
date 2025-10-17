@@ -913,6 +913,8 @@ void graphflood_dynamic_graph(
       input_indices[idx++] = i;
     }
   }
+  
+  printf("REACHES HERE");
 
   // --------------------------------------------------------------------------
   // MAIN ITERATION LOOP
