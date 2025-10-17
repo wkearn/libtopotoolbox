@@ -956,14 +956,17 @@ void graphflood_dynamic_graph(
       // CHECK FOR LOWER NEIGHBORS and raise if needed
       // --------------------------------------------------------------------
 
-      GF_FLOAT min_neighbor_zw = Zw[node];
+      GF_FLOAT min_neighbor_zw = INFINITY;
       bool has_lower_neighbor = false;
+      bool has_any_neighbor = false;
 
       for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
         if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
 
         GF_UINT nnode = node + offset[n];
         if (is_nodata(nnode, BCs)) continue;
+
+        has_any_neighbor = true;
 
         if (Zw[nnode] < Zw[node]) {
           has_lower_neighbor = true;
@@ -974,7 +977,7 @@ void graphflood_dynamic_graph(
       }
 
       // Raise cell if no lower neighbors
-      if (has_lower_neighbor == false) {
+      if (has_any_neighbor && has_lower_neighbor == false) {
         Zw[node] = min_neighbor_zw + 1e-3;
       }
 
