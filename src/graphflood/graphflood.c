@@ -858,6 +858,9 @@ void graphflood_dynamic_graph(
   // NEIGHBOR CONNECTIVITY SETUP
   // --------------------------------------------------------------------------
 
+
+  printf("REACHES HERE0");
+
   GF_INT offset[8];
   (D8 == false) ? generate_offset_D4_flat(offset, dim)
                 : generate_offset_D8_flat(offset, dim);
@@ -896,6 +899,8 @@ void graphflood_dynamic_graph(
   // IDENTIFY INPUT CELLS
   // --------------------------------------------------------------------------
 
+  printf("REACHES HERE1");
+
   // Count cells with input discharge
   GF_UINT n_input_cells = 0;
   for (GF_UINT i = 0; i < tnxy; ++i) {
@@ -914,7 +919,7 @@ void graphflood_dynamic_graph(
     }
   }
   
-  printf("REACHES HERE");
+  printf("REACHES HERE2");
 
   // --------------------------------------------------------------------------
   // MAIN ITERATION LOOP
