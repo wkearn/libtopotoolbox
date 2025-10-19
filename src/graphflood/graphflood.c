@@ -1054,7 +1054,7 @@ void graphflood_dynamic_graph(
 
           if (slope_j>maxslope){
             maxslope = slope_j;
-            dxmaxslope = offdx[n]
+            dxmaxslope = offdx[n];
           }
 
 
@@ -1086,7 +1086,7 @@ void graphflood_dynamic_graph(
       if (Zw[node] > Z[node]) {
         GF_FLOAT depth = maxslope(GF_FLOAT(Zw[node] - Z[node]),0.);
         Qwout[node] =
-            (GF_FLOAT)(dxmaxdir / manning[node] * pow(depth, 5.0 / 3.0) *
+            (GF_FLOAT)(dxmaxslope / manning[node] * pow(depth, 5.0 / 3.0) *
                        sqrt(maxslope));
       }
     }
