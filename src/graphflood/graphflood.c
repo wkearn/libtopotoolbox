@@ -7,6 +7,7 @@
 
 #include "gf_utils.h"
 #include "graphflood/define_types.h"
+#include "pq_maxheap.h"
 #include "topotoolbox.h"
 
 /*
@@ -279,13 +280,16 @@ void _graphflood_full_mfd(
 
   GF_FLOAT* Qwin =
       (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * nxy(dim));  // Input discharge
+  GF_FLOAT* Qwout =
+      (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * nxy(dim));  // Output discharge
   GF_UINT* Stack =
       (GF_UINT*)malloc(sizeof(GF_UINT) * nxy(dim));  // Processing order
 
   // Initialize arrays
   for (GF_UINT i = 0; i < nxy(dim); ++i) {
-    Qwin[i] = 0.0;  // Start with zero input discharge
-    Stack[i] = i;   // Initial stack order
+    Qwin[i] = 0.0;   // Start with zero input discharge
+    Qwout[i] = 0.0;  // Start with zero output discharge
+    Stack[i] = i;    // Initial stack order
   }
 
   // Flow weight array for multiple flow direction calculations
@@ -306,9 +310,10 @@ void _graphflood_full_mfd(
     compute_priority_flood_plus_topological_ordering(Zw, Stack, BCs, dim, D8,
                                                      step);
 
-    // Reset input discharge array for this iteration
+    // Reset discharge arrays for this iteration
     for (GF_UINT i = 0; i < nxy(dim); ++i) {
       Qwin[i] = 0.0;
+      Qwout[i] = 0.0;
     }
 
     // ------------------------------------------------------------------------
@@ -412,13 +417,18 @@ void _graphflood_full_mfd(
        * Calculate discharge using Manning's equation along steepest gradient
        * This represents the maximum conveyance capacity of the cell
        */
-      GF_FLOAT tQwout = 0.0;
       if (Zw[node] > Z[node]) {  // Only if water is present
         GF_FLOAT depth = Zw[node] - Z[node];
-        tQwout = (GF_FLOAT)(dxmaxdir / manning[node] * pow(depth, 5.0 / 3.0) *
-                            sqrt(maxslope));
+        Qwout[node] = (GF_FLOAT)(dxmaxdir / manning[node] *
+                                 pow(depth, 5.0 / 3.0) * sqrt(maxslope));
       }
+    }
 
+    // ------------------------------------------------------------------------
+    // STEP 3: UPDATE WATER DEPTHS using continuity equation
+    // ------------------------------------------------------------------------
+
+    for (GF_UINT node = 0; node < nxy(dim); ++node) {
       // ----------------------------------------------------------------------
       // CONTINUITY EQUATION: Update hydraulic surface
       // ----------------------------------------------------------------------
@@ -438,8 +448,8 @@ void _graphflood_full_mfd(
        *
        * Constraint: Water surface cannot go below ground level
        */
-      Zw[node] =
-          max_float(Z[node], Zw[node] + dt * (Qwin[node] - tQwout) / cell_area);
+      Zw[node] = max_float(
+          Z[node], Zw[node] + dt * (Qwin[node] - Qwout[node]) / cell_area);
     }
   }
 
@@ -453,6 +463,7 @@ void _graphflood_full_mfd(
   // Free allocated memory
   free(Zw);
   free(Qwin);
+  free(Qwout);
   free(Stack);
 }
 
@@ -779,4 +790,298 @@ void graphflood_metrics(
 
     Sw[node] = maxslope;  // Water surface slope [-]
   }
+
+  // Free allocated memory
+  free(Zw);
+  free(Stack);
+}
+
+// ============================================================================
+// DYNAMIC INDUCED GRAPH IMPLEMENTATION
+// ============================================================================
+
+/*
+ * GRAPHFLOOD_DYNAMIC_GRAPH: Dynamic induced graph flood simulation
+ *
+ * This function implements a wavefront-based flood routing approach that
+ * processes cells in descending elevation order, starting from specified
+ * input discharge locations. Unlike graphflood_full which processes the
+ * entire grid, this method dynamically builds a flow graph by propagating
+ * from high to low elevations.
+ *
+ * Key Differences from graphflood_full:
+ * - Uses max-heap to process in descending hydraulic elevation order
+ * - Starts from cells with input_Qw > 0
+ * - Dynamically expands processing to downstream neighbors
+ * - Upstream flow accumulation calculated on-the-fly
+ *
+ * Algorithm:
+ * 1. Initialize from input_Qw cells
+ * 2. Process cells in descending Zw order using max-heap
+ * 3. For each cell:
+ *    - Check for lower neighbors (raise if needed)
+ *    - Accumulate flow from upstream neighbors
+ *    - Calculate output discharge to downstream neighbors
+ *    - Add unvisited downstream neighbors to queue
+ * 4. Update water depths after processing all cells
+ *
+ * PARAMETERS:
+ * -----------
+ * Z            : Digital elevation model [m] (input, constant)
+ * hw           : Water depth at each cell [m] (input/output, modified)
+ * BCs          : Boundary condition flags (input, constant)
+ * Precipitations: Precipitation rate per cell [m/s] (input, constant)
+ * manning      : Manning's roughness coefficient [s/m^(1/3)] (input, constant)
+ * input_Qw     : Input discharge locations/values [m³/s] (input, constant)
+ * dim          : Grid dimensions [nx, ny] (input, constant)
+ * dt           : Time step size [s] (input, constant)
+ * dx           : Grid cell spacing [m] (input, constant)
+ * D8           : Connectivity scheme (true=8-neighbor, false=4-neighbor)
+ * N_iterations : Number of time steps to simulate (input)
+ */
+TOPOTOOLBOX_API
+void graphflood_dynamic_graph(
+    GF_FLOAT* Z,               // Digital elevation model [input]
+    GF_FLOAT* hw,              // Water depths [input/output]
+    uint8_t* BCs,              // Boundary conditions [input]
+    GF_FLOAT* Precipitations,  // Precipitation rates [input]
+    GF_FLOAT* manning,         // Manning's roughness [input]
+    GF_FLOAT* input_Qw,        // Input discharge locations [input]
+    GF_UINT* dim,              // Grid dimensions [input]
+    GF_FLOAT dt,               // Time step size [input]
+    GF_FLOAT dx,               // Grid spacing [input]
+    bool D8,                   // Connectivity scheme [input]
+    GF_UINT N_iterations)      // Number of iterations [input]
+{
+  // --------------------------------------------------------------------------
+  // NEIGHBOR CONNECTIVITY SETUP
+  // --------------------------------------------------------------------------
+
+  GF_INT offset[8];
+  (D8 == false) ? generate_offset_D4_flat(offset, dim)
+                : generate_offset_D8_flat(offset, dim);
+
+  GF_FLOAT offdx[8];
+  (D8 == false) ? generate_offsetdx_D4(offdx, dx)
+                : generate_offsetdx_D8(offdx, dx);
+
+  GF_FLOAT cell_area = dx * dx;
+
+  // --------------------------------------------------------------------------
+  // MEMORY ALLOCATION
+  // --------------------------------------------------------------------------
+
+  GF_UINT tnxy = nxy(dim);
+
+  // Hydraulic surface (elevation + water depth)
+  GF_FLOAT* Zw = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
+  for (GF_UINT i = 0; i < tnxy; ++i) {
+    Zw[i] = Z[i] + hw[i];
+  }
+
+  // Flow arrays
+  GF_FLOAT* Qwin = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
+  GF_FLOAT* Qwout = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
+
+  // State tracking arrays
+  uint8_t* visited = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
+  uint8_t* inPQ = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
+
+  // --------------------------------------------------------------------------
+  // IDENTIFY INPUT CELLS
+  // --------------------------------------------------------------------------
+
+  // Count cells with input discharge
+  GF_UINT n_input_cells = 0;
+  for (GF_UINT i = 0; i < tnxy; ++i) {
+    if (input_Qw[i] > 0.0) {
+      n_input_cells++;
+    }
+  }
+
+  // Create array of input cell indices
+  GF_UINT* input_indices =
+      (GF_UINT*)malloc(sizeof(GF_UINT) * (n_input_cells + 1));
+  GF_UINT idx = 0;
+  for (GF_UINT i = 0; i < tnxy; ++i) {
+    if (input_Qw[i] > 0.0) {
+      input_indices[idx++] = i;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // MAIN ITERATION LOOP
+  // --------------------------------------------------------------------------
+
+  MaxHeapPQueue pq;
+  maxheap_init(&pq, tnxy);
+
+  for (GF_UINT iteration = 0; iteration < N_iterations; ++iteration) {
+    // Reset arrays
+    for (GF_UINT i = 0; i < tnxy; ++i) {
+      Qwin[i] = input_Qw[i];
+      Qwout[i] = 0.0;
+      visited[i] = false;
+      inPQ[i] = false;
+    }
+
+    // ------------------------------------------------------------------------
+    // INITIALIZE PRIORITY QUEUE with input cells
+    // ------------------------------------------------------------------------
+
+    for (GF_UINT i = 0; i < n_input_cells; ++i) {
+      GF_UINT node = input_indices[i];
+      maxheap_push(&pq, node, Zw[node]);
+      inPQ[node] = true;
+    }
+
+    // ------------------------------------------------------------------------
+    // PROCESS CELLS IN DESCENDING ELEVATION ORDER
+    // ------------------------------------------------------------------------
+
+    while (maxheap_empty(&pq) == false) {
+      GF_UINT node = maxheap_pop_and_get_key(&pq);
+
+      inPQ[node] = false;
+      visited[node] = true;
+
+      // Skip invalid cells
+      if (is_nodata(node, BCs)) continue;
+
+      // --------------------------------------------------------------------
+      // CHECK FOR LOWER NEIGHBORS and raise if needed
+      // --------------------------------------------------------------------
+
+      GF_FLOAT min_neighbor_zw = INFINITY;
+      bool has_lower_neighbor = false;
+      bool has_any_neighbor = false;
+
+      for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
+        if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
+
+        GF_UINT nnode = node + offset[n];
+        if (is_nodata(nnode, BCs)) continue;
+
+        has_any_neighbor = true;
+
+        if (Zw[nnode] < Zw[node]) {
+          has_lower_neighbor = true;
+        }
+        if (Zw[nnode] < min_neighbor_zw) {
+          min_neighbor_zw = Zw[nnode];
+        }
+      }
+
+      // Raise cell if no lower neighbors
+      if (has_any_neighbor && has_lower_neighbor == false) {
+        Zw[node] = min_neighbor_zw + 1e-3;
+      }
+
+      // --------------------------------------------------------------------
+      // ACCUMULATE FLOW FROM UPSTREAM NEIGHBORS
+      // --------------------------------------------------------------------
+
+      // Add local precipitation
+      Qwin[node] += Precipitations[node] * cell_area;
+
+      GF_FLOAT sum_slopes_j = 0.0;
+      GF_FLOAT maxslope = 0.0;
+      GF_FLOAT dxmaxslope = 0.0;
+      // Calculate contribution from upstream neighbors
+      for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
+        if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
+
+        GF_UINT nnode = node + offset[n];  // Potential upstream neighbor
+        if (is_nodata(nnode, BCs)) continue;
+
+        // Check if this is an upstream neighbor (higher elevation)
+        if (Zw[nnode] >= Zw[node]) continue;
+
+        // Calculate slopes from upstream neighbor to all its downstream
+        // neighbors
+        GF_FLOAT slope_j = (Zw[node] - Zw[nnode]) / offdx[n];
+        sum_slopes_j += slope_j;
+      }
+
+      if (sum_slopes_j > 0) {
+        // Calculate contribution from upstream neighbors
+        for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
+          if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
+
+          GF_UINT nnode = node + offset[n];  // Potential upstream neighbor
+          if (is_nodata(nnode, BCs)) continue;
+
+          // Check if this is an upstream neighbor (higher elevation)
+          if (Zw[nnode] >= Zw[node]) continue;
+
+          // Calculate slopes from upstream neighbor to all its downstream
+          // neighbors
+          GF_FLOAT slope_j =
+              max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
+
+          if (slope_j > maxslope) {
+            maxslope = slope_j;
+            dxmaxslope = offdx[n];
+          }
+
+          Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
+
+          // Add downstream neighbor to queue if not already there
+          if (inPQ[nnode] == false && visited[nnode] == false) {
+            maxheap_push(&pq, nnode, Zw[nnode]);
+            inPQ[nnode] = true;
+          }
+        }
+
+        // Distribute flow proportionally
+
+      } else {
+        maxheap_push(&pq, node, Zw[node]);
+        inPQ[node] = true;
+        Zw[node] += 1e-3;
+        continue;
+      }
+
+      // --------------------------------------------------------------------
+      // CALCULATE OUTPUT DISCHARGE TO DOWNSTREAM NEIGHBORS
+      // --------------------------------------------------------------------
+
+      // Calculate discharge using Manning's equation
+      if (Zw[node] > Z[node]) {
+        GF_FLOAT depth = max_float(Zw[node] - Z[node], 0.);
+        Qwout[node] = (GF_FLOAT)(dxmaxslope / manning[node] *
+                                 pow(depth, 5.0 / 3.0) * sqrt(maxslope));
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // UPDATE WATER DEPTHS
+    // ------------------------------------------------------------------------
+
+    for (GF_UINT node = 0; node < tnxy; ++node) {
+      // Only update cells with water or discharge
+      if (Zw[node] > Z[node] || visited[node] || Qwin[node] > 0.) {
+        Zw[node] = max_float(
+            Z[node], Zw[node] + dt * (Qwin[node] - Qwout[node]) / cell_area);
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // FINALIZATION
+  // --------------------------------------------------------------------------
+
+  // Back-calculate water depths
+  for (GF_UINT i = 0; i < tnxy; ++i) {
+    hw[i] = max_float(0.0, Zw[i] - Z[i]);
+  }
+
+  // Free memory
+  maxheap_free(&pq);
+  free(Zw);
+  free(Qwin);
+  free(Qwout);
+  free(visited);
+  free(inPQ);
+  free(input_indices);
 }
