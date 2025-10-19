@@ -940,6 +940,10 @@ void graphflood_dynamic_graph(
       inPQ[i] = false;
     }
 
+
+    printf("REACHES HERE3\n");
+    fflush(stdout);
+
     // ------------------------------------------------------------------------
     // INITIALIZE PRIORITY QUEUE with input cells
     // ------------------------------------------------------------------------
@@ -949,6 +953,9 @@ void graphflood_dynamic_graph(
       maxheap_push(&pq, node, Zw[node]);
       inPQ[node] = true;
     }
+
+    printf("REACHES HERE4\n");
+    fflush(stdout);
 
     // ------------------------------------------------------------------------
     // PROCESS CELLS IN DESCENDING ELEVATION ORDER
