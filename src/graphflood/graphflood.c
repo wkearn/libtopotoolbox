@@ -967,6 +967,8 @@ void graphflood_dynamic_graph(
       visited[node] = true;
 
       printf(node);
+      printf("\n");
+      fflush(stdout);
 
       // Skip invalid cells
       if (is_nodata(node, BCs)) continue;
