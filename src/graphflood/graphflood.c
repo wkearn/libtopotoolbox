@@ -1016,6 +1016,8 @@ void graphflood_dynamic_graph(
 
 
       GF_FLOAT sum_slopes_j = 0.0;
+      GF_FLOAT maxslope = 0.0;
+      GF_FLOAT dxmaxslope = 0.0;
       // Calculate contribution from upstream neighbors
       for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
         if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
@@ -1050,7 +1052,19 @@ void graphflood_dynamic_graph(
           GF_FLOAT slope_j =
                 max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
 
+          if (slope_j>maxslope){
+            maxslope = slope_j;
+            dxmaxslope = offdx[n]
+          }
+
+
           Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
+
+          // Add downstream neighbor to queue if not already there
+          if (inPQ[nnode] == false && visited[nnode] == false) {
+            maxheap_push(&pq, nnode, Zw[nnode]);
+            inPQ[nnode] = true;
+          }
           
         }
 
@@ -1068,50 +1082,9 @@ void graphflood_dynamic_graph(
       // CALCULATE OUTPUT DISCHARGE TO DOWNSTREAM NEIGHBORS
       // --------------------------------------------------------------------
 
-      GF_FLOAT sumslope = 0.0;
-      GF_FLOAT maxslope = 0.0;
-      GF_FLOAT dxmaxdir = dx;
-
-      // Calculate slopes to all downstream neighbors
-      for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
-        if (check_bound_neighbour(node, n, dim, BCs, D8) == false) {
-          weights[n] = 0;
-          continue;
-        }
-
-        GF_UINT nnode = node + offset[n];
-        if (is_nodata(nnode, BCs)) {
-          weights[n] = 0;
-          continue;
-        }
-
-        // Only consider downslope neighbors
-        if (Zw[nnode] >= Zw[node] || can_receive(nnode, BCs) == false ||
-            can_give(node, BCs) == false) {
-          weights[n] = 0;
-          continue;
-        }
-
-        GF_FLOAT tSw =
-            max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
-        weights[n] = tSw * ((dx == offdx[n] || D8 == false) ? dx : dxy);
-        sumslope += weights[n];
-
-        if (tSw > maxslope) {
-          maxslope = tSw;
-          dxmaxdir = offdx[n];
-        }
-
-        // Add downstream neighbor to queue if not already there
-        if (inPQ[nnode] == false && visited[nnode] == false) {
-          maxheap_push(&pq, nnode, Zw[nnode]);
-          inPQ[nnode] = true;
-        }
-      }
-
       // Calculate discharge using Manning's equation
       if (Zw[node] > Z[node]) {
-        GF_FLOAT depth = Zw[node] - Z[node];
+        GF_FLOAT depth = maxslope(GF_FLOAT(Zw[node] - Z[node]),0.);
         Qwout[node] =
             (GF_FLOAT)(dxmaxdir / manning[node] * pow(depth, 5.0 / 3.0) *
                        sqrt(maxslope));
@@ -1124,7 +1097,7 @@ void graphflood_dynamic_graph(
 
     for (GF_UINT node = 0; node < tnxy; ++node) {
       // Only update cells with water or discharge
-      if (Zw[node] > Z[node] || visited[node]) {
+      if (Zw[node] > Z[node] || visited[node] || Qwin[node]>0.) {
         Zw[node] = max_float(
             Z[node], Zw[node] + dt * (Qwin[node] - Qwout[node]) / cell_area);
       }
