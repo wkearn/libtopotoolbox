@@ -870,7 +870,6 @@ void graphflood_dynamic_graph(
   (D8 == false) ? generate_offsetdx_D4(offdx, dx)
                 : generate_offsetdx_D8(offdx, dx);
 
-  GF_FLOAT dxy = (GF_FLOAT)sqrt(2) * dx;
   GF_FLOAT cell_area = dx * dx;
 
   // --------------------------------------------------------------------------
@@ -893,8 +892,7 @@ void graphflood_dynamic_graph(
   uint8_t* visited = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
   uint8_t* inPQ = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
 
-  // Weight array for flow distribution
-  GF_FLOAT weights[8];
+
 
   // --------------------------------------------------------------------------
   // IDENTIFY INPUT CELLS
@@ -1084,7 +1082,7 @@ void graphflood_dynamic_graph(
 
       // Calculate discharge using Manning's equation
       if (Zw[node] > Z[node]) {
-        GF_FLOAT depth = maxslope(Zw[node] - Z[node],0.);
+        GF_FLOAT depth = max_float(Zw[node] - Z[node],0.);
         Qwout[node] =
             (GF_FLOAT)(dxmaxslope / manning[node] * pow(depth, 5.0 / 3.0) *
                        sqrt(maxslope));
