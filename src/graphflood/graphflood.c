@@ -859,7 +859,8 @@ void graphflood_dynamic_graph(
   // --------------------------------------------------------------------------
 
 
-  printf("REACHES HERE0");
+  printf("REACHES HERE0\n");
+  fflush(stdout);
 
   GF_INT offset[8];
   (D8 == false) ? generate_offset_D4_flat(offset, dim)
