@@ -1014,6 +1014,8 @@ void graphflood_dynamic_graph(
       // Add local precipitation
       Qwin[node] += Precipitations[node] * cell_area;
 
+
+      sum_slopes_j = 0.0
       // Calculate contribution from upstream neighbors
       for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
         if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
@@ -1027,30 +1029,40 @@ void graphflood_dynamic_graph(
 
         // Calculate slopes from upstream neighbor to all its downstream
         // neighbors
-        GF_FLOAT sum_slopes_j = 0.0;
-        GF_FLOAT slope_to_node = 0.0;
+        GF_FLOAT slope_j =
+              max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
+        sum_slopes_j += slope_j;
+        
+      }
 
-        for (uint8_t nn = 0; nn < N_neighbour(D8); ++nn) {
-          if (check_bound_neighbour(nnode, nn, dim, BCs, D8) == false) continue;
+      if(sum_slopes_j > 0){
+        // Calculate contribution from upstream neighbors
+        for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
+          if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
 
-          GF_UINT nnnode = nnode + offset[nn];
-          if (is_nodata(nnnode, BCs)) continue;
-          if (Zw[nnnode] >= Zw[nnode]) continue;  // Only downslope
+          GF_UINT nnode = node + offset[n];  // Potential upstream neighbor
+          if (is_nodata(nnode, BCs)) continue;
+          if (visited[nnode] == false) continue;  // Only from visited cells
 
+          // Check if this is an upstream neighbor (higher elevation)
+          if (Zw[nnode] <= Zw[node]) continue;
+
+          // Calculate slopes from upstream neighbor to all its downstream
+          // neighbors
           GF_FLOAT slope_j =
-              max_float((GF_FLOAT)1e-8, (Zw[nnode] - Zw[nnnode]) / offdx[nn]);
-          sum_slopes_j += slope_j;
+                max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
 
-          // Check if this downslope neighbor is our current node
-          if (nnnode == node) {
-            slope_to_node = slope_j;
-          }
+          Qwin[nnode] += (slope_to_node / sum_slopes_j) * Qwin[node];
+          
         }
 
-        // Distribute flow proportionally
-        if (sum_slopes_j > 0.0 && slope_to_node > 0.0) {
-          Qwin[node] += (slope_to_node / sum_slopes_j) * Qwin[nnode];
-        }
+      // Distribute flow proportionally
+        
+      }
+      else{
+        maxheap_push(&pq, nnode, Zw[nnode]);
+        inPQ[nnode] = true;
+        continue
       }
 
       // --------------------------------------------------------------------
