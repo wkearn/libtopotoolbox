@@ -7,8 +7,8 @@
 
 #include "gf_utils.h"
 #include "graphflood/define_types.h"
-#include "topotoolbox.h"
 #include "pq_maxheap.h"
+#include "topotoolbox.h"
 
 /*
  * GRAPHFLOOD FULL IMPLEMENTATION
@@ -800,7 +800,6 @@ void graphflood_metrics(
 // DYNAMIC INDUCED GRAPH IMPLEMENTATION
 // ============================================================================
 
-
 /*
  * GRAPHFLOOD_DYNAMIC_GRAPH: Dynamic induced graph flood simulation
  *
@@ -888,12 +887,9 @@ void graphflood_dynamic_graph(
   uint8_t* visited = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
   uint8_t* inPQ = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
 
-
-
   // --------------------------------------------------------------------------
   // IDENTIFY INPUT CELLS
   // --------------------------------------------------------------------------
-
 
   // Count cells with input discharge
   GF_UINT n_input_cells = 0;
@@ -929,7 +925,6 @@ void graphflood_dynamic_graph(
       inPQ[i] = false;
     }
 
-
     // ------------------------------------------------------------------------
     // INITIALIZE PRIORITY QUEUE with input cells
     // ------------------------------------------------------------------------
@@ -940,15 +935,12 @@ void graphflood_dynamic_graph(
       inPQ[node] = true;
     }
 
-
     // ------------------------------------------------------------------------
     // PROCESS CELLS IN DESCENDING ELEVATION ORDER
     // ------------------------------------------------------------------------
 
     while (maxheap_empty(&pq) == false) {
-      
       GF_UINT node = maxheap_pop_and_get_key(&pq);
-      
 
       inPQ[node] = false;
       visited[node] = true;
@@ -992,7 +984,6 @@ void graphflood_dynamic_graph(
       // Add local precipitation
       Qwin[node] += Precipitations[node] * cell_area;
 
-
       GF_FLOAT sum_slopes_j = 0.0;
       GF_FLOAT maxslope = 0.0;
       GF_FLOAT dxmaxslope = 0.0;
@@ -1008,13 +999,11 @@ void graphflood_dynamic_graph(
 
         // Calculate slopes from upstream neighbor to all its downstream
         // neighbors
-        GF_FLOAT slope_j =
-              (Zw[node] - Zw[nnode]) / offdx[n];
+        GF_FLOAT slope_j = (Zw[node] - Zw[nnode]) / offdx[n];
         sum_slopes_j += slope_j;
-        
       }
 
-      if(sum_slopes_j > 0){
+      if (sum_slopes_j > 0) {
         // Calculate contribution from upstream neighbors
         for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
           if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
@@ -1028,13 +1017,12 @@ void graphflood_dynamic_graph(
           // Calculate slopes from upstream neighbor to all its downstream
           // neighbors
           GF_FLOAT slope_j =
-                max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
+              max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
 
-          if (slope_j>maxslope){
+          if (slope_j > maxslope) {
             maxslope = slope_j;
             dxmaxslope = offdx[n];
           }
-
 
           Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
 
@@ -1043,13 +1031,11 @@ void graphflood_dynamic_graph(
             maxheap_push(&pq, nnode, Zw[nnode]);
             inPQ[nnode] = true;
           }
-          
         }
 
-      // Distribute flow proportionally
-        
-      }
-      else{
+        // Distribute flow proportionally
+
+      } else {
         maxheap_push(&pq, node, Zw[node]);
         inPQ[node] = true;
         Zw[node] += 1e-3;
@@ -1062,10 +1048,9 @@ void graphflood_dynamic_graph(
 
       // Calculate discharge using Manning's equation
       if (Zw[node] > Z[node]) {
-        GF_FLOAT depth = max_float(Zw[node] - Z[node],0.);
-        Qwout[node] =
-            (GF_FLOAT)(dxmaxslope / manning[node] * pow(depth, 5.0 / 3.0) *
-                       sqrt(maxslope));
+        GF_FLOAT depth = max_float(Zw[node] - Z[node], 0.);
+        Qwout[node] = (GF_FLOAT)(dxmaxslope / manning[node] *
+                                 pow(depth, 5.0 / 3.0) * sqrt(maxslope));
       }
     }
 
@@ -1075,7 +1060,7 @@ void graphflood_dynamic_graph(
 
     for (GF_UINT node = 0; node < tnxy; ++node) {
       // Only update cells with water or discharge
-      if (Zw[node] > Z[node] || visited[node] || Qwin[node]>0.) {
+      if (Zw[node] > Z[node] || visited[node] || Qwin[node] > 0.) {
         Zw[node] = max_float(
             Z[node], Zw[node] + dt * (Qwin[node] - Qwout[node]) / cell_area);
       }

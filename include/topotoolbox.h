@@ -1850,8 +1850,8 @@ void graphflood_metrics(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
 /**
    @brief Run dynamic induced graph flood simulation using wavefront propagation
    from specified input discharge locations. Processes cells in descending
-   hydraulic elevation order, dynamically building the flow graph as it propagates
-   downstream.
+   hydraulic elevation order, dynamically building the flow graph as it
+   propagates downstream.
 
    @param[in]     Z: surface topography [m]
    @param[inout]  hw: field of water depth [m]
