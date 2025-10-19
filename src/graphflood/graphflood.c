@@ -1015,7 +1015,7 @@ void graphflood_dynamic_graph(
       Qwin[node] += Precipitations[node] * cell_area;
 
 
-      sum_slopes_j = 0.0
+      GF_FLOAT sum_slopes_j = 0.0
       // Calculate contribution from upstream neighbors
       for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
         if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
