@@ -1062,6 +1062,7 @@ void graphflood_dynamic_graph(
       else{
         maxheap_push(&pq, node, Zw[node]);
         inPQ[node] = true;
+        Zw[node] += 1e-3;
         continue;
       }
 
