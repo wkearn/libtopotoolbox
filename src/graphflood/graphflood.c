@@ -1062,7 +1062,7 @@ void graphflood_dynamic_graph(
       else{
         maxheap_push(&pq, nnode, Zw[nnode]);
         inPQ[nnode] = true;
-        continue
+        continue;
       }
 
       // --------------------------------------------------------------------
