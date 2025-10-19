@@ -934,7 +934,7 @@ void graphflood_dynamic_graph(
   for (GF_UINT iteration = 0; iteration < N_iterations; ++iteration) {
     // Reset arrays
     for (GF_UINT i = 0; i < tnxy; ++i) {
-      Qwin[i] = 0.0;
+      Qwin[i] = input_Qw[i];
       Qwout[i] = 0.0;
       visited[i] = false;
       inPQ[i] = false;
