@@ -963,12 +963,14 @@ void graphflood_dynamic_graph(
 
     while (maxheap_empty(&pq) == false) {
       GF_UINT node = maxheap_pop_and_get_key(&pq);
-      inPQ[node] = false;
-      visited[node] = true;
+      
 
       printf(node);
       printf("\n");
       fflush(stdout);
+
+      inPQ[node] = false;
+      visited[node] = true;
 
       // Skip invalid cells
       if (is_nodata(node, BCs)) continue;
