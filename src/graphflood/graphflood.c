@@ -1049,7 +1049,7 @@ void graphflood_dynamic_graph(
 
         // Distribute flow proportionally
         if (sum_slopes_j > 0.0 && slope_to_node > 0.0) {
-          Qwin[nnode] += (slope_to_node / sum_slopes_j) * Qwin[node];
+          Qwin[node] += (slope_to_node / sum_slopes_j) * Qwin[nnode];
         }
       }
 
