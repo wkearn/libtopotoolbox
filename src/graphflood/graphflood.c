@@ -1012,7 +1012,7 @@ void graphflood_dynamic_graph(
       // --------------------------------------------------------------------
 
       // Add local precipitation
-      Qwin[node] = Precipitations[node] * cell_area;
+      Qwin[node] += Precipitations[node] * cell_area;
 
       // Calculate contribution from upstream neighbors
       for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
@@ -1049,7 +1049,7 @@ void graphflood_dynamic_graph(
 
         // Distribute flow proportionally
         if (sum_slopes_j > 0.0 && slope_to_node > 0.0) {
-          Qwin[node] += (slope_to_node / sum_slopes_j) * Qwin[nnode];
+          Qwin[nnode] += (slope_to_node / sum_slopes_j) * Qwin[node];
         }
       }
 
