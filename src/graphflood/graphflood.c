@@ -1022,7 +1022,6 @@ void graphflood_dynamic_graph(
 
         GF_UINT nnode = node + offset[n];  // Potential upstream neighbor
         if (is_nodata(nnode, BCs)) continue;
-        if (visited[nnode] == false) continue;  // Only from visited cells
 
         // Check if this is an upstream neighbor (higher elevation)
         if (Zw[nnode] >= Zw[node]) continue;
@@ -1030,7 +1029,7 @@ void graphflood_dynamic_graph(
         // Calculate slopes from upstream neighbor to all its downstream
         // neighbors
         GF_FLOAT slope_j =
-              max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
+              (Zw[node] - Zw[nnode]) / offdx[n];
         sum_slopes_j += slope_j;
         
       }
@@ -1042,7 +1041,6 @@ void graphflood_dynamic_graph(
 
           GF_UINT nnode = node + offset[n];  // Potential upstream neighbor
           if (is_nodata(nnode, BCs)) continue;
-          if (visited[nnode] == false) continue;  // Only from visited cells
 
           // Check if this is an upstream neighbor (higher elevation)
           if (Zw[nnode] <= Zw[node]) continue;
