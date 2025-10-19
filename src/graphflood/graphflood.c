@@ -858,10 +858,6 @@ void graphflood_dynamic_graph(
   // NEIGHBOR CONNECTIVITY SETUP
   // --------------------------------------------------------------------------
 
-
-  // printf("REACHES HERE0\n");
-  // fflush(stdout);
-
   GF_INT offset[8];
   (D8 == false) ? generate_offset_D4_flat(offset, dim)
                 : generate_offset_D8_flat(offset, dim);
@@ -898,8 +894,6 @@ void graphflood_dynamic_graph(
   // IDENTIFY INPUT CELLS
   // --------------------------------------------------------------------------
 
-  // printf("REACHES HERE1\n");
-  fflush(stdout);
 
   // Count cells with input discharge
   GF_UINT n_input_cells = 0;
@@ -918,9 +912,6 @@ void graphflood_dynamic_graph(
       input_indices[idx++] = i;
     }
   }
-  
-  // printf("REACHES HERE2\n");
-  // fflush(stdout);
 
   // --------------------------------------------------------------------------
   // MAIN ITERATION LOOP
@@ -939,9 +930,6 @@ void graphflood_dynamic_graph(
     }
 
 
-    // printf("REACHES HERE3\n");
-    // fflush(stdout);
-
     // ------------------------------------------------------------------------
     // INITIALIZE PRIORITY QUEUE with input cells
     // ------------------------------------------------------------------------
@@ -952,8 +940,6 @@ void graphflood_dynamic_graph(
       inPQ[node] = true;
     }
 
-    // printf("REACHES HERE4\n");
-    // fflush(stdout);
 
     // ------------------------------------------------------------------------
     // PROCESS CELLS IN DESCENDING ELEVATION ORDER
@@ -961,14 +947,8 @@ void graphflood_dynamic_graph(
 
     while (maxheap_empty(&pq) == false) {
       
-      // printf("YOLO\n");
-      // fflush(stdout);
       GF_UINT node = maxheap_pop_and_get_key(&pq);
       
-
-      // printf("%zu", (size_t)node);
-      // printf("\n");
-      // fflush(stdout);
 
       inPQ[node] = false;
       visited[node] = true;
