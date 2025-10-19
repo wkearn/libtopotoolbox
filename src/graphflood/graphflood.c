@@ -900,7 +900,8 @@ void graphflood_dynamic_graph(
   // IDENTIFY INPUT CELLS
   // --------------------------------------------------------------------------
 
-  printf("REACHES HERE1");
+  printf("REACHES HERE1\n");
+  fflush(stdout);
 
   // Count cells with input discharge
   GF_UINT n_input_cells = 0;
@@ -920,7 +921,8 @@ void graphflood_dynamic_graph(
     }
   }
   
-  printf("REACHES HERE2");
+  printf("REACHES HERE2\n");
+  fflush(stdout);
 
   // --------------------------------------------------------------------------
   // MAIN ITERATION LOOP
