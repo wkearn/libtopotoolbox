@@ -1025,7 +1025,7 @@ void graphflood_dynamic_graph(
         if (visited[nnode] == false) continue;  // Only from visited cells
 
         // Check if this is an upstream neighbor (higher elevation)
-        if (Zw[nnode] <= Zw[node]) continue;
+        if (Zw[nnode] >= Zw[node]) continue;
 
         // Calculate slopes from upstream neighbor to all its downstream
         // neighbors
