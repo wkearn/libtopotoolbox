@@ -967,7 +967,7 @@ void graphflood_dynamic_graph(
       fflush(stdout);GF_UINT node = maxheap_pop_and_get_key(&pq);
       
 
-      printf(node);
+      printf("%zu", (size_t)node);
       printf("\n");
       fflush(stdout);
 
