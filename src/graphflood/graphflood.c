@@ -1085,3 +1085,109 @@ void graphflood_dynamic_graph(
   free(inPQ);
   free(input_indices);
 }
+
+// ============================================================================
+// COMPUTE INPUT DISCHARGE FROM DRAINAGE AREA THRESHOLD
+// ============================================================================
+
+/*
+ * Computes input discharge array for dynamic graph based on drainage area
+ * threshold. Identifies channel heads where drainage area transitions from
+ * below to above the threshold and assigns precipitation-weighted discharge.
+ *
+ * Algorithm:
+ * 1. Build single flow graph from hydraulic surface (Z + hw)
+ * 2. Calculate both regular and precipitation-weighted drainage areas
+ * 3. Identify transition points where:
+ *    - Current node has drainage area < threshold
+ *    - Receiver node has drainage area >= threshold
+ * 4. Assign Qwin at these transition points as entry discharges
+ */
+TOPOTOOLBOX_API
+void compute_input_Qw_from_area_threshold(GF_FLOAT* input_Qw, GF_FLOAT* Z,
+                                          GF_FLOAT* hw, uint8_t* BCs,
+                                          GF_FLOAT* Precipitations,
+                                          GF_FLOAT area_threshold, GF_UINT* dim,
+                                          GF_FLOAT dx, bool D8, GF_FLOAT step) {
+  // --------------------------------------------------------------------------
+  // MEMORY ALLOCATION
+  // --------------------------------------------------------------------------
+
+  GF_UINT tnxy = nxy(dim);
+
+  // Hydraulic surface elevation (ground + water)
+  GF_FLOAT* Zw = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
+  for (GF_UINT i = 0; i < tnxy; ++i) {
+    Zw[i] = Z[i] + hw[i];
+  }
+
+  // Flow graph data structures for single flow direction
+  GF_UINT* Sreceivers = (GF_UINT*)malloc(sizeof(GF_UINT) * tnxy);
+  GF_FLOAT* distToReceivers = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
+  GF_UINT* Sdonors =
+      (GF_UINT*)malloc(sizeof(GF_UINT) * tnxy * (D8 ? 8 : 4));
+  uint8_t* NSdonors = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
+  GF_UINT* Stack = (GF_UINT*)malloc(sizeof(GF_UINT) * tnxy);
+
+  // Drainage area arrays
+  GF_FLOAT* drainage_area = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
+  GF_FLOAT* Qwin = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
+
+  // --------------------------------------------------------------------------
+  // STEP 1: BUILD SINGLE FLOW GRAPH
+  // --------------------------------------------------------------------------
+
+  compute_sfgraph_priority_flood(Zw, Sreceivers, distToReceivers, Sdonors,
+                                 NSdonors, Stack, BCs, dim, dx, D8, step);
+
+  // --------------------------------------------------------------------------
+  // STEP 2: CALCULATE DRAINAGE AREAS
+  // --------------------------------------------------------------------------
+
+  // Regular drainage area (unweighted)
+  compute_drainage_area_single_flow(drainage_area, Sreceivers, Stack, dim, dx);
+
+  // Precipitation-weighted drainage area
+  compute_weighted_drainage_area_single_flow(Qwin, Precipitations, Sreceivers,
+                                             Stack, dim, dx);
+
+  // --------------------------------------------------------------------------
+  // STEP 3: IDENTIFY CHANNEL HEADS AND ASSIGN INPUT DISCHARGE
+  // --------------------------------------------------------------------------
+
+  // Initialize input_Qw to zero
+  for (GF_UINT i = 0; i < tnxy; ++i) {
+    input_Qw[i] = 0.;
+  }
+
+  // Process nodes in reverse stack order (downstream to upstream)
+  for (GF_UINT i = 0; i < tnxy; ++i) {
+    GF_UINT node = Stack[tnxy - 1 - i];
+    GF_UINT rec = Sreceivers[node];
+
+    // Skip if node is its own receiver (outlet/pit)
+    if (node == rec) continue;
+
+    // Check if this is a channel head:
+    // - Node has drainage area < threshold
+    // - Receiver has drainage area >= threshold
+    if (drainage_area[node] < area_threshold &&
+        drainage_area[rec] >= area_threshold) {
+      // This is an entry point - assign precipitation-weighted discharge
+      input_Qw[node] = Qwin[node];
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // CLEANUP
+  // --------------------------------------------------------------------------
+
+  free(Zw);
+  free(Sreceivers);
+  free(distToReceivers);
+  free(Sdonors);
+  free(NSdonors);
+  free(Stack);
+  free(drainage_area);
+  free(Qwin);
+}
