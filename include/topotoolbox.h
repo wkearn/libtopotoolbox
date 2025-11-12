@@ -1875,6 +1875,33 @@ void graphflood_dynamic_graph(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
                               GF_FLOAT dx, bool D8, GF_UINT N_iterations);
 
 /**
+   @brief Compute input discharge array for dynamic graph from drainage area
+   threshold. Identifies channel heads where drainage area crosses a threshold
+   and assigns precipitation-weighted discharge at those entry points.
+
+   @param[out]    input_Qw: input discharge array to fill [m³/s]
+                  (pre-allocated array of size dim[0] * dim[1])
+   @param[in]     Z: surface topography [m]
+   @param[in]     hw: field of water depth [m]
+   @param[in]     BCs: codes for boundary conditions and no data management
+   @param[in]     Precipitations: precipitation rates [m/s]
+   @param[in]     area_threshold: drainage area threshold for entry points [m²]
+   @param[in]     dim: [rows,columns] if row major and [columns, rows] if
+                  column major
+   @param[in]     dx: spatial step [m]
+   @param[in]     D8: true for topology including cardinals + diagonals,
+                  false for cardinals only
+   @param[in]     step: delta_Z to apply minimum elevation increase and avoid
+                  flats during priority flooding
+*/
+TOPOTOOLBOX_API
+void compute_input_Qw_from_area_threshold(GF_FLOAT *input_Qw, GF_FLOAT *Z,
+                                          GF_FLOAT *hw, uint8_t *BCs,
+                                          GF_FLOAT *Precipitations,
+                                          GF_FLOAT area_threshold, GF_UINT *dim,
+                                          GF_FLOAT dx, bool D8, GF_FLOAT step);
+
+/**
    @brief Label drainage basins based on the flow directions provided
    by a topologically sorted edge list.
 
