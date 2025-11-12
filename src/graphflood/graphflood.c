@@ -1004,6 +1004,10 @@ void graphflood_dynamic_graph(
       }
 
       if (sum_slopes_j > 0) {
+
+        bool all_visited = true;
+        GF_UINT steepest_node = node;
+
         // Calculate contribution from upstream neighbors
         for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
           if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
@@ -1022,11 +1026,25 @@ void graphflood_dynamic_graph(
           if (slope_j > maxslope) {
             maxslope = slope_j;
             dxmaxslope = offdx[n];
+            steepest_node = nnode;
           }
 
           Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
 
+          if(visited[nnode] == false){
+            all_visited = false;
+          }
+
           // Add downstream neighbor to queue if not already there
+          if (inPQ[nnode] == false && visited[nnode] == false) {
+            maxheap_push(&pq, nnode, Zw[nnode]);
+            inPQ[nnode] = true;
+          }
+        }
+
+        if (all_visited){
+          // Add downstream steepest neighbor to queue if all the lower nodes
+          // have been already been visited to not stuck the pq
           if (inPQ[nnode] == false) {
             maxheap_push(&pq, nnode, Zw[nnode]);
             inPQ[nnode] = true;
