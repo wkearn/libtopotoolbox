@@ -882,6 +882,7 @@ void graphflood_dynamic_graph(
 
   // Flow arrays
   GF_FLOAT* Qwout = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
+  GF_FLOAT* extra_Qw = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
 
   // State tracking arrays
   uint8_t* visited = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
@@ -919,8 +920,9 @@ void graphflood_dynamic_graph(
   for (GF_UINT iteration = 0; iteration < N_iterations; ++iteration) {
     // Reset arrays
     for (GF_UINT i = 0; i < tnxy; ++i) {
-      Qwin[i] = input_Qw[i];
+      Qwin[i] = 0.0;
       Qwout[i] = 0.0;
+      extra_Qw[i] = 0.0;
       visited[i] = false;
       inPQ[i] = false;
     }
@@ -931,7 +933,7 @@ void graphflood_dynamic_graph(
 
     for (GF_UINT i = 0; i < n_input_cells; ++i) {
       GF_UINT node = input_indices[i];
-      maxheap_push(&pq, node, Zw[node]);
+      maxheap_push_with_qw(&pq, node, Zw[node], 0.0);
       inPQ[node] = true;
     }
 
@@ -940,7 +942,9 @@ void graphflood_dynamic_graph(
     // ------------------------------------------------------------------------
 
     while (maxheap_empty(&pq) == false) {
-      GF_UINT node = maxheap_pop_and_get_key(&pq);
+      // Pop cell with transported Qw
+      GF_FLOAT Qw_transported;
+      GF_UINT node = maxheap_pop_and_get_key_qw(&pq, &Qw_transported);
 
       inPQ[node] = false;
       bool was_visited_before = visited[node];
@@ -948,8 +952,28 @@ void graphflood_dynamic_graph(
 
       // Skip invalid cells
       if (is_nodata(node, BCs)) continue;
-      // Skip boundary cells that can flow out of the domain
-      // These cells don't accumulate flow from upstream
+
+      // --------------------------------------------------------------------
+      // ACCUMULATE TOTAL QW AT THIS CELL
+      // --------------------------------------------------------------------
+
+      GF_FLOAT total_Qw = Qw_transported;
+
+      // Always consume extra_Qw
+      total_Qw += extra_Qw[node];
+      extra_Qw[node] = 0.0;
+
+      // Add input and precipitation only on first visit
+      if (!was_visited_before) {
+        total_Qw += input_Qw[node] + Precipitations[node] * cell_area;
+      }
+
+      // Burn maximum Qw into Qwin array
+      if (total_Qw > Qwin[node]) {
+        Qwin[node] = total_Qw;
+      }
+
+      // Skip boundary cells that can flow out
       if (can_out(node, BCs)) continue;
 
       // --------------------------------------------------------------------
@@ -982,116 +1006,120 @@ void graphflood_dynamic_graph(
       }
 
       // --------------------------------------------------------------------
-      // ACCUMULATE FLOW FROM UPSTREAM NEIGHBORS
+      // IDENTIFY DOWNSTREAM NEIGHBORS AND FLOW DISTRIBUTION
       // --------------------------------------------------------------------
 
-      // Add local precipitation
-      if(was_visited_before == false){
-        Qwin[node] += Precipitations[node] * cell_area;
-      }
+      // Check for can_out neighbor first
+      GF_UINT can_out_neighbor = node;
+      bool has_can_out_neighbor = false;
 
-      GF_FLOAT sum_slopes_j = 0.0;
-      GF_FLOAT maxslope = 0.0;
-      GF_FLOAT dxmaxslope = 0.0;
-      bool rec_can_out = false;
-      GF_UINT out_rec = node;
-      // Calculate contribution from upstream neighbors
       for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
         if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
 
-        GF_UINT nnode = node + offset[n];  // Potential upstream neighbor
+        GF_UINT nnode = node + offset[n];
         if (is_nodata(nnode, BCs)) continue;
 
-        // Check if this is an upstream neighbor (higher elevation)
+        // Check if downstream (lower elevation)
         if (Zw[nnode] >= Zw[node]) continue;
 
-        if (can_out(nnode, BCs)){
-          rec_can_out = true;
-          out_rec = nnode;
+        if (can_out(nnode, BCs)) {
+          has_can_out_neighbor = true;
+          can_out_neighbor = nnode;
+          break;
         }
-
-        // Calculate slopes from upstream neighbor to all its downstream
-        // neighbors
-        GF_FLOAT slope_j = max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
-        sum_slopes_j += slope_j;
       }
 
-      if (sum_slopes_j > 0) {
-
-        bool all_visited = true;
+      // If any neighbor can_out, give all flow to it
+      if (has_can_out_neighbor) {
+        if (inPQ[can_out_neighbor]) {
+          extra_Qw[can_out_neighbor] += total_Qw;
+        } else {
+          maxheap_push_with_qw(&pq, can_out_neighbor, Zw[can_out_neighbor],
+                               total_Qw);
+          inPQ[can_out_neighbor] = true;
+        }
+      } else {
+        // Find downstream neighbors and calculate slopes
+        GF_FLOAT sum_slopes = 0.0;
+        GF_FLOAT maxslope = 0.0;
+        GF_FLOAT dxmaxslope = 0.0;
         GF_UINT steepest_node = node;
+        bool all_downstream_visited = true;
 
-        // Calculate contribution from upstream neighbors
         for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
           if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
 
-          GF_UINT nnode = node + offset[n];  // Potential upstream neighbor
+          GF_UINT nnode = node + offset[n];
           if (is_nodata(nnode, BCs)) continue;
 
-          // Check if this is an upstream neighbor (higher elevation)
+          // Check if downstream
           if (Zw[nnode] >= Zw[node]) continue;
 
-          // Calculate slopes from upstream neighbor to all its downstream
-          // neighbors
-          GF_FLOAT slope_j =
+          GF_FLOAT slope =
               max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
 
-          if (slope_j > maxslope) {
-            maxslope = slope_j;
+          if (slope > maxslope) {
+            maxslope = slope;
             dxmaxslope = offdx[n];
             steepest_node = nnode;
           }
 
-          if(was_visited_before == false){
-            Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
-          }
-
-          if(visited[nnode] == false){
-            all_visited = false;
-          }
-
-          // Add downstream neighbor to queue if not already there
-          if (inPQ[nnode] == false && visited[nnode] == false) {
-            maxheap_push(&pq, nnode, Zw[nnode]);
-            inPQ[nnode] = true;
+          if (!visited[nnode]) {
+            sum_slopes += slope;
+            all_downstream_visited = false;
           }
         }
 
-        if(rec_can_out){
-          // Add downstream steepest neighbor to queue if all the lower nodes
-          // have been already been visited to not stuck the pq
-          if (inPQ[out_rec] == false) {
-            maxheap_push(&pq, out_rec, Zw[out_rec]);
-            inPQ[out_rec] = true;
+        if (sum_slopes > 0.0) {
+          // Split flow proportionally to non-visited downstream neighbors
+          for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
+            if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
+
+            GF_UINT nnode = node + offset[n];
+            if (is_nodata(nnode, BCs)) continue;
+
+            // Check if downstream and not visited
+            if (Zw[nnode] >= Zw[node]) continue;
+            if (visited[nnode]) continue;
+
+            GF_FLOAT slope =
+                max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
+            GF_FLOAT proportion = slope / sum_slopes;
+
+            extra_Qw[nnode] += proportion * total_Qw;
+
+            if (!inPQ[nnode]) {
+              maxheap_push_with_qw(&pq, nnode, Zw[nnode], 0.0);
+              inPQ[nnode] = true;
+            }
           }
-        }
-        else if (all_visited){
-          // Add downstream steepest neighbor to queue if all the lower nodes
-          // have been already been visited to not stuck the pq
-          if (inPQ[steepest_node] == false) {
-            maxheap_push(&pq, steepest_node, Zw[steepest_node]);
+        } else if (all_downstream_visited && steepest_node != node) {
+          // All downstream visited, give all to steepest
+          if (inPQ[steepest_node]) {
+            extra_Qw[steepest_node] += total_Qw;
+          } else {
+            maxheap_push_with_qw(&pq, steepest_node, Zw[steepest_node],
+                                 total_Qw);
             inPQ[steepest_node] = true;
           }
+        } else {
+          // No downstream neighbors, push back with raised elevation
+          maxheap_push_with_qw(&pq, node, Zw[node] + 1e-3, total_Qw);
+          inPQ[node] = true;
+          Zw[node] += 1e-3;
+          continue;
         }
 
-        // Distribute flow proportionally
+        // --------------------------------------------------------------------
+        // CALCULATE OUTPUT DISCHARGE using Manning's equation
+        // --------------------------------------------------------------------
 
-      } else {
-        maxheap_push(&pq, node, Zw[node]);
-        inPQ[node] = true;
-        Zw[node] += 1e-3;
-        continue;
-      }
-
-      // --------------------------------------------------------------------
-      // CALCULATE OUTPUT DISCHARGE TO DOWNSTREAM NEIGHBORS
-      // --------------------------------------------------------------------
-
-      // Calculate discharge using Manning's equation
-      if (Zw[node] > Z[node] && dxmaxslope > 0. && maxslope > 0. && was_visited_before == false) {
-        GF_FLOAT depth = max_float(Zw[node] - Z[node], 0.);
-        Qwout[node] = (GF_FLOAT)(dxmaxslope / manning[node] *
-                                 pow(depth, 5.0 / 3.0) * sqrt(maxslope));
+        if (Zw[node] > Z[node] && dxmaxslope > 0. && maxslope > 0. &&
+            !was_visited_before) {
+          GF_FLOAT depth = max_float(Zw[node] - Z[node], 0.);
+          Qwout[node] = (GF_FLOAT)(dxmaxslope / manning[node] *
+                                   pow(depth, 5.0 / 3.0) * sqrt(maxslope));
+        }
       }
     }
 
@@ -1121,6 +1149,7 @@ void graphflood_dynamic_graph(
   maxheap_free(&pq);
   free(Zw);
   free(Qwout);
+  free(extra_Qw);
   free(visited);
   free(inPQ);
   free(input_indices);
