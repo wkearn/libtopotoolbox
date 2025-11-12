@@ -1044,6 +1044,9 @@ void graphflood_dynamic_graph(
 
           if(was_visited_before == false){
             Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
+          }
+
+          if(visited[nnode] == false){
             all_visited = false;
           }
 
