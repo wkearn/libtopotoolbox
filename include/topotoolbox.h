@@ -1861,7 +1861,8 @@ void graphflood_metrics(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
    @param[in]     input_Qw: input discharge at specific cells [m³/s]
                   (cells with value > 0 are used as starting points)
    @param[inout]  Qwin: accumulated input discharge array [m³/s]
-                  (pre-allocated array of size dim[0] * dim[1], reinitialized each iteration)
+                  (pre-allocated array of size dim[0] * dim[1], reinitialized
+   each iteration)
    @param[in]     dim: [rows,columns] if row major and [columns, rows] if
                   column major
    @param[in]     dt: time step [s]

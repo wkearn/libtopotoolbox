@@ -154,7 +154,7 @@ static inline GF_UINT maxheap_pop_and_get_key(MaxHeapPQueue* pq) {
 
 // Pop the top element from the max-heap priority queue and get its key and Qw
 static inline GF_UINT maxheap_pop_and_get_key_qw(MaxHeapPQueue* pq,
-                                                  GF_FLOAT* Qw_out) {
+                                                 GF_FLOAT* Qw_out) {
   if (pq->size == 0) {
     *Qw_out = 0.0;
     return 0;  // Priority queue is empty
