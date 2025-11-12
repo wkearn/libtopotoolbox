@@ -1045,9 +1045,9 @@ void graphflood_dynamic_graph(
         if (all_visited){
           // Add downstream steepest neighbor to queue if all the lower nodes
           // have been already been visited to not stuck the pq
-          if (inPQ[nnode] == false) {
-            maxheap_push(&pq, nnode, Zw[nnode]);
-            inPQ[nnode] = true;
+          if (inPQ[steepest_node] == false) {
+            maxheap_push(&pq, steepest_node, Zw[steepest_node]);
+            inPQ[steepest_node] = true;
           }
         }
 
