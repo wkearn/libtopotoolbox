@@ -947,6 +947,9 @@ void graphflood_dynamic_graph(
 
       // Skip invalid cells
       if (is_nodata(node, BCs)) continue;
+      // Skip boundary cells that can flow out of the domain
+      // These cells don't accumulate flow from upstream
+      if (can_out(node, BCs)) continue;
 
       // --------------------------------------------------------------------
       // CHECK FOR LOWER NEIGHBORS and raise if needed
@@ -987,6 +990,8 @@ void graphflood_dynamic_graph(
       GF_FLOAT sum_slopes_j = 0.0;
       GF_FLOAT maxslope = 0.0;
       GF_FLOAT dxmaxslope = 0.0;
+      bool rec_can_out = false;
+      GF_UINT out_rec = node;
       // Calculate contribution from upstream neighbors
       for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
         if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
@@ -996,6 +1001,11 @@ void graphflood_dynamic_graph(
 
         // Check if this is an upstream neighbor (higher elevation)
         if (Zw[nnode] >= Zw[node]) continue;
+
+        if (can_out(nnode, BCs)){
+          rec_can_out = true;
+          out_rec = nnode;
+        }
 
         // Calculate slopes from upstream neighbor to all its downstream
         // neighbors
@@ -1042,7 +1052,15 @@ void graphflood_dynamic_graph(
           }
         }
 
-        if (all_visited){
+        if(rec_can_out){
+          // Add downstream steepest neighbor to queue if all the lower nodes
+          // have been already been visited to not stuck the pq
+          if (inPQ[out_rec] == false) {
+            maxheap_push(&pq, out_rec, Zw[out_rec]);
+            inPQ[out_rec] = true;
+          }
+        }
+        else if (all_visited){
           // Add downstream steepest neighbor to queue if all the lower nodes
           // have been already been visited to not stuck the pq
           if (inPQ[steepest_node] == false) {
