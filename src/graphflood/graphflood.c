@@ -849,15 +849,14 @@ void graphflood_metrics(
  * hw             : Water depth at each cell [m] (input/output, modified)
  * BCs            : Boundary condition flags (input, constant)
  * Precipitations : Precipitation rate per cell [m/s] (input, constant)
- * manning        : Manning's roughness coefficient [s/m^(1/3)] (input, constant)
- * input_Qw       : Input discharge locations/values [m³/s] (input, constant)
- * Qwin           : Accumulated discharge array [m³/s] (input/output)
- *                  Reinitialized each iteration, stores max Qw seen at each cell
- * dim            : Grid dimensions [nx, ny] (input, constant)
- * dt             : Time step size [s] (input, constant)
- * dx             : Grid cell spacing [m] (input, constant)
- * D8             : Connectivity scheme (true=8-neighbor, false=4-neighbor)
- * N_iterations   : Number of time steps to simulate (input)
+ * manning        : Manning's roughness coefficient [s/m^(1/3)] (input,
+ * constant) input_Qw       : Input discharge locations/values [m³/s] (input,
+ * constant) Qwin           : Accumulated discharge array [m³/s] (input/output)
+ *                  Reinitialized each iteration, stores max Qw seen at each
+ * cell dim            : Grid dimensions [nx, ny] (input, constant) dt : Time
+ * step size [s] (input, constant) dx             : Grid cell spacing [m]
+ * (input, constant) D8             : Connectivity scheme (true=8-neighbor,
+ * false=4-neighbor) N_iterations   : Number of time steps to simulate (input)
  */
 TOPOTOOLBOX_API
 void graphflood_dynamic_graph(
@@ -879,7 +878,8 @@ void graphflood_dynamic_graph(
   // --------------------------------------------------------------------------
   // Generate offset arrays for neighbor access based on connectivity (D4/D8)
   // offset[n] gives the flat index offset to reach neighbor n
-  // offdx[n] gives the distance to neighbor n (dx for cardinal, dx*sqrt(2) for diagonal)
+  // offdx[n] gives the distance to neighbor n (dx for cardinal, dx*sqrt(2) for
+  // diagonal)
 
   GF_INT offset[8];
   (D8 == false) ? generate_offset_D4_flat(offset, dim)
@@ -904,7 +904,8 @@ void graphflood_dynamic_graph(
   }
 
   // Flow arrays:
-  // - Qwout: Output discharge from each cell calculated via Manning's equation [m³/s]
+  // - Qwout: Output discharge from each cell calculated via Manning's equation
+  // [m³/s]
   // - extra_Qw: Buffer for flow from upstream neighbors already in PQ [m³/s]
   //   This prevents double-counting when cells are pushed multiple times
   GF_FLOAT* Qwout = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
@@ -951,11 +952,11 @@ void graphflood_dynamic_graph(
   for (GF_UINT iteration = 0; iteration < N_iterations; ++iteration) {
     // Reset arrays for this iteration
     for (GF_UINT i = 0; i < tnxy; ++i) {
-      Qwin[i] = 0.0;        // Accumulated discharge (will track maximum)
-      Qwout[i] = 0.0;       // Output discharge via Manning
-      extra_Qw[i] = 0.0;    // Flow buffer for cells already in PQ
-      visited[i] = false;   // Clear visitation flags
-      inPQ[i] = false;      // Clear PQ membership flags
+      Qwin[i] = 0.0;       // Accumulated discharge (will track maximum)
+      Qwout[i] = 0.0;      // Output discharge via Manning
+      extra_Qw[i] = 0.0;   // Flow buffer for cells already in PQ
+      visited[i] = false;  // Clear visitation flags
+      inPQ[i] = false;     // Clear PQ membership flags
     }
 
     // ------------------------------------------------------------------------
@@ -1049,8 +1050,7 @@ void graphflood_dynamic_graph(
       // Raise cell slightly above lowest neighbor if trapped in depression
       if (has_any_neighbor && has_lower_neighbor == false) {
         Zw[node] = min_neighbor_zw + 1e-3;
-        maxheap_push_with_qw(&pq, node, Zw[node],
-                                 total_Qw);
+        maxheap_push_with_qw(&pq, node, Zw[node], total_Qw);
         inPQ[node] = true;
         continue;
       }
@@ -1101,13 +1101,15 @@ void graphflood_dynamic_graph(
         // CASE 2 & 3: No boundary neighbor - analyze downstream neighbors
         // --------------------------------------------------------------------
         // Calculate slopes to all downstream neighbors
-        // Track both steepest (for backflow) and sum of non-visited (for splitting)
+        // Track both steepest (for backflow) and sum of non-visited (for
+        // splitting)
 
-        GF_FLOAT sum_slopes = 0.0;           // Sum of slopes to non-visited neighbors
-        GF_FLOAT maxslope = 0.0;             // Steepest slope (any neighbor)
-        GF_FLOAT dxmaxslope = 0.0;           // Distance to steepest neighbor
-        GF_UINT steepest_node = node;        // Steepest downstream neighbor
-        bool all_downstream_visited = true;  // Track if all downstream are visited
+        GF_FLOAT sum_slopes = 0.0;     // Sum of slopes to non-visited neighbors
+        GF_FLOAT maxslope = 0.0;       // Steepest slope (any neighbor)
+        GF_FLOAT dxmaxslope = 0.0;     // Distance to steepest neighbor
+        GF_UINT steepest_node = node;  // Steepest downstream neighbor
+        bool all_downstream_visited =
+            true;  // Track if all downstream are visited
 
         for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
           if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
@@ -1139,8 +1141,8 @@ void graphflood_dynamic_graph(
         // CASE 3: Some downstream neighbors not visited - split flow
         // ----------------------------------------------------------------------
         if (sum_slopes > 0.0) {
-          // Distribute flow proportionally based on slopes to non-visited neighbors
-          // This is the normal forward routing case
+          // Distribute flow proportionally based on slopes to non-visited
+          // neighbors This is the normal forward routing case
           for (uint8_t n = 0; n < N_neighbour(D8); ++n) {
             if (check_bound_neighbour(node, n, dim, BCs, D8) == false) continue;
 
@@ -1159,7 +1161,8 @@ void graphflood_dynamic_graph(
             // Add to extra_Qw buffer (will be consumed when neighbor is popped)
             extra_Qw[nnode] += proportion * total_Qw;
 
-            // Add neighbor to PQ if not already there (with Qw=0, will pick up extra_Qw)
+            // Add neighbor to PQ if not already there (with Qw=0, will pick up
+            // extra_Qw)
             if (!inPQ[nnode]) {
               maxheap_push_with_qw(&pq, nnode, Zw[nnode], 0.0);
               inPQ[nnode] = true;
@@ -1169,8 +1172,9 @@ void graphflood_dynamic_graph(
           // --------------------------------------------------------------------
           // CASE 2: All downstream visited - backflow to steepest
           // --------------------------------------------------------------------
-          // This handles cells in depressions where downstream was already processed
-          // Route all flow to steepest neighbor to allow re-processing
+          // This handles cells in depressions where downstream was already
+          // processed Route all flow to steepest neighbor to allow
+          // re-processing
           if (inPQ[steepest_node]) {
             extra_Qw[steepest_node] += total_Qw;
           } else {
@@ -1215,8 +1219,8 @@ void graphflood_dynamic_graph(
     for (GF_UINT node = 0; node < tnxy; ++node) {
       // Only update cells with water or that were visited
       if (Zw[node] > Z[node] || visited[node]) {
-        // Apply water balance: increase if Qwin > Qwout, decrease if Qwin < Qwout
-        // Ensure Zw never drops below ground elevation Z
+        // Apply water balance: increase if Qwin > Qwout, decrease if Qwin <
+        // Qwout Ensure Zw never drops below ground elevation Z
         Zw[node] = max_float(
             Z[node], Zw[node] + dt * (Qwin[node] - Qwout[node]) / cell_area);
       }
@@ -1280,8 +1284,7 @@ void compute_input_Qw_from_area_threshold(GF_FLOAT* input_Qw, GF_FLOAT* Z,
   // Flow graph data structures for single flow direction
   GF_UINT* Sreceivers = (GF_UINT*)malloc(sizeof(GF_UINT) * tnxy);
   GF_FLOAT* distToReceivers = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
-  GF_UINT* Sdonors =
-      (GF_UINT*)malloc(sizeof(GF_UINT) * tnxy * (D8 ? 8 : 4));
+  GF_UINT* Sdonors = (GF_UINT*)malloc(sizeof(GF_UINT) * tnxy * (D8 ? 8 : 4));
   uint8_t* NSdonors = (uint8_t*)malloc(sizeof(uint8_t) * tnxy);
   GF_UINT* Stack = (GF_UINT*)malloc(sizeof(GF_UINT) * tnxy);
 
