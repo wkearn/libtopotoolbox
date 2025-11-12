@@ -1027,10 +1027,8 @@ void graphflood_dynamic_graph(
           Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
 
           // Add downstream neighbor to queue if not already there
-          if (inPQ[nnode] == false && visited[nnode] == false) {
-            if(maxheap_push(&pq, nnode, Zw[nnode]) == false){
-              printf("PQ FULL");
-            }
+          if (inPQ[nnode] == false) {
+            maxheap_push(&pq, nnode, Zw[nnode]);
             inPQ[nnode] = true;
           }
         }
@@ -1049,7 +1047,7 @@ void graphflood_dynamic_graph(
       // --------------------------------------------------------------------
 
       // Calculate discharge using Manning's equation
-      if (Zw[node] > Z[node]) {
+      if (Zw[node] > Z[node] && dxmaxslope > 0. && maxslope > 0. && visited[node] == false) {
         GF_FLOAT depth = max_float(Zw[node] - Z[node], 0.);
         Qwout[node] = (GF_FLOAT)(dxmaxslope / manning[node] *
                                  pow(depth, 5.0 / 3.0) * sqrt(maxslope));
