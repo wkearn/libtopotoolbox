@@ -943,6 +943,7 @@ void graphflood_dynamic_graph(
       GF_UINT node = maxheap_pop_and_get_key(&pq);
 
       inPQ[node] = false;
+      bool was_visited_before = visited[node];
       visited[node] = true;
 
       // Skip invalid cells
@@ -985,7 +986,7 @@ void graphflood_dynamic_graph(
       // --------------------------------------------------------------------
 
       // Add local precipitation
-      if(visited[node] == false){
+      if(was_visited_before == false){
         Qwin[node] += Precipitations[node] * cell_area;
       }
 
@@ -1041,7 +1042,7 @@ void graphflood_dynamic_graph(
             steepest_node = nnode;
           }
 
-          if(visited[node] == false){
+          if(was_visited_before == false){
             Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
             all_visited = false;
           }
@@ -1084,7 +1085,7 @@ void graphflood_dynamic_graph(
       // --------------------------------------------------------------------
 
       // Calculate discharge using Manning's equation
-      if (Zw[node] > Z[node] && dxmaxslope > 0. && maxslope > 0. && visited[node] == false) {
+      if (Zw[node] > Z[node] && dxmaxslope > 0. && maxslope > 0. && was_visited_before == false) {
         GF_FLOAT depth = max_float(Zw[node] - Z[node], 0.);
         Qwout[node] = (GF_FLOAT)(dxmaxslope / manning[node] *
                                  pow(depth, 5.0 / 3.0) * sqrt(maxslope));
