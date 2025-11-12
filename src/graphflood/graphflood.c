@@ -1012,7 +1012,7 @@ void graphflood_dynamic_graph(
 
         // Calculate slopes from upstream neighbor to all its downstream
         // neighbors
-        max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
+        GF_FLOAT slope_j = max_float((GF_FLOAT)1e-8, (Zw[node] - Zw[nnode]) / offdx[n]);
         sum_slopes_j += slope_j;
       }
 
