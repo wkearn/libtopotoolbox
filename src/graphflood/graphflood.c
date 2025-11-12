@@ -847,6 +847,7 @@ void graphflood_dynamic_graph(
     GF_FLOAT* Precipitations,  // Precipitation rates [input]
     GF_FLOAT* manning,         // Manning's roughness [input]
     GF_FLOAT* input_Qw,        // Input discharge locations [input]
+    GF_FLOAT* Qwin,            // Accumulated input discharge [input/output]
     GF_UINT* dim,              // Grid dimensions [input]
     GF_FLOAT dt,               // Time step size [input]
     GF_FLOAT dx,               // Grid spacing [input]
@@ -880,7 +881,6 @@ void graphflood_dynamic_graph(
   }
 
   // Flow arrays
-  GF_FLOAT* Qwin = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
   GF_FLOAT* Qwout = (GF_FLOAT*)malloc(sizeof(GF_FLOAT) * tnxy);
 
   // State tracking arrays
@@ -1116,7 +1116,6 @@ void graphflood_dynamic_graph(
   // Free memory
   maxheap_free(&pq);
   free(Zw);
-  free(Qwin);
   free(Qwout);
   free(visited);
   free(inPQ);

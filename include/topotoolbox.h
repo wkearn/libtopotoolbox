@@ -1860,6 +1860,8 @@ void graphflood_metrics(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
    @param[in]     manning: Manning's friction coefficient [s/m^(1/3)]
    @param[in]     input_Qw: input discharge at specific cells [m³/s]
                   (cells with value > 0 are used as starting points)
+   @param[inout]  Qwin: accumulated input discharge array [m³/s]
+                  (pre-allocated array of size dim[0] * dim[1], reinitialized each iteration)
    @param[in]     dim: [rows,columns] if row major and [columns, rows] if
                   column major
    @param[in]     dt: time step [s]
@@ -1871,8 +1873,9 @@ void graphflood_metrics(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
 TOPOTOOLBOX_API
 void graphflood_dynamic_graph(GF_FLOAT *Z, GF_FLOAT *hw, uint8_t *BCs,
                               GF_FLOAT *Precipitations, GF_FLOAT *manning,
-                              GF_FLOAT *input_Qw, GF_UINT *dim, GF_FLOAT dt,
-                              GF_FLOAT dx, bool D8, GF_UINT N_iterations);
+                              GF_FLOAT *input_Qw, GF_FLOAT *Qwin, GF_UINT *dim,
+                              GF_FLOAT dt, GF_FLOAT dx, bool D8,
+                              GF_UINT N_iterations);
 
 /**
    @brief Compute input discharge array for dynamic graph from drainage area
