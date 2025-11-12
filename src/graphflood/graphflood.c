@@ -1028,7 +1028,9 @@ void graphflood_dynamic_graph(
 
           // Add downstream neighbor to queue if not already there
           if (inPQ[nnode] == false && visited[nnode] == false) {
-            maxheap_push(&pq, nnode, Zw[nnode]);
+            if(maxheap_push(&pq, nnode, Zw[nnode]) == false){
+              printf("PQ FULL");
+            }
             inPQ[nnode] = true;
           }
         }
