@@ -985,7 +985,9 @@ void graphflood_dynamic_graph(
       // --------------------------------------------------------------------
 
       // Add local precipitation
-      Qwin[node] += Precipitations[node] * cell_area;
+      if(visited[node] == false){
+        Qwin[node] += Precipitations[node] * cell_area;
+      }
 
       GF_FLOAT sum_slopes_j = 0.0;
       GF_FLOAT maxslope = 0.0;
@@ -1039,9 +1041,8 @@ void graphflood_dynamic_graph(
             steepest_node = nnode;
           }
 
-          Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
-
-          if(visited[nnode] == false){
+          if(visited[node] == false){
+            Qwin[nnode] += (slope_j / sum_slopes_j) * Qwin[node];
             all_visited = false;
           }
 
@@ -1096,7 +1097,7 @@ void graphflood_dynamic_graph(
 
     for (GF_UINT node = 0; node < tnxy; ++node) {
       // Only update cells with water or discharge
-      if (Zw[node] > Z[node] || visited[node] || Qwin[node] > 0.) {
+      if (Zw[node] > Z[node] || visited[node]) {
         Zw[node] = max_float(
             Z[node], Zw[node] + dt * (Qwin[node] - Qwout[node]) / cell_area);
       }
