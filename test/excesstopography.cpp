@@ -35,7 +35,7 @@ float upwind_gradient(float *u, ptrdiff_t row, ptrdiff_t col, float cellsize,
 int32_t test_excess_constraint(float *excess, float *dem, ptrdiff_t dims[2]) {
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
-      assert(isnan(dem[i + j * dims[0]]) ||
+      assert(std::isnan(dem[i + j * dims[0]]) ||
              excess[i + j * dims[0]] <= dem[i + j * dims[0]]);
     }
   }
@@ -47,7 +47,7 @@ int32_t test_upwind_gradient(float *excess, float *threshold, float cellsize,
   for (ptrdiff_t j = 0; j < dims[1]; j++) {
     for (ptrdiff_t i = 0; i < dims[0]; i++) {
       if ((i > 0) && (i < dims[0] - 1) && (j > 0) && (j < dims[1] - 1)) {
-        assert(isnan(excess[i + j * dims[0]]) ||
+        assert(std::isnan(excess[i + j * dims[0]]) ||
                upwind_gradient(excess, i, j, cellsize, dims) -
                        threshold[j * dims[0] + i] <
                    1e-4);
