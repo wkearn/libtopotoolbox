@@ -1067,8 +1067,8 @@ void reconstruct(float *marker, float *mask, ptrdiff_t dims[2]);
                      It should contain two values: [rows, columns].
 */
 TOPOTOOLBOX_API
-void reconstruct_hybrid(float *marker, ptrdiff_t *queue, float *mask,
-                        ptrdiff_t dims[2]);
+int reconstruct_hybrid(float *marker, ptrdiff_t *queue, float *mask,
+                       ptrdiff_t dims[2]);
 
 /**
    @brief Integrate a `float` quantity over a stream network using
