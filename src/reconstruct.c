@@ -288,18 +288,25 @@ void reconstruct(float *marker, float *mask, ptrdiff_t dims[2]) {
   `propagate` step, the `repeat` flag is set, and the process is
   repeated to ensure that the algorithm converges.
  */
-void reconstruct_hybrid(float *marker, ptrdiff_t *queue, float *mask,
-                        ptrdiff_t dims[2]) {
+int reconstruct_hybrid(float *marker, ptrdiff_t *queue, float *mask,
+                       ptrdiff_t dims[2]) {
   PixelQueue q = {0};
   q.buffer = queue;
   q.length = dims[0] * dims[1];
 
+  int max_scans = 2;
+  int scans = 0;
   int32_t repeat = 0;
   do {
     forward_scan(marker, mask, dims);
+
+    repeat = 0;
     // Backward scan returns -1 if the queue fills up, in which case
     // we need to repeat the scan.
     repeat |= (backward_scan(marker, &q, mask, dims) == -1);
     repeat |= propagate(marker, &q, mask, dims);
-  } while (repeat);
+
+    scans++;
+  } while (repeat && scans < max_scans);
+  return (scans == max_scans) && repeat;
 }

@@ -474,6 +474,47 @@ struct SnapshotData {
     return 0;
   }
 
+  float test_prominence() {
+    // Initialize p with the minimum of the DEM
+    std::vector<float> z(dims[0] * dims[1], 0.0);
+    float min = INFINITY;
+    for (ptrdiff_t i = 0; i < dims[0] * dims[1]; i++) {
+      min = std::fminf(min, dem[i]);
+      if (std::isnan(dem[i])) {
+        z[i] = 0.0;
+      } else {
+        z[i] = dem[i];
+      }
+    }
+    std::vector<float> p(dims[0] * dims[1], min);
+
+    // Replace the pixel with the maximum difference between DEM
+    // and p with the DEM value
+    float maxdiff = 0.0;
+    ptrdiff_t argmaxdiff = 0;
+    for (ptrdiff_t i = 0; i < dims[0] * dims[1]; i++) {
+      maxdiff = std::fmaxf(maxdiff, z[i] - p[i]);
+      if (maxdiff == (z[i] - p[i])) {
+        argmaxdiff = i;
+      }
+    }
+
+    p[argmaxdiff] = dem[argmaxdiff];
+
+    std::vector<ptrdiff_t> queue(dims[0] * dims[1], 0);
+
+    int not_converged =
+        tt::reconstruct_hybrid(p.data(), queue.data(), z.data(), dims.data());
+
+    // What is the next highest prominence?
+    maxdiff = 0.0;
+    for (ptrdiff_t i = 0; i < dims[0] * dims[1]; i++) {
+      maxdiff = std::fmaxf(maxdiff, z[i] - p[i]);
+    }
+
+    return not_converged ? -maxdiff : maxdiff;
+  }
+
   int runtests() {
     std::cout << "    1..9" << std::endl;
 
@@ -559,6 +600,16 @@ struct SnapshotData {
         std::cout << "    not ok 9 - hillshade" << std::endl;
       } else {
         std::cout << "    ok 9 - hillshade" << std::endl;
+      }
+    }
+
+    if (dem.size() > 0) {
+      float res = test_prominence();
+      if (res < 0) {
+        result = -1;
+        std::cout << "    not ok 10 - prominence # " << res << std::endl;
+      } else {
+        std::cout << "    ok 10 - prominence # " << res << std::endl;
       }
     }
 
