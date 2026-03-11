@@ -2411,4 +2411,244 @@ TOPOTOOLBOX_API
 void lowerenv(float *elevation, uint8_t *knickpoints, float *distance,
               ptrdiff_t *ix, uint8_t *onenvelope, ptrdiff_t *source,
               ptrdiff_t *target, ptrdiff_t edge_count, ptrdiff_t node_count);
+
+/**
+   @brief Frontier Dijkstra distance map — raw pixel-unit outputs
+
+   @details
+   Runs the frontier Dijkstra expansion and writes raw pixel-space distances
+   directly into caller-allocated arrays.  No unit conversion or NaN filling
+   is performed; that is left to the caller.
+
+   Unvisited pixels receive FLT_MAX in best_abs.  If mask is non-NULL,
+   zero-valued pixels are excluded from expansion.  The caller is responsible
+   for encoding any NaN-elevation exclusion into the mask before calling.
+
+   @param[out] best_abs Absolute pixel-unit distance. FLT_MAX = unvisited.
+               Must be caller-allocated, size dims[0]*dims[1].
+   @param[out] signed_dist Signed pixel-unit distance from the track segment.
+               Positive when pixel is to the left of the directed track,
+               negative to the right. Pass NULL to omit.
+   @param[out] nearest_point Index of nearest track point. -1 = unvisited.
+               Pass NULL to omit.
+   @param[in] track_i Track coords in fast dimension (pixel space)
+   @param[in] track_j Track coords in slow dimension (pixel space)
+   @param[in] n_track_points Number of track vertices (>= 2)
+   @param[in] dims Grid dimensions [fast, slow]
+   @param[in] max_dist_px Expansion clip radius in pixels (FLT_MAX = unbounded)
+   @param[in] mask Active mask (nonzero=active), or NULL for all active
+*/
+TOPOTOOLBOX_API
+void swath_frontier_distance_map(float *best_abs, float *signed_dist,
+                                 ptrdiff_t *nearest_point, const float *track_i,
+                                 const float *track_j, ptrdiff_t n_track_points,
+                                 ptrdiff_t dims[2], float max_dist_px,
+                                 const int8_t *mask);
+
+/**
+   @brief Inward D8 Dijkstra from boundary seed pixels
+
+   @param[out] dist_out  Pixel-unit D8 distances. FLT_MAX = unvisited.
+               Caller-allocated, size dims[0]*dims[1].
+   @param[in]  swath_mask 1=active pixel, 0=excluded. Expansion stays
+               within active pixels.
+   @param[in]  seeds  Flat pixel indices of seed pixels.
+   @param[in]  n_seeds  Number of seeds.
+   @param[in]  dims  Grid dimensions [fast, slow].
+*/
+TOPOTOOLBOX_API
+void swath_boundary_dijkstra(float *dist_out, const int8_t *swath_mask,
+                             const ptrdiff_t *seeds, ptrdiff_t n_seeds,
+                             ptrdiff_t dims[2]);
+
+/**
+   @brief Extract Voronoi ridge pixels between two boundary wavefronts
+
+   @param[out] centre_line_i  Fast-dim coords of ridge pixels (float).
+   @param[out] centre_line_j  Slow-dim coords of ridge pixels (float).
+   @param[out] centre_width   Local width at each ridge pixel
+   (same units than cellsize).
+   @param[in]  dist_pos  Positive-side boundary DT (pixel units,
+   FLT_MAX=unvisited).
+   @param[in]  dist_neg  Negative-side boundary DT (pixel units,
+   FLT_MAX=unvisited).
+   @param[in]  best_abs  Absolute frontier distance (pixel units,
+   FLT_MAX=outside).
+   @param[in]  hw_px     Swath half-width in pixels.
+   @param[in]  nearest_point  Nearest track point index per pixel.
+   @param[in]  track_i  Track vertices fast dim (pixel space).
+   @param[in]  track_j  Track vertices slow dim (pixel space).
+   @param[in]  n_track_points  Number of track vertices.
+   @param[in]  dims  Grid dimensions [fast, slow].
+   @param[in]  cellsize  Cell size in meters (used for width conversion).
+   @return  Number of ridge pixels written.
+*/
+TOPOTOOLBOX_API
+ptrdiff_t voronoi_ridge_to_centreline(
+    float *centre_line_i, float *centre_line_j, float *centre_width,
+    const float *dist_pos, const float *dist_neg, const float *best_abs,
+    float hw_px, const ptrdiff_t *nearest_point, const float *track_i,
+    const float *track_j, ptrdiff_t n_track_points, ptrdiff_t dims[2],
+    float cellsize);
+
+/**
+   @brief Thin a rasterised polyline by removing staircase elbows
+
+   @param[in,out] centre_line_i  Fast-dim pixel coords (modified in place).
+   @param[in,out] centre_line_j  Slow-dim pixel coords (modified in place).
+   @param[in,out] centre_width   Width values (modified in place).
+   @param[in]     n_centre  Number of input pixels.
+   @param[in]     dims  Grid dimensions [fast, slow].
+   @return  New pixel count after thinning.
+*/
+TOPOTOOLBOX_API
+ptrdiff_t thin_rasterised_line_to_D8(float *centre_line_i, float *centre_line_j,
+                                     float *centre_width, ptrdiff_t n_centre,
+                                     ptrdiff_t dims[2]);
+
+/**
+   @brief Compute per-point swath profile along track
+
+   @details
+   For each track point, computes statistics of DEM elevations within its
+   perpendicular swath. Takes a pre-computed SIGNED distance map (meters).
+
+   @param[out] point_means Mean elevation per track point
+   @param[out] point_stddevs Standard deviation per track point
+   @param[out] point_mins Minimum elevation per track point
+   @param[out] point_maxs Maximum elevation per track point
+   @param[out] point_counts Pixel count per track point
+   @param[out] point_medians Median per point, or NULL
+   @param[out] point_q1 25th percentile per point, or NULL
+   @param[out] point_q3 75th percentile per point, or NULL
+   @param[in] percentile_list Custom percentiles (0-100), or NULL
+   @param[in] n_percentiles Number of percentiles
+   @param[out] point_percentiles Custom percentile output, or NULL
+   @param[in] dem DEM array
+   @param[in] track_i Track coords fast dim (pixel space)
+   @param[in] track_j Track coords slow dim (pixel space)
+   @param[in] n_track_points Number of track vertices (>= 2)
+   @param[in] distance_from_track SIGNED distance map in meters
+   @param[in] dims Grid dimensions [fast, slow]
+   @param[in] cellsize Cell size in meters
+   @param[in] half_width Swath half-width in meters
+   @param[in] binning_distance Along-track binning distance in meters.
+   If <= 0, each point gathers pixels along its orthogonal cross-section only.
+   If > 0, gathers pixels within the bounding box between edge orthogonals
+   within binning_distance along the track, filtered by distance_from_track.
+   @param[in]  nearest_point    Per-pixel nearest track-point index, from
+   swath_frontier_distance_map. Required when binning_distance > 0.
+   @param[in]  cum_dist         Cumulative along-track distance in meters,
+   size n_track_points. Entry k holds arc-length from point 0 to point k.
+   @param[in]  skip             Process every skip-th track point (1 = all).
+   @param[out] result_track_i   Kept track-point fast coords, or NULL
+   @param[out] result_track_j   Kept track-point slow coords, or NULL
+
+   @return Number of output points written (= ceil(n_track_points / skip))
+ */
+TOPOTOOLBOX_API
+ptrdiff_t swath_longitudinal(
+    float *point_means, float *point_stddevs, float *point_mins,
+    float *point_maxs, ptrdiff_t *point_counts, float *point_medians,
+    float *point_q1, float *point_q3, const int *percentile_list,
+    ptrdiff_t n_percentiles, float *point_percentiles, const float *dem,
+    const float *track_i, const float *track_j, ptrdiff_t n_track_points,
+    const float *distance_from_track, ptrdiff_t dims[2], float cellsize,
+    float half_width, float binning_distance, const ptrdiff_t *nearest_point,
+    const float *cum_dist, ptrdiff_t skip, float *result_track_i,
+    float *result_track_j);
+
+/**
+   @brief Get pixel coordinates associated with a single track point
+
+   @details
+   Takes a pre-computed SIGNED distance map (meters). For the given track
+   point, finds all grid pixels within half_width of the local sub-track.
+
+   @param[out] pixels_i Fast-dim coordinates of associated pixels
+   @param[out] pixels_j Slow-dim coordinates of associated pixels
+   @param[in] track_i Track coords fast dim (pixel space)
+   @param[in] track_j Track coords slow dim (pixel space)
+   @param[in] n_track_points Number of track vertices (>= 2)
+   @param[in] point_index Index of query point
+   @param[in] distance_from_track SIGNED distance map in meters
+   @param[in] dims Grid dimensions [fast, slow]
+   @param[in] cellsize Cell size in meters
+   @param[in] half_width Swath half-width in meters
+   @param[in] binning_distance Along-track binning distance in meters.
+   If <= 0, gathers pixels along the orthogonal cross-section only.
+   If > 0, gathers pixels within bounding box between edge orthogonals.
+   @param[in] nearest_point Per-pixel nearest track-point index, from
+   swath_frontier_distance_map. Required when binning_distance > 0.
+   @param[in] cum_dist Cumulative along-track distance in meters, size
+   n_track_points. Entry k holds arc-length from point 0 to point k.
+
+   @return Number of pixels written
+ */
+TOPOTOOLBOX_API
+ptrdiff_t swath_get_point_pixels(
+    ptrdiff_t *pixels_i, ptrdiff_t *pixels_j, const float *track_i,
+    const float *track_j, ptrdiff_t n_track_points, ptrdiff_t point_index,
+    const float *distance_from_track, ptrdiff_t dims[2], float cellsize,
+    float half_width, float binning_distance, const ptrdiff_t *nearest_point,
+    const float *cum_dist);
+
+/**
+   @brief Rasterize a continuous path between ordered reference points.
+
+   Connects consecutive reference points using Bresenham's line algorithm,
+   producing a continuous rasterized path with either D4 or D8 connectivity.
+   Duplicate points at segment junctions are removed.
+
+   @param[out] out_i   Fast-dim coordinates of sampled path
+   @param[out] out_j   Slow-dim coordinates of sampled path
+   @param[in]  ref_i   Reference point coordinates (fast dim)
+   @param[in]  ref_j   Reference point coordinates (slow dim)
+   @param[in]  n_refs  Number of reference points (must be >= 2)
+   @param[in]  close_loop  If nonzero, connect last point back to first
+   @param[in]  use_d4      If nonzero, D4 connectivity; otherwise D8
+
+   @return Total number of output points written to out_i/out_j.
+           Caller allocates out_i/out_j with upper bound:
+           sum of max(|di|,|dj|) for each segment pair, plus n_refs, times 2 for
+   D4.
+*/
+TOPOTOOLBOX_API
+ptrdiff_t rasterize_path(ptrdiff_t *out_i, ptrdiff_t *out_j,
+                         const ptrdiff_t *ref_i, const ptrdiff_t *ref_j,
+                         ptrdiff_t n_refs, int close_loop, int use_d4);
+
+/**
+   @brief Simplify a polyline using the Iterative End-Point Fit (IEF) engine.
+
+   @details
+   Reduces vertices while preserving shape. First and last points are always
+   kept. Three stopping criteria are supported:
+
+   method 0 (SIMPLIFY_FIXED_N): tolerance = exact number of output points
+     (clamped to [2, n_points]).
+
+   method 1 (SIMPLIFY_KNEEDLE): automatic knee detection on normalised RMSE
+     curve; tolerance is ignored.
+
+   method 2 (SIMPLIFY_VW_AREA): Visvalingam-Whyatt area-based insertion.
+     tolerance = triangle area threshold (coordinate units squared). Points
+     are inserted in decreasing triangle-area order; stops when the next
+     point's effective area falls below tolerance.
+
+   @param[out] out_i Simplified coords fast dim (pre-allocated, size n_points)
+   @param[out] out_j Simplified coords slow dim (pre-allocated, size n_points)
+   @param[in]  track_i Input coords fast dim
+   @param[in]  track_j Input coords slow dim
+   @param[in]  n_points Number of input vertices
+   @param[in]  tolerance Meaning depends on method (see above)
+   @param[in]  method    One of SIMPLIFY_* constants (0-2)
+
+   @return Number of vertices in the simplified line
+*/
+TOPOTOOLBOX_API
+ptrdiff_t simplify_line(float *out_i, float *out_j, const float *track_i,
+                        const float *track_j, ptrdiff_t n_points,
+                        float tolerance, int method);
+
 #endif  // TOPOTOOLBOX_H
