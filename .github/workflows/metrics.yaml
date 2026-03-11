@@ -12,6 +12,8 @@ jobs:
     if: github.repository == 'TopoToolbox/libtopotoolbox'
     runs-on: ubuntu-latest
     steps:
+      - name: Install GDAL
+        run: sudo apt update && sudo apt install libgdal-dev
       - name: Add ssh key
         run: |
           mkdir ~/.ssh
