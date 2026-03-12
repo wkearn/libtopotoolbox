@@ -167,8 +167,11 @@ if (TT_FORMAT_CHECK AND CLANG_FORMAT_EXE)
     excesstopography
     filters
     swaths
-    polyline
-    snapshot)
+    polyline)
+
+  if (TARGET snapshot)
+    list(APPEND FORMAT_TARGETS snapshot)
+  endif()
 
   set(ALL_SOURCES)
 
