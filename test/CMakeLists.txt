@@ -123,7 +123,7 @@ elseif(TT_DOWNLOAD_SNAPSHOTS)
     snapshot_data
     URL https://github.com/TopoToolbox/snapshot_data/releases/download/${TT_SNAPSHOT_VERSION}/snapshot_data.tar.gz
     URL_HASH SHA256=${TT_SNAPSHOT_HASH}
-    SOURCE_DIR snapshots/data/
+    SOURCE_DIR ${TT_SNAPSHOT_DATA_PATH}
     DOWNLOAD_EXTRACT_TIMESTAMP false)
   FetchContent_MakeAvailable(snapshot_data)
   set(TT_SNAPSHOT_DIR ${snapshot_data_SOURCE_DIR})
