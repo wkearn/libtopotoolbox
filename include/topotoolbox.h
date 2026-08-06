@@ -3473,9 +3473,21 @@ void flow_routing_mfd_directions(uint8_t *direction, float *totalgradient,
    @endparblock
 
 
+   @param[in] dem The input DEM
+   @parblock
+
+   A float array with size dims[0] x dims[1].
+
+   @endparblock
+
    @param[in]  dims The dimensions of the DEM
    @parblock
    A pair of ptrdiff_t, fastest changing dimension first.
+   @endparblock
+
+   @param[in] order The memory order of the underlying arrays
+   @parblock
+   0 for column-major, 1 for row-major
    @endparblock
  */
 TOPOTOOLBOX_API
